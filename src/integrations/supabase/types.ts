@@ -14,7 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      account_deletions: {
+        Row: {
+          cancelled_at: string | null
+          final_at: string
+          requested_at: string
+          state: Database["public"]["Enums"]["deletion_state"]
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          final_at?: string
+          requested_at?: string
+          state?: Database["public"]["Enums"]["deletion_state"]
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          final_at?: string
+          requested_at?: string
+          state?: Database["public"]["Enums"]["deletion_state"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      age_confirmations: {
+        Row: {
+          confirmed_at: string
+          id: string
+          purge_after: string | null
+          terms_version: string
+          user_id_hash: string
+        }
+        Insert: {
+          confirmed_at?: string
+          id?: string
+          purge_after?: string | null
+          terms_version: string
+          user_id_hash: string
+        }
+        Update: {
+          confirmed_at?: string
+          id?: string
+          purge_after?: string | null
+          terms_version?: string
+          user_id_hash?: string
+        }
+        Relationships: []
+      }
+      blocked_identities: {
+        Row: {
+          created_at: string
+          device_id_hash: string | null
+          email_hash: string | null
+          expires_at: string | null
+          id: string
+          provider_id_hash: string | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          device_id_hash?: string | null
+          email_hash?: string | null
+          expires_at?: string | null
+          id?: string
+          provider_id_hash?: string | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          device_id_hash?: string | null
+          email_hash?: string | null
+          expires_at?: string | null
+          id?: string
+          provider_id_hash?: string | null
+          reason?: string
+        }
+        Relationships: []
+      }
+      private_contact: {
+        Row: {
+          created_at: string
+          phone_e164: string | null
+          phone_hash: string | null
+          phone_verified_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          phone_e164?: string | null
+          phone_hash?: string | null
+          phone_verified_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          phone_e164?: string | null
+          phone_hash?: string | null
+          phone_verified_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age_confirmed_at: string
+          avatar_url: string | null
+          bio: string
+          created_at: string
+          deactivated_at: string | null
+          display_name: string
+          findable_by_email: boolean
+          findable_by_phone: boolean
+          is_private: boolean
+          style_vibes: string[]
+          suggestable: boolean
+          terms_version: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          age_confirmed_at: string
+          avatar_url?: string | null
+          bio?: string
+          created_at?: string
+          deactivated_at?: string | null
+          display_name?: string
+          findable_by_email?: boolean
+          findable_by_phone?: boolean
+          is_private?: boolean
+          style_vibes?: string[]
+          suggestable?: boolean
+          terms_version: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          age_confirmed_at?: string
+          avatar_url?: string | null
+          bio?: string
+          created_at?: string
+          deactivated_at?: string | null
+          display_name?: string
+          findable_by_email?: boolean
+          findable_by_phone?: boolean
+          is_private?: boolean
+          style_vibes?: string[]
+          suggestable?: boolean
+          terms_version?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_devices: {
+        Row: {
+          city: string | null
+          created_at: string
+          device_label: string
+          id: string
+          last_seen_at: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          device_label?: string
+          id?: string
+          last_seen_at?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          device_label?: string
+          id?: string
+          last_seen_at?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["staff_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      username_history: {
+        Row: {
+          changed_at: string
+          held_until: string
+          id: string
+          old_username: string
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          held_until?: string
+          id?: string
+          old_username: string
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          held_until?: string
+          id?: string
+          old_username?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +253,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      deletion_state: "pending" | "cancelled" | "completed"
+      staff_role: "admin" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +381,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      deletion_state: ["pending", "cancelled", "completed"],
+      staff_role: ["admin", "moderator"],
+    },
   },
 } as const

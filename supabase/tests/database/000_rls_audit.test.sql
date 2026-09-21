@@ -4,7 +4,15 @@
 -- allowed only for server-only tables; those are listed in the second test).
 begin;
 create extension if not exists pgtap with schema extensions;
+set search_path = public, extensions;
 select plan(2);
+
+-- The audit query (spec 15.2 #3), printed into the test log for the waypoint report.
+select diag('AUDIT ' || c.relname || '  rls=' || case when c.relrowsecurity then 'on' else 'OFF' end
+            || '  policies=' || (select count(*) from pg_policies p where p.schemaname = 'public' and p.tablename = c.relname))
+  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+ where n.nspname = 'public' and c.relkind = 'r'
+ order by c.relname;
 
 select is(
   (select count(*)::int from pg_tables where schemaname = 'public' and not rowsecurity),

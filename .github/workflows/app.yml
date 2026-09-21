@@ -1,0 +1,27 @@
+# Kleit — app checks on every push to main (roadmap M1.3, M1.16).
+#   theme  — no hard-coded colours/fonts/sizes on screens; every text colour ≥ 4.5:1 in both themes
+#   build  — the SPA still builds to static files (decision 109: Capacitor and Cloudflare need that)
+name: app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Theme check
+        run: node scripts/check-theme.mjs
+      - name: Type check
+        run: bunx tsc --noEmit
+      - name: Build
+        run: bun run build

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 140" role="img" aria-label="Kleit">
+  <!-- Kleit mark: scissors whose handle is a clothes-hanger hook, crossing at a pivot pin, reading as a K.
+       Designed by zokono, 18 Sep 2026 (IMG_9601.png); vectorised by Claude. One colour: currentColor.
+       Never used inside Creative mode (decision 106). -->
+  <defs>
+    <mask id="kleit-mark-pin">
+      <rect x="-52" y="-70" width="208" height="280" fill="#fff"/>
+      <circle cx="19" cy="68.5" r="4.4" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="currentColor" mask="url(#kleit-mark-pin)">
+    <path d="M2.6 31.2 14.4 29.6V129.6c0 7.2-11.8 7.2-11.8 0Z"/>
+    <path d="M3.5 63 11 53.5C40 45.5 71 43 100 50L19 74Z"/>
+    <g transform="rotate(24 19 68.5)"><path d="M3.5 63 11 53.5C40 45.5 71 43 100 50L19 74Z" transform="matrix(1 0 0 -1 0 137)"/></g>
+    <path d="M8.5 34C9 20 14 7 26 7c11.5 0 18.5 6.5 18.5 14 0 7.5-6 11.5-13 10.5" fill="none" stroke="currentColor" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

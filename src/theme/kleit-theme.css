@@ -1,0 +1,145 @@
+/*
+ * Kleit theme — the 22 theme settings (design pack §8.4, look A "Studio", §10.1).
+ * OWNED BY GITHUB. Do not edit from a Lovable prompt (technical pack §6 #7).
+ *
+ * Raw values live in --kl-* variables; Tailwind utilities (bg-canvas, text-ink,
+ * bg-brand, rounded-md, shadow-card …) are registered from them in src/styles.css.
+ * Design-pack name → variable: color-X → --kl-color-X, except color-accent →
+ * --kl-color-brand (utility `brand`), because shadcn/ui already uses `accent`
+ * for hover backgrounds.
+ *
+ * Every screen names one of these, never a colour, font or size (spec 2.1 #16).
+ * Theme settings govern the app AROUND the artwork only — never a user's canvas
+ * or anything placed on it (decision 107, lesson L14). `--color-surface-2` is the
+ * neutral ground for item tiles and the builder canvas and stays neutral grey in
+ * both themes so clothing colours read true (spec 20.3 #6).
+ *
+ * Dark mode follows the phone (decision 90). `data-theme="light|dark"` on any
+ * element forces a theme inside it (used by the component review page only).
+ *
+ * Contrast is checked by scripts/check-theme.mjs — every text colour ≥ 4.5:1 on
+ * canvas, surface and surface-2, in both themes.
+ */
+
+/* ---- Fonts (SIL Open Font License, self-hosted so the phone apps work offline) ---- */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---- Light (Studio) ---- */
+:root,
+[data-theme="light"] {
+  --kl-color-canvas: #FAF9F7;
+  --kl-color-surface: #FFFFFF;
+  --kl-color-surface-2: #F2F1EE;
+  --kl-color-ink: #161513;
+  --kl-color-ink-soft: #6B6862;
+  --kl-color-line: #E5E3DE;
+  --kl-color-brand: #C0442B;
+  --kl-color-brand-ink: #FFFFFF;
+  --kl-color-positive: #1F7A5C;
+  --kl-color-warning: #8A5300;
+  --kl-color-danger: #B3261E;
+  --kl-color-scrim: rgb(21 20 18 / 0.62);
+
+  --kl-font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --kl-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --kl-text-xs: 0.75rem;   /* 12 */
+  --kl-text-sm: 0.875rem;  /* 14 */
+  --kl-text-base: 1rem;    /* 16 — never smaller on inputs: iOS zooms below 16 */
+  --kl-text-lg: 1.125rem;  /* 18 */
+  --kl-text-xl: 1.375rem;  /* 22 */
+  --kl-text-2xl: 1.75rem;  /* 28 */
+  --kl-text-3xl: 2.125rem; /* 34 */
+
+  --kl-radius-sm: 8px;     /* tiles, fields */
+  --kl-radius-md: 16px;    /* cards, sheets */
+  --kl-radius-pill: 999px; /* chips, the Create button */
+
+  --kl-space-1: 4px;
+  --kl-space-2: 8px;
+  --kl-space-3: 12px;
+  --kl-space-4: 16px;
+  --kl-space-5: 24px;
+  --kl-space-6: 32px;
+  --kl-space-7: 48px;
+  --kl-space-8: 64px;
+
+  --kl-shadow-card: 0 1px 2px rgb(22 21 19 / 0.06), 0 4px 12px rgb(22 21 19 / 0.06);
+  --kl-shadow-sheet: 0 -8px 32px rgb(22 21 19 / 0.14);
+
+  --kl-motion-fast: 120ms;
+  --kl-motion-slow: 240ms;
+
+  color-scheme: light;
+}
+
+/* ---- Dark twin ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --kl-color-canvas: #151412;
+    --kl-color-surface: #1E1D1A;
+    --kl-color-surface-2: #232220;
+    --kl-color-ink: #F2F0EB;
+    --kl-color-ink-soft: #A8A49C;
+    --kl-color-line: #34312C;
+    --kl-color-brand: #E4674B;
+    --kl-color-brand-ink: #1A0F0B;
+    --kl-color-positive: #5FBF97;
+    --kl-color-warning: #E0A43B;
+    --kl-color-danger: #F2877E;
+    --kl-color-scrim: rgb(0 0 0 / 0.62);
+    --kl-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.3);
+    --kl-shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+[data-theme="dark"] {
+  --kl-color-canvas: #151412;
+  --kl-color-surface: #1E1D1A;
+  --kl-color-surface-2: #232220;
+  --kl-color-ink: #F2F0EB;
+  --kl-color-ink-soft: #A8A49C;
+  --kl-color-line: #34312C;
+  --kl-color-brand: #E4674B;
+  --kl-color-brand-ink: #1A0F0B;
+  --kl-color-positive: #5FBF97;
+  --kl-color-warning: #E0A43B;
+  --kl-color-danger: #F2877E;
+  --kl-color-scrim: rgb(0 0 0 / 0.62);
+  --kl-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.3);
+  --kl-shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+/* ---- Reduce motion (spec 21 #9): no slide, no shimmer ---- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --kl-motion-fast: 0ms;
+    --kl-motion-slow: 0ms;
+  }
+}
+
+@keyframes kl-shimmer {
+  0% { opacity: 1; }
+  50% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+.kl-skeleton {
+  animation: kl-shimmer 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kl-skeleton { animation: none; }
+}

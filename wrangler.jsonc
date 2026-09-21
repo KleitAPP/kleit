@@ -1,0 +1,24 @@
+// Kleit — the private test site on workers.dev (roadmap M1.2, spec 2.1 #4 and #11, decision 109).
+// The app itself is a static SPA bundle (TanStack Start SPA mode). Cloudflare serves those files
+// for free; unknown paths fall back to the app shell so deep links like /@name still load.
+// /s/* is reserved for the share-page Worker (worker/index.ts) and NEVER falls back to the shell —
+// that is what keeps link previews and Google indexing possible later (technical pack §7 #10).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kleit-test",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "build": {
+    // SPA mode prerenders the shell as _shell.html; Cloudflare's SPA fallback serves /index.html.
+    "command": "npm run build && cp .output/public/_shell.html .output/public/index.html"
+  },
+  "assets": {
+    "directory": ".output/public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/s/*"]
+  },
+  "observability": { "enabled": true }
+}

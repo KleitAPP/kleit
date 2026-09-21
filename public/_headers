@@ -1,0 +1,4 @@
+# Private test site: never indexed (roadmap M1.2, security plan #21).
+# Remove or change this before the live site at M10 — public shared set pages must be indexable (spec 8.4).
+/*
+  X-Robots-Tag: noindex, nofollow

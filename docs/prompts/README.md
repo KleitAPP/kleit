@@ -3,3 +3,5 @@
 Every prompt entered into Lovable is saved here, named by waypoint (for example `M1.3-theme-and-components.md`), so the build can be repeated and audited. See `claude/project-instructions.md` §10 and `claude/prompt-engineering-playbook.md` in the Kleit project.
 
 Rules every prompt follows: one feature per prompt · Plan mode first · name the screen IDs, wireframe, states row and theme settings · end with "only change X" · never create tables, policies or migrations (those live in `supabase/migrations/`) · never enable Lovable Cloud.
+
+The private test site (M1.2) is https://kleit-test.kleitapp-team.workers.dev — deployed by Cloudflare Workers Builds on every push to `main`; never indexed (`X-Robots-Tag` + robots meta).

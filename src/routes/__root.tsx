@@ -79,6 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Kleit" },
       { name: "description", content: "Kleit" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [
       {

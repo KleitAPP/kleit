@@ -1,0 +1,78 @@
+# Kleit — database pipeline (technical pack §6, security plan #3 and #22)
+# Runs on every push to main that touches supabase/, and by hand from the Actions tab.
+#   1. migrate — applies supabase/migrations/ to kleit-test, in timestamp order
+#   2. test    — runs the RLS test suite in supabase/tests/database/ against kleit-test
+#   3. types   — regenerates src/integrations/supabase/types.ts and commits it if it changed
+# Secrets (pasted by the owner in GitHub → Settings → Secrets; never in chat or code):
+#   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
+name: database
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/database.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: database-kleit-test
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: zoimaafxtweeoqnmrbkh
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Link kleit-test
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+      - name: Apply migrations
+        run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --yes
+
+  test:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Link kleit-test
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+      - name: RLS test suite
+        run: supabase test db --linked
+
+  types:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Generate types
+        run: supabase gen types typescript --project-id "$SUPABASE_PROJECT_REF" --schema public > src/integrations/supabase/types.ts
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- src/integrations/supabase/types.ts; then
+            echo "types.ts unchanged"
+          else
+            git config user.name "kleit-ci"
+            git config user.email "kleit-ci@users.noreply.github.com"
+            git add src/integrations/supabase/types.ts
+            git commit -m "chore: regenerate Supabase types [skip ci]"
+            git push
+          fi

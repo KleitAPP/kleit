@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOTS = ["src/routes", "src/components/kleit", "src/brand"];
+const ROOTS = ["src/routes", "src/screens", "src/app", "src/components/kleit", "src/brand"];
 const SKIP = [/routeTree\.gen\.ts$/, /\.svg$/, /README\.md$/];
 const RULES = [
   [/#[0-9a-fA-F]{3,8}\b(?![\w-])/g, "hex colour"],

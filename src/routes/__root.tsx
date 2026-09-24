@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { LaunchGate } from "../screens/LaunchGate";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -114,8 +115,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {/* S1 launch check: reads the emergency switches, then shows the update screen (S2),
+          the maintenance screen (S3), or the app. Nothing renders above it. */}
+      <LaunchGate>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </LaunchGate>
     </QueryClientProvider>
   );
 }

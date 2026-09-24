@@ -1,5 +1,6 @@
 # Kleit — app checks on every push to main (roadmap M1.3, M1.16).
 #   theme  — no hard-coded colours/fonts/sizes on screens; every text colour ≥ 4.5:1 in both themes
+#   version— the rule that decides whether the forced-update screen shows (roadmap M1.14)
 #   build  — the SPA still builds to static files (decision 109: Capacitor and Cloudflare need that)
 name: app
 
@@ -21,6 +22,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Theme check
         run: node scripts/check-theme.mjs
+      - name: Version rule check
+        run: bun scripts/check-version-rule.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

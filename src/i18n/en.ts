@@ -34,6 +34,17 @@ export const en = {
   "notSaved": "Not saved yet — we'll keep trying. Your work is safe on this phone",
   "loading": "Loading",
   "disclosure.commission": "We earn a commission from purchases",
+
+  "launch.checking": "Loading Kleit",
+
+  "update.title": "Update Kleit to keep going",
+  "update.body": "This version of Kleit is too old to run. Get the newest one and you're straight back in.",
+  "update.action": "Reload Kleit",
+  "update.versions": "You have {running}. Kleit needs {minimum}.",
+
+  "maintenance.title": "Kleit is closed for a quick fix",
+  "maintenance.body": "Nothing you made is lost. Try again in a few minutes.",
+  "maintenance.action": "Try again",
 } as const;
 
 export type MessageKey = keyof typeof en;

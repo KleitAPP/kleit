@@ -10,12 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JoinRouteImport } from './routes/join'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
+import { Route as JoinCodeRouteImport } from './routes/join.code'
+import { Route as JoinEmailRouteImport } from './routes/join.email'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevComponentsRoute = DevComponentsRouteImport.update({
@@ -28,33 +42,79 @@ const DevScreensRoute = DevScreensRouteImport.update({
   path: '/dev/screens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinCodeRoute = JoinCodeRouteImport.update({
+  id: '/code',
+  path: '/code',
+  getParentRoute: () => JoinRoute,
+} as any)
+const JoinEmailRoute = JoinEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => JoinRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/join': typeof JoinRouteWithChildren
+  '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/join/code': typeof JoinCodeRoute
+  '/join/email': typeof JoinEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/join': typeof JoinRouteWithChildren
+  '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/join/code': typeof JoinCodeRoute
+  '/join/email': typeof JoinEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/join': typeof JoinRouteWithChildren
+  '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/join/code': typeof JoinCodeRoute
+  '/join/email': typeof JoinEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dev/components' | '/dev/screens'
+  fullPaths:
+    | '/'
+    | '/join'
+    | '/welcome'
+    | '/dev/components'
+    | '/dev/screens'
+    | '/join/code'
+    | '/join/email'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dev/components' | '/dev/screens'
-  id: '__root__' | '/' | '/dev/components' | '/dev/screens'
+  to:
+    | '/'
+    | '/join'
+    | '/welcome'
+    | '/dev/components'
+    | '/dev/screens'
+    | '/join/code'
+    | '/join/email'
+  id:
+    | '__root__'
+    | '/'
+    | '/join'
+    | '/welcome'
+    | '/dev/components'
+    | '/dev/screens'
+    | '/join/code'
+    | '/join/email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  JoinRoute: typeof JoinRouteWithChildren
+  WelcomeRoute: typeof WelcomeRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DevScreensRoute: typeof DevScreensRoute
 }
@@ -66,6 +126,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/components': {
@@ -82,11 +156,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevScreensRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/code': {
+      id: '/join/code'
+      path: '/code'
+      fullPath: '/join/code'
+      preLoaderRoute: typeof JoinCodeRouteImport
+      parentRoute: typeof JoinRoute
+    }
+    '/join/email': {
+      id: '/join/email'
+      path: '/email'
+      fullPath: '/join/email'
+      preLoaderRoute: typeof JoinEmailRouteImport
+      parentRoute: typeof JoinRoute
+    }
   }
 }
 
+interface JoinRouteChildren {
+  JoinCodeRoute: typeof JoinCodeRoute
+  JoinEmailRoute: typeof JoinEmailRoute
+}
+
+const JoinRouteChildren: JoinRouteChildren = {
+  JoinCodeRoute: JoinCodeRoute,
+  JoinEmailRoute: JoinEmailRoute,
+}
+
+const JoinRouteWithChildren = JoinRoute._addFileChildren(JoinRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  JoinRoute: JoinRouteWithChildren,
+  WelcomeRoute: WelcomeRoute,
   DevComponentsRoute: DevComponentsRoute,
   DevScreensRoute: DevScreensRoute,
 }

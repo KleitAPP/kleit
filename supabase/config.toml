@@ -1,1 +1,40 @@
 project_id = "zoimaafxtweeoqnmrbkh"
+
+# Auth settings live here, not in the dashboard, so that a change to how people sign in is a
+# reviewed file with a history like everything else (technical pack section 6 #3). CI applies
+# this with `supabase config push` on every push that touches supabase/.
+
+[auth]
+# The only addresses Supabase will send people back to after a sign-in. Anything not on this
+# list is refused, which is what stops a stolen link redirecting somewhere else.
+site_url = "https://kleit-test.kleitapp-team.workers.dev"
+additional_redirect_urls = [
+  "https://kleit-test.kleitapp-team.workers.dev",
+  "https://kleit-test.kleitapp-team.workers.dev/**",
+  "http://localhost:3000",
+  "http://localhost:3000/**",
+]
+
+[auth.email]
+enable_signup = true
+# No magic links: people get a 6-digit code they can read out or paste (spec 3.1 #3).
+# The code arrives because the template below prints {{ .Token }} and never a link.
+otp_length = 6
+# Ten minutes, matching what the email itself promises (design pack section 6.4).
+otp_expiry = 600
+# We are not a password app. Nobody confirms an address separately; the code IS the proof.
+enable_confirmations = false
+
+[auth.email.template.magic_link]
+subject = "Your Kleit code: {{ .Token }}"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.rate_limit]
+# Wrong codes are limited per device, not per email address (owner's decision, 2026-09-25).
+# Ten tries per five minutes from one internet connection, against a code that dies after ten
+# minutes, means guessing a 6-digit code needs thousands of separate connections. Limiting per
+# email instead would let anyone who knows your address lock you out of your own account.
+token_verifications = 10
+# Supabase's built-in sender is capped at 2 an hour and only reaches team addresses. Real
+# sending waits for our own domain and Resend, at the domain stage before M8.
+email_sent = 2

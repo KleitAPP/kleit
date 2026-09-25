@@ -1,6 +1,7 @@
 # Kleit — database pipeline (technical pack §6, security plan #3 and #22)
 # Runs on every push to main that touches supabase/, and by hand from the Actions tab.
-#   1. migrate — applies supabase/migrations/ to kleit-test, in timestamp order
+#   1. migrate — applies supabase/migrations/ to kleit-test, in timestamp order, then pushes
+#                supabase/config.toml, so auth settings are a reviewed file, not dashboard clicks
 #   2. test    — runs the RLS test suite in supabase/tests/database/ against kleit-test
 #   3. types   — regenerates src/integrations/supabase/types.ts and commits it if it changed
 # Secrets (pasted by the owner in GitHub → Settings → Secrets; never in chat or code):
@@ -39,6 +40,12 @@ jobs:
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
       - name: Apply migrations
         run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --yes
+      # Auth settings (code length, expiry, the per-device limit on wrong codes, the sign-in
+      # email) come from supabase/config.toml. Printed first so the run log shows what changed.
+      - name: Show auth config
+        run: cat supabase/config.toml
+      - name: Apply auth config
+        run: supabase config push --project-ref "$SUPABASE_PROJECT_REF"
 
   test:
     needs: migrate

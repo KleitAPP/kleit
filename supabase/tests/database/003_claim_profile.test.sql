@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, email) values
   ('55555555-5555-4555-8555-555555555555', 'newbie@test.kleit'),
@@ -30,14 +30,6 @@ select pg_temp.act_as('55555555-5555-4555-8555-555555555555');
 select lives_ok($$ select claim_profile('jaywears', 'Jay', 'v0.1') $$, 'claim: a new account can take a free username');
 select is((select username from profiles where user_id = '55555555-5555-4555-8555-555555555555'),
   'jaywears', 'claim: the profile row exists with that username');
--- Counted against THIS account's hash, not the whole table, so a real sign-up on kleit-test
--- can never make this test fail.
-select is((select count(*)::int from age_confirmations
-             where user_id_hash = encode(sha256('55555555-5555-4555-8555-555555555555'::text::bytea), 'hex')),
-  1, 'claim: the 18+ record is filed at the same time (spec 3.7 #13)');
-select is((select count(*)::int from age_confirmations
-             where user_id_hash = '55555555-5555-4555-8555-555555555555'),
-  0, 'claim: the 18+ record holds a hash, never the account id itself');
 select ok(not username_available('jaywears'), 'claim: the name is taken afterwards');
 
 select throws_ok($$ select claim_profile('somethingelse') $$, '23505', null,
@@ -47,6 +39,21 @@ select pg_temp.act_as('66666666-6666-4666-8666-666666666666');
 select throws_ok($$ select claim_profile('jaywears') $$, '23514', null,
   'claim: a second account cannot take a name already in use');
 
+-- The 18+ record can only be read with the role reset, because a signed-in account is not
+-- allowed to see this table at all. That refusal is the point of it, so it is checked first.
+select throws_ok(
+  $$ select count(*) from age_confirmations $$, '42501', null,
+  'age record: a signed-in account cannot read the 18+ table at all');
+
 reset role;
+-- Counted against THIS account's hash, not the whole table, so a real sign-up on kleit-test
+-- can never make this test fail.
+select is((select count(*)::int from age_confirmations
+             where user_id_hash = encode(sha256('55555555-5555-4555-8555-555555555555'::text::bytea), 'hex')),
+  1, 'age record: filed at the same moment the profile was made (spec 3.7 #13)');
+select is((select count(*)::int from age_confirmations
+             where user_id_hash = '55555555-5555-4555-8555-555555555555'),
+  0, 'age record: holds a one-way hash, never the account id itself');
+
 select * from finish();
 rollback;

@@ -314,6 +314,7 @@ export type Database = {
         }
       }
       username_available: { Args: { candidate: string }; Returns: boolean }
+      username_status: { Args: { candidate: string }; Returns: string }
     }
     Enums: {
       deletion_state: "pending" | "cancelled" | "completed"

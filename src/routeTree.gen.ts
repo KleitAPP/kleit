@@ -16,6 +16,8 @@ import { Route as DevScreensRouteImport } from './routes/dev.screens'
 import { Route as JoinIndexRouteImport } from './routes/join.index'
 import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
+import { Route as JoinNameRouteImport } from './routes/join.name'
+import { Route as JoinUsernameRouteImport } from './routes/join.username'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +54,16 @@ const JoinEmailRoute = JoinEmailRouteImport.update({
   path: '/join/email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinNameRoute = JoinNameRouteImport.update({
+  id: '/join/name',
+  path: '/join/name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinUsernameRoute = JoinUsernameRouteImport.update({
+  id: '/join/username',
+  path: '/join/username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,6 +72,8 @@ export interface FileRoutesByFullPath {
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/name': typeof JoinNameRoute
+  '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +83,8 @@ export interface FileRoutesByTo {
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/name': typeof JoinNameRoute
+  '/join/username': typeof JoinUsernameRoute
   '/join': typeof JoinIndexRoute
 }
 export interface FileRoutesById {
@@ -79,6 +95,8 @@ export interface FileRoutesById {
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/name': typeof JoinNameRoute
+  '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +108,8 @@ export interface FileRouteTypes {
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join/name'
+    | '/join/username'
     | '/join/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +119,8 @@ export interface FileRouteTypes {
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join/name'
+    | '/join/username'
     | '/join'
   id:
     | '__root__'
@@ -108,6 +130,8 @@ export interface FileRouteTypes {
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join/name'
+    | '/join/username'
     | '/join/'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +142,8 @@ export interface RootRouteChildren {
   DevScreensRoute: typeof DevScreensRoute
   JoinCodeRoute: typeof JoinCodeRoute
   JoinEmailRoute: typeof JoinEmailRoute
+  JoinNameRoute: typeof JoinNameRoute
+  JoinUsernameRoute: typeof JoinUsernameRoute
   JoinIndexRoute: typeof JoinIndexRoute
 }
 
@@ -172,6 +198,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/name': {
+      id: '/join/name'
+      path: '/join/name'
+      fullPath: '/join/name'
+      preLoaderRoute: typeof JoinNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/username': {
+      id: '/join/username'
+      path: '/join/username'
+      fullPath: '/join/username'
+      preLoaderRoute: typeof JoinUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -182,6 +222,8 @@ const rootRouteChildren: RootRouteChildren = {
   DevScreensRoute: DevScreensRoute,
   JoinCodeRoute: JoinCodeRoute,
   JoinEmailRoute: JoinEmailRoute,
+  JoinNameRoute: JoinNameRoute,
+  JoinUsernameRoute: JoinUsernameRoute,
   JoinIndexRoute: JoinIndexRoute,
 }
 export const routeTree = rootRouteImport

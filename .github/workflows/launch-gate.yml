@@ -1,0 +1,34 @@
+# Kleit — launch-gate smoke test (roadmap M1.14).
+# Drives the deployed test site with a real browser and checks that the emergency switches block
+# the app when they should, and — the one that matters most — that the app still opens when the
+# switches cannot be read at all, instead of hanging on the splash screen (lesson L22).
+#
+# Not on every push: it needs a browser and a deployed site, so it runs on demand and after the
+# app workflow finishes, once the new bundle is live.
+name: launch-gate
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Once a week, so a change somewhere else cannot quietly break the one screen that can lock
+    # everybody out. Tuesdays, 07:13 UTC.
+    - cron: "13 7 * * 2"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # --no-save so the repo's lockfile and the per-push checks stay untouched by a browser dep.
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Launch-gate smoke test
+        run: node scripts/check-launch-gate.mjs

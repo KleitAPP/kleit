@@ -50,10 +50,32 @@ function asVersion(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : fallback;
 }
 
+/**
+ * How long the launch check waits for the switches before it decides they cannot be read.
+ *
+ * This deadline is not optional. On a phone with no signal, supabase-js keeps retrying a dead
+ * connection and the request never finishes at all, so without a deadline the launch check would
+ * sit on the splash for ever - which is worse than any switch being wrong.
+ */
+export const SETTINGS_TIMEOUT_MS = 4_000;
+
 /** Reads all seven switches in one request. A key that is missing or the wrong shape keeps its open default. */
 export async function fetchAppSettings(): Promise<AppSettings> {
-  const { data, error } = await supabase.from("app_settings").select("key, value");
-  if (error) throw error;
+  // A plain AbortController, not AbortSignal.timeout(), because the older Android we test on
+  // does not have AbortSignal.timeout (Chrome 103+).
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), SETTINGS_TIMEOUT_MS);
+  let data: { key: string; value: unknown }[] | null = null;
+  try {
+    const result = await supabase
+      .from("app_settings")
+      .select("key, value")
+      .abortSignal(controller.signal);
+    if (result.error) throw result.error;
+    data = result.data;
+  } finally {
+    clearTimeout(deadline);
+  }
 
   const rows = new Map<string, unknown>((data ?? []).map((row) => [row.key, row.value]));
   const base = SETTINGS_WHEN_UNREADABLE;
@@ -74,5 +96,7 @@ export const appSettingsQuery = {
   queryFn: fetchAppSettings,
   /** Re-read at most once a minute, and again whenever the app comes back to the front. */
   staleTime: 60_000,
+  /** One retry. Each attempt has its own deadline, so a retry cannot stall the launch either. */
   retry: 1,
+  retryDelay: 500,
 };

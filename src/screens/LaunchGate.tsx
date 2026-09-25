@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { appSettingsQuery, SETTINGS_WHEN_UNREADABLE } from "@/app/appSettings";
 import { APP_VERSION, isVersionBelow } from "@/app/version";
@@ -19,8 +19,21 @@ import { Maintenance } from "./Maintenance";
  *
  * If the switches cannot be read at all the app carries on (see SETTINGS_WHEN_UNREADABLE) - a
  * database hiccup must not lock everybody out of an app that is working.
+ *
+ * The splash has a hard time limit as well as the request having one, so however the network
+ * misbehaves nobody is left looking at the mark. Found the hard way: with no signal at all,
+ * supabase-js retried for ever and the launch check never finished (lesson L22).
  */
+/** The longest anyone waits on the splash before the app opens anyway. */
+const SPLASH_MAX_MS = 6_000;
+
 export function LaunchGate({ children }: { children: ReactNode }) {
+  const [waitedLongEnough, setWaitedLongEnough] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setWaitedLongEnough(true), SPLASH_MAX_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data, isPending, isFetching, refetch } = useQuery({
     ...appSettingsQuery,
     // Read in the browser only: the prerendered shell has no network, so it renders the splash
@@ -29,7 +42,7 @@ export function LaunchGate({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
 
-  if (isPending) return <LaunchSplash />;
+  if (isPending && !waitedLongEnough) return <LaunchSplash />;
 
   const settings = data ?? SETTINGS_WHEN_UNREADABLE;
 

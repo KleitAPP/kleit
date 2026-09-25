@@ -16,8 +16,11 @@ import { usingTestBotCheck } from "@/auth/turnstile";
  *
  * Signing in is not signing up, so someone coming back skips the checkbox: they agreed already,
  * and asking again would be theatre.
+ *
+ * This is `join.index.tsx`, not `join.tsx`, on purpose: a `join.tsx` would become a layout that
+ * wraps /join/email and /join/code, and the sheet would still be on screen underneath them.
  */
-export const Route = createFileRoute("/join")({
+export const Route = createFileRoute("/join/")({
   validateSearch: (search: Record<string, unknown>): { mode?: "signin" } =>
     search["mode"] === "signin" ? { mode: "signin" } : {},
   head: () => ({ meta: [{ title: "Join Kleit" }, { name: "robots", content: "noindex, nofollow" }] }),

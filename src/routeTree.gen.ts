@@ -10,21 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as JoinRouteImport } from './routes/join'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
+import { Route as JoinIndexRouteImport } from './routes/join.index'
 import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JoinRoute = JoinRouteImport.update({
-  id: '/join',
-  path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -42,81 +37,88 @@ const DevScreensRoute = DevScreensRouteImport.update({
   path: '/dev/screens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinIndexRoute = JoinIndexRouteImport.update({
+  id: '/join/',
+  path: '/join/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCodeRoute = JoinCodeRouteImport.update({
-  id: '/code',
-  path: '/code',
-  getParentRoute: () => JoinRoute,
+  id: '/join/code',
+  path: '/join/code',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const JoinEmailRoute = JoinEmailRouteImport.update({
-  id: '/email',
-  path: '/email',
-  getParentRoute: () => JoinRoute,
+  id: '/join/email',
+  path: '/join/email',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/join': typeof JoinRouteWithChildren
   '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/': typeof JoinIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/join': typeof JoinRouteWithChildren
   '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join': typeof JoinIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/join': typeof JoinRouteWithChildren
   '/welcome': typeof WelcomeRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/': typeof JoinIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/join'
     | '/welcome'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/join'
     | '/welcome'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join'
   id:
     | '__root__'
     | '/'
-    | '/join'
     | '/welcome'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
+    | '/join/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  JoinRoute: typeof JoinRouteWithChildren
   WelcomeRoute: typeof WelcomeRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DevScreensRoute: typeof DevScreensRoute
+  JoinCodeRoute: typeof JoinCodeRoute
+  JoinEmailRoute: typeof JoinEmailRoute
+  JoinIndexRoute: typeof JoinIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -126,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join': {
-      id: '/join'
-      path: '/join'
-      fullPath: '/join'
-      preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/welcome': {
@@ -156,41 +151,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevScreensRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/': {
+      id: '/join/'
+      path: '/join'
+      fullPath: '/join/'
+      preLoaderRoute: typeof JoinIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/code': {
       id: '/join/code'
-      path: '/code'
+      path: '/join/code'
       fullPath: '/join/code'
       preLoaderRoute: typeof JoinCodeRouteImport
-      parentRoute: typeof JoinRoute
+      parentRoute: typeof rootRouteImport
     }
     '/join/email': {
       id: '/join/email'
-      path: '/email'
+      path: '/join/email'
       fullPath: '/join/email'
       preLoaderRoute: typeof JoinEmailRouteImport
-      parentRoute: typeof JoinRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface JoinRouteChildren {
-  JoinCodeRoute: typeof JoinCodeRoute
-  JoinEmailRoute: typeof JoinEmailRoute
-}
-
-const JoinRouteChildren: JoinRouteChildren = {
-  JoinCodeRoute: JoinCodeRoute,
-  JoinEmailRoute: JoinEmailRoute,
-}
-
-const JoinRouteWithChildren = JoinRoute._addFileChildren(JoinRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  JoinRoute: JoinRouteWithChildren,
   WelcomeRoute: WelcomeRoute,
   DevComponentsRoute: DevComponentsRoute,
   DevScreensRoute: DevScreensRoute,
+  JoinCodeRoute: JoinCodeRoute,
+  JoinEmailRoute: JoinEmailRoute,
+  JoinIndexRoute: JoinIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

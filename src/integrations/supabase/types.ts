@@ -194,6 +194,18 @@ export type Database = {
         }
         Relationships: []
       }
+      reserved_usernames: {
+        Row: {
+          username: string
+        }
+        Insert: {
+          username: string
+        }
+        Update: {
+          username?: string
+        }
+        Relationships: []
+      }
       user_devices: {
         Row: {
           city: string | null
@@ -271,7 +283,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_profile: {
+        Args: {
+          p_display_name?: string
+          p_terms_version?: string
+          p_username: string
+        }
+        Returns: {
+          age_confirmed_at: string
+          avatar_url: string | null
+          bio: string
+          created_at: string
+          deactivated_at: string | null
+          display_name: string
+          findable_by_email: boolean
+          findable_by_phone: boolean
+          is_private: boolean
+          style_vibes: string[]
+          suggestable: boolean
+          terms_version: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      username_available: { Args: { candidate: string }; Returns: boolean }
     }
     Enums: {
       deletion_state: "pending" | "cancelled" | "completed"

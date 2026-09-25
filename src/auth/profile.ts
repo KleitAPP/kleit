@@ -24,19 +24,35 @@ export function tidyUsername(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, "").slice(0, USERNAME_MAX);
 }
 
-/** Asks the database whether this name is free. Used while typing; never the final word. */
-export async function isUsernameFree(candidate: string): Promise<boolean | null> {
-  const { data, error } = await supabase.rpc("username_available", { candidate });
+/** Why a name cannot be used. "reserved" covers our own name anywhere in it, and staff words. */
+export type UsernameStatus = "free" | "taken" | "reserved" | "shape";
+
+/** Asks the database, which is also what decides. Null means we could not reach it. */
+export async function usernameStatus(candidate: string): Promise<UsernameStatus | null> {
+  const { data, error } = await supabase.rpc("username_status", { candidate });
   if (error) return null;
-  return data === true;
+  return (data as UsernameStatus | null) ?? null;
 }
 
-/** Two suggestions in Kleit's own voice, from what the person already typed (design pack 6.3 #4). */
-export function suggestUsernames(taken: string): string[] {
+/**
+ * Two suggestions, only ever offered for a name someone else already has.
+ *
+ * They are checked against the database before being shown. An earlier version built them by
+ * hand and cheerfully offered "@admin.wears" to somebody who had just tried "@admin", which is
+ * the opposite of helpful: it hands a person the nearest name we did not want them to have.
+ */
+export async function suggestUsernames(taken: string): Promise<string[]> {
   const base = taken.replace(/[._]+$/, "");
-  return [`${base}.wears`, `${base}fits`]
+  const ideas = [`${base}.wears`, `${base}fits`, `${base}.fits`, `its.${base}`]
     .map((s) => s.slice(0, USERNAME_MAX))
     .filter((s) => usernameShapeProblem(s) === null);
+
+  const good: string[] = [];
+  for (const idea of ideas) {
+    if (good.length === 2) break;
+    if ((await usernameStatus(idea)) === "free") good.push(idea);
+  }
+  return good;
 }
 
 export type ClaimProblem = "taken" | "shape" | "already-have-one" | "signed-out" | "offline" | "unknown";

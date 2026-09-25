@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 
 import {
   claimProfile,
-  isUsernameFree,
   suggestUsernames,
   tidyUsername,
   usernameShapeProblem,
+  usernameStatus,
+  type UsernameStatus,
 } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
@@ -23,12 +24,13 @@ export const Route = createFileRoute("/join/username")({
   component: PickUsername,
 });
 
-type Availability = "idle" | "checking" | "free" | "taken" | "offline";
+type Availability = "idle" | "checking" | UsernameStatus | "offline";
 
 function PickUsername() {
   const navigate = useNavigate();
   const [typed, setTyped] = useState("");
   const [state, setState] = useState<Availability>("idle");
+  const [ideas, setIdeas] = useState<string[]>([]);
   const [claiming, setClaiming] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
 
@@ -42,11 +44,18 @@ function PickUsername() {
       return;
     }
     setState("checking");
+    setIdeas([]);
     let cancelled = false;
     const wait = setTimeout(async () => {
-      const free = await isUsernameFree(name);
+      const status = await usernameStatus(name);
       if (cancelled) return;
-      setState(free === null ? "offline" : free ? "free" : "taken");
+      setState(status ?? "offline");
+      // Suggestions belong only to a name someone else already has. A reserved name gets none,
+      // because offering the nearest one hands people exactly what we withheld.
+      if (status === "taken") {
+        const found = await suggestUsernames(name);
+        if (!cancelled) setIdeas(found);
+      }
     }, 350);
     return () => {
       cancelled = true;
@@ -66,7 +75,8 @@ function PickUsername() {
       return;
     }
     if (result.problem === "taken") {
-      setState("taken");
+      // The database refused it after all. Ask it why, so the wording is right.
+      setState((await usernameStatus(name)) ?? "taken");
       return;
     }
     if (result.problem === "already-have-one") {
@@ -75,8 +85,6 @@ function PickUsername() {
     }
     setRefusal(result.problem === "offline" ? t("username.offline") : t("join.failed"));
   }
-
-  const suggestions = suggestUsernames(name);
 
   return (
     <main className="flex min-h-dvh flex-col bg-canvas px-6 pt-12">
@@ -120,10 +128,13 @@ function PickUsername() {
           ) : null}
           {shape === null && state === "taken" ? (
             <span className="text-danger">
-              {suggestions.length === 2
-                ? t("username.taken", { name, first: suggestions[0] ?? "", second: suggestions[1] ?? "" })
+              {ideas.length === 2
+                ? t("username.taken", { name, first: ideas[0] ?? "", second: ideas[1] ?? "" })
                 : t("username.takenPlain", { name })}
             </span>
+          ) : null}
+          {shape === null && state === "reserved" ? (
+            <span className="text-danger">{t("username.reserved", { name })}</span>
           ) : null}
           {shape === null && state === "offline" ? (
             <span className="text-warning">{t("username.offline")}</span>

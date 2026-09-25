@@ -43,6 +43,7 @@ export const en = {
   "username.free": "@{name} is yours",
   "username.taken": "@{name} is taken. Try @{first} or @{second}",
   "username.takenPlain": "@{name} is taken. Try another",
+  "username.reserved": "@{name} isn't one we can give out. Try another",
   "username.tooShort": "A bit longer - at least 3 characters",
   "username.tooLong": "A bit shorter - 30 characters at most",
   "username.characters": "Letters, numbers, dots and underscores, and not to start or end",

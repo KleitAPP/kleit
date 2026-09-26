@@ -116,6 +116,7 @@ export const en = {
   "email.badAddress": "That doesn't look like an email address yet",
   "email.noAccount": "No Kleit account uses that address yet",
   "email.goSignUp": "Sign up instead",
+  "email.badDomain": "We can't send to that address. Try another one",
 
   "code.title": "Check your email",
   "code.sentTo": "We sent a 6-digit code to {email}",

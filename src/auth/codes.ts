@@ -13,7 +13,14 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /** What went wrong, in terms the screens can turn into the design pack's wording. */
-export type CodeProblem = "wrong-code" | "expired" | "too-many" | "no-account" | "offline" | "unknown";
+export type CodeProblem =
+  | "wrong-code"
+  | "expired"
+  | "too-many"
+  | "no-account"
+  | "bad-address"
+  | "offline"
+  | "unknown";
 
 export type CodeResult = { ok: true } | { ok: false; problem: CodeProblem };
 
@@ -30,6 +37,11 @@ function readProblem(error: {
   // Supabase says this when shouldCreateUser is false and the address has no account.
   if (code === "otp_disabled" || message.includes("signups not allowed") || message.includes("not found")) {
     return "no-account";
+  }
+  // The auth server refuses some domains outright (example.com, most disposable ones). Retrying
+  // can never work, so saying "try again" would be sending someone round a loop.
+  if (code === "email_address_invalid" || message.includes("email address") && message.includes("invalid")) {
+    return "bad-address";
   }
   if (code === "otp_expired" || message.includes("expired")) return "expired";
   if (message.includes("invalid") || message.includes("token")) return "wrong-code";

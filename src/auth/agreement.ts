@@ -56,12 +56,20 @@ export function rememberCodeSent(email: string): void {
   }
 }
 
+/**
+ * Fails CLOSED. The first version returned true when storage threw, so Safari private browsing,
+ * Lockdown Mode and embedded webviews all got past the gate - and the gate was the only thing in
+ * front of a mail sender (lesson L25). Two gates that fail in opposite directions is worse than
+ * either choice made twice.
+ *
+ * Storage is only the memory for a reload. The fact that a code was just sent travels with the
+ * navigation itself, in memory, which no URL can forge and no storage setting can break.
+ */
 export function codeWasSentTo(email: string): boolean {
   try {
     const sent = window.sessionStorage.getItem(SENT_KEY);
     return sent !== null && sent === email.trim().toLowerCase();
   } catch {
-    // If storage is refused we cannot tell, and refusing would strand a real person mid-sign-up.
-    return true;
+    return false;
   }
 }

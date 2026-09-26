@@ -47,12 +47,19 @@ function EmailEntry() {
     setSending(false);
     if (result.ok) {
       rememberCodeSent(address);
-      void navigate({ to: "/join/code", search: { email: address } });
+      // In memory as well as in storage: storage is for surviving a reload, this is for the
+      // browsers that refuse storage entirely.
+      void navigate({
+        to: "/join/code",
+        search: { email: address },
+        state: (previous) => ({ ...previous, codeSent: true }),
+      });
       return;
     }
     setNoAccount(result.problem === "no-account");
     setProblem(
       result.problem === "offline" ? t("join.offline")
+      : result.problem === "bad-address" ? t("email.badDomain")
       : result.problem === "no-account" ? t("email.noAccount")
       : t("join.failed"),
     );

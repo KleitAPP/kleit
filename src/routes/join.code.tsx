@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { checkCode, sendCode, tidyCode, type CodeProblem } from "@/auth/codes";
 import { whereDoIBelong } from "@/auth/session";
-import { codeWasSentTo } from "@/auth/agreement";
+import { codeWasSentTo, hasAgreed } from "@/auth/agreement";
+import { botCheckToken } from "@/auth/turnstile";
 import { t } from "@/i18n/en";
 
 /**
@@ -32,6 +33,7 @@ const PROBLEM_TEXT: Record<CodeProblem, string> = {
   expired: t("code.expired"),
   "too-many": t("code.tooMany"),
   "no-account": t("email.noAccount"),
+  "bad-address": t("email.badDomain"),
   offline: t("code.offline"),
   unknown: t("code.unknown"),
 };
@@ -43,14 +45,26 @@ function CodeEntry() {
   // This screen is only honest if a code was actually sent from this tab. Reached by URL it used
   // to announce "We sent a 6-digit code to …" when nothing had been sent, and offered anyone an
   // unauthenticated place to guess codes at an address of their choosing.
+  const arrivedFromSend = useRouterState({
+    select: (state) => state.location.state as { codeSent?: boolean } | undefined,
+  })?.codeSent === true;
+
   useEffect(() => {
-    if (!codeWasSentTo(email)) void navigate({ to: "/join", replace: true });
-  }, [email, navigate]);
+    if (!arrivedFromSend && !codeWasSentTo(email)) void navigate({ to: "/join", replace: true });
+  }, [arrivedFromSend, email, navigate]);
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [checking, setChecking] = useState(false);
   const [problem, setProblem] = useState<CodeProblem | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_AFTER_SECONDS);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
+  const botCheckHost = useRef<HTMLDivElement>(null);
+
+  // After a failure the boxes clear and are re-enabled; focus has to follow, or a keyboard or
+  // screen-reader user is left on <body> hunting for box one. Doing this inside the failure
+  // handler did not work: the boxes were still disabled in that tick.
+  useEffect(() => {
+    if (problem !== null && !checking) boxes.current[0]?.focus();
+  }, [problem, checking]);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -76,9 +90,7 @@ function CodeEntry() {
     // Free the resend button straight away: telling someone to send a new code while the only
     // button says "in 51s" is telling them to do something the screen forbids.
     setSecondsLeft(0);
-    // The boxes are still disabled in this tick, so focusing now does nothing. Wait for the
-    // re-render, or a keyboard user has to hunt for box one again.
-    setTimeout(() => boxes.current[0]?.focus(), 0);
+    // Focus is restored by the effect below, once the boxes are enabled again.
   }
 
   /** Writes `value` into the boxes from `start` onwards, so one pasted code fills all six. */
@@ -101,9 +113,13 @@ function CodeEntry() {
     setSecondsLeft(RESEND_AFTER_SECONDS);
     setProblem(null);
     setDigits(["", "", "", "", "", ""]);
-    const result = await sendCode(email);
+    // The bot check runs here too. It used to be attached only on the email screen, which made
+    // this button an uncaptcha'd way to make Kleit email any address in the URL, over and over
+    // (lesson L25). And it may only create an account if the 18+ box was actually ticked.
+    const token = botCheckHost.current ? await botCheckToken(botCheckHost.current) : undefined;
+    const result = await sendCode(email, token, hasAgreed());
     if (!result.ok) setProblem(result.problem);
-    boxes.current[0]?.focus();
+    setTimeout(() => boxes.current[0]?.focus(), 0);
   }
 
   return (
@@ -153,6 +169,9 @@ function CodeEntry() {
         >
           {secondsLeft > 0 ? t("code.resendIn", { seconds: secondsLeft }) : t("code.resend")}
         </button>
+
+        {/* The invisible bot check renders here, the same as on the email screen. */}
+        <div ref={botCheckHost} className="mt-4" />
       </div>
     </main>
   );

@@ -15,6 +15,7 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppYouRouteImport } from './routes/_app.you'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
@@ -23,6 +24,11 @@ import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
 import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
+import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
+import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
+import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.legal'
+import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
+import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -51,6 +57,11 @@ const AppInboxRoute = AppInboxRouteImport.update({
 const AppSearchRoute = AppSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppYouRoute = AppYouRouteImport.update({
@@ -93,6 +104,31 @@ const JoinUsernameRoute = JoinUsernameRouteImport.update({
   path: '/join/username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsLegalRoute = AppSettingsLegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppUUsernameRoute = AppUUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -100,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
+  '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
@@ -108,12 +145,18 @@ export interface FileRoutesByFullPath {
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
+  '/settings/account': typeof AppSettingsAccountRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/legal': typeof AppSettingsLegalRoute
+  '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/u/$username': typeof AppUUsernameRoute
 }
 export interface FileRoutesByTo {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
+  '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
@@ -123,6 +166,11 @@ export interface FileRoutesByTo {
   '/join/username': typeof JoinUsernameRoute
   '/': typeof AppIndexRoute
   '/join': typeof JoinIndexRoute
+  '/settings/account': typeof AppSettingsAccountRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/legal': typeof AppSettingsLegalRoute
+  '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/u/$username': typeof AppUUsernameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +179,7 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/search': typeof AppSearchRoute
+  '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
@@ -140,6 +189,11 @@ export interface FileRoutesById {
   '/join/username': typeof JoinUsernameRoute
   '/_app/': typeof AppIndexRoute
   '/join/': typeof JoinIndexRoute
+  '/_app/settings/account': typeof AppSettingsAccountRoute
+  '/_app/settings/devices': typeof AppSettingsDevicesRoute
+  '/_app/settings/legal': typeof AppSettingsLegalRoute
+  '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/_app/u/$username': typeof AppUUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,6 +203,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/inbox'
     | '/search'
+    | '/settings'
     | '/you'
     | '/dev/components'
     | '/dev/screens'
@@ -157,12 +212,18 @@ export interface FileRouteTypes {
     | '/join/name'
     | '/join/username'
     | '/join/'
+    | '/settings/account'
+    | '/settings/devices'
+    | '/settings/legal'
+    | '/settings/privacy'
+    | '/u/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/vibes'
     | '/welcome'
     | '/inbox'
     | '/search'
+    | '/settings'
     | '/you'
     | '/dev/components'
     | '/dev/screens'
@@ -172,6 +233,11 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/'
     | '/join'
+    | '/settings/account'
+    | '/settings/devices'
+    | '/settings/legal'
+    | '/settings/privacy'
+    | '/u/$username'
   id:
     | '__root__'
     | '/_app'
@@ -179,6 +245,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/_app/inbox'
     | '/_app/search'
+    | '/_app/settings'
     | '/_app/you'
     | '/dev/components'
     | '/dev/screens'
@@ -188,6 +255,11 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/_app/'
     | '/join/'
+    | '/_app/settings/account'
+    | '/_app/settings/devices'
+    | '/_app/settings/legal'
+    | '/_app/settings/privacy'
+    | '/_app/u/$username'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/you': {
       id: '/_app/you'
       path: '/you'
@@ -303,21 +382,78 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/settings/account': {
+      id: '/_app/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof AppSettingsAccountRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/devices': {
+      id: '/_app/settings/devices'
+      path: '/devices'
+      fullPath: '/settings/devices'
+      preLoaderRoute: typeof AppSettingsDevicesRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/legal': {
+      id: '/_app/settings/legal'
+      path: '/legal'
+      fullPath: '/settings/legal'
+      preLoaderRoute: typeof AppSettingsLegalRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/privacy': {
+      id: '/_app/settings/privacy'
+      path: '/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof AppSettingsPrivacyRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/u/$username': {
+      id: '/_app/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof AppUUsernameRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
+
+interface AppSettingsRouteChildren {
+  AppSettingsAccountRoute: typeof AppSettingsAccountRoute
+  AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
+  AppSettingsLegalRoute: typeof AppSettingsLegalRoute
+  AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
+}
+
+const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsAccountRoute: AppSettingsAccountRoute,
+  AppSettingsDevicesRoute: AppSettingsDevicesRoute,
+  AppSettingsLegalRoute: AppSettingsLegalRoute,
+  AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
+}
+
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
+  AppSettingsRouteChildren,
+)
 
 interface AppRouteChildren {
   AppInboxRoute: typeof AppInboxRoute
   AppSearchRoute: typeof AppSearchRoute
+  AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppYouRoute: typeof AppYouRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppUUsernameRoute: typeof AppUUsernameRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppInboxRoute: AppInboxRoute,
   AppSearchRoute: AppSearchRoute,
+  AppSettingsRoute: AppSettingsRouteWithChildren,
   AppYouRoute: AppYouRoute,
   AppIndexRoute: AppIndexRoute,
+  AppUUsernameRoute: AppUUsernameRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

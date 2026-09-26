@@ -46,6 +46,10 @@ jobs:
         run: cat supabase/config.toml
       - name: Apply auth config
         run: supabase config push --project-ref "$SUPABASE_PROJECT_REF"
+      # Read back what the project actually holds now. When a sign-in email comes out wrong, this
+      # is the difference between guessing and knowing.
+      - name: Auth config, as the project now holds it
+        run: supabase config diff --project-ref "$SUPABASE_PROJECT_REF" || true
 
   test:
     needs: migrate

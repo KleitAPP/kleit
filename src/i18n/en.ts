@@ -38,9 +38,15 @@ export const en = {
   "break.title": "Take a break",
   "break.what": "Your profile and your sets disappear from Kleit. Nothing is deleted.",
   "break.how": "Sign in again whenever you want and everything comes back exactly as it was.",
-  "break.notDelete": "This is not deleting your account. Deleting is separate, and it can't be undone.",
+  "break.notDelete": "This is not deleting your account. Nothing here removes anything.",
+  "break.signsYouOut": "It also signs you out on every phone and computer you use Kleit on. Signing back in on any one of them ends the break.",
   "break.confirm": "Hide my account",
   "break.cancel": "Not now",
+  "break.sureTitle": "Hide your account?",
+  "break.sureWhat": "Your profile and sets disappear from Kleit, and you are signed out everywhere. Nothing is deleted.",
+  "break.sureYes": "Yes, hide it",
+  "break.sureNo": "Keep it visible",
+  "break.failed": "That didn't save. Nothing has changed - have another go in a moment.",
   "break.done": "Your account is hidden. Sign in again to bring it back",
   "break.restored": "Welcome back. Your account is visible again",
 
@@ -74,7 +80,7 @@ export const en = {
   "settings.help": "Help and legal",
   "settings.break": "Take a break",
   "settings.delete": "Delete account",
-  "settings.notYet": "Arrives with a later milestone",
+  "settings.later": "Later",
 
   "account.title": "Account",
   "account.email": "Email",
@@ -90,6 +96,7 @@ export const en = {
   "privacy.findPhone": "Let people find me by phone number",
   "privacy.suggest": "Suggest my account to others",
   "privacy.saved": "Saved",
+  "privacy.failed": "That didn't save, so the setting is back as it was. Have another go in a moment.",
 
   "devices.title": "Where you're signed in",
   "devices.none": "Just this one, so far",

@@ -11,6 +11,14 @@ import { t } from "@/i18n/en";
  * Every switch here is a column on `profiles` that the database itself enforces, so turning one
  * on is not a request to the app to be discreet — a second account's read is refused by the row
  * policy whatever the app does.
+ *
+ * Two rules the first version got wrong, both found in testing:
+ *  - a save that fails must SAY so. It used to put the switch back with no word of explanation,
+ *    which reads as the app being haunted.
+ *  - one switch at a time. The old handler captured the state as it was before the tap, so two
+ *    fast taps on different switches could have the first one's failure undo the second one's
+ *    success. Each row is now locked while its own save is in flight, and every state change goes
+ *    through the updater form so it works from whatever the latest state is, not a stale copy.
  */
 export const Route = createFileRoute("/_app/settings/privacy")({
   head: () => ({ meta: [{ title: "Privacy" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -34,6 +42,8 @@ const ROWS: { key: keyof Switches; title: string; why?: string }[] = [
 function Privacy() {
   const [now, setNow] = useState<Switches | null>(null);
   const [saved, setSaved] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [busy, setBusy] = useState<keyof Switches | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,12 +64,22 @@ function Privacy() {
   }, []);
 
   async function flip(key: keyof Switches) {
-    if (!now) return;
-    const next = { ...now, [key]: !now[key] };
-    setNow(next); // Move the switch at once; the database is the slow part, not the person.
+    if (!now || busy) return;
+    setBusy(key);
+    setFailed(false);
+    // Move the switch at once; the database is the slow part, not the person. Every write to the
+    // state goes through the updater form, so it flips whatever the latest value is rather than a
+    // copy taken when the tap happened.
+    const next: Switches = { ...now, [key]: !now[key] };
+    setNow((live) => (live ? { ...live, [key]: !live[key] } : live));
     const { data } = await supabase.auth.getUser();
     const me = data.user?.id;
-    if (!me) return;
+    if (!me) {
+      setBusy(null);
+      setFailed(true);
+      setNow((live) => (live ? { ...live, [key]: !live[key] } : live));
+      return;
+    }
     // Written out rather than built from a variable, so the generated types still check that
     // each of these really is a column on profiles.
     const patch =
@@ -68,8 +88,14 @@ function Privacy() {
       : key === "findable_by_phone" ? { findable_by_phone: next.findable_by_phone }
       : { suggestable: next.suggestable };
     const { error } = await supabase.from("profiles").update(patch).eq("user_id", me);
-    if (error) setNow(now); // Put it back if it did not land.
-    else setSaved(true);
+    setBusy(null);
+    if (error) {
+      // Put that one switch back — not the whole set, which would wipe a save that did land.
+      setNow((live) => (live ? { ...live, [key]: !live[key] } : live));
+      setFailed(true);
+      return;
+    }
+    setSaved(true);
   }
 
   return (
@@ -87,7 +113,7 @@ function Privacy() {
               <input
                 type="checkbox"
                 checked={now?.[key] ?? false}
-                disabled={now === null}
+                disabled={now === null || busy !== null}
                 onChange={() => void flip(key)}
                 className="size-6 shrink-0 accent-brand"
               />
@@ -97,6 +123,7 @@ function Privacy() {
       </ul>
 
       {saved ? <Toast message={t("privacy.saved")} tone="positive" onDismiss={() => setSaved(false)} /> : null}
+      {failed ? <Toast message={t("privacy.failed")} tone="danger" onDismiss={() => setFailed(false)} /> : null}
     </div>
   );
 }

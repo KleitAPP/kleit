@@ -6,10 +6,10 @@ import { t } from "@/i18n/en";
 /**
  * S15 — Settings (design pack W16): a plain list, one level deep.
  *
- * Take a break and Delete account sit at the very bottom, below a separator, and Delete is the
- * only red row on the screen (design pack gap G14): the two look alike and sit together, and one
- * of them is undoable while the other is not. They are built at M1.12; until then they say so
- * rather than pretending.
+ * Take a break and Delete account sit at the very bottom, below a separator (design pack gap G14):
+ * the two look alike and sit together, and one of them is undoable while the other is not. Take a
+ * break works from M1.12. Delete is not built, so it is dimmed and marked "Later" rather than
+ * dressed in danger red - red on a row that does nothing is a promise the screen cannot keep.
  */
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -47,7 +47,7 @@ function Settings() {
       <hr className="mt-8 border-line" />
       <ul className="mt-4 overflow-hidden rounded-md border border-line bg-surface">
         <Row to="/settings/break" title={t("settings.break")} />
-        <Later title={t("settings.delete")} danger />
+        <Later title={t("settings.delete")} />
       </ul>
     </div>
   );
@@ -64,12 +64,25 @@ function Row({ to, title, why }: { to: string; title: string; why?: string }) {
   );
 }
 
-/** A row that exists so the shape of Settings never changes under people, and says it is not built. */
-function Later({ title, danger = false }: { title: string; danger?: boolean }) {
+/**
+ * A row that exists so the shape of Settings never changes under people, and says it is not built.
+ *
+ * Testing found these read as working rows: same size, same borders, and Delete account in danger
+ * red looked like the most tappable thing on the screen while doing nothing at all. So they are
+ * now plainly unfinished - dimmed, with the label on the right saying so, and no red anywhere,
+ * because a colour that means "careful, this is destructive" should not sit on a row that cannot
+ * destroy anything. aria-disabled says the same thing to a screen reader.
+ */
+function Later({ title }: { title: string }) {
   return (
-    <li className="flex min-h-12 flex-col justify-center border-b border-line px-4 py-3 last:border-b-0">
-      <span className={danger ? "text-base text-danger" : "text-base text-ink-soft"}>{title}</span>
-      <span className="text-sm text-ink-soft">{t("settings.notYet")}</span>
+    <li
+      aria-disabled="true"
+      className="flex min-h-12 items-center justify-between gap-3 border-b border-line px-4 py-3 opacity-60 last:border-b-0"
+    >
+      <span className="text-base text-ink-soft">{title}</span>
+      <span className="shrink-0 rounded-pill border border-line px-2 py-1 text-sm text-ink-soft">
+        {t("settings.later")}
+      </span>
     </li>
   );
 }

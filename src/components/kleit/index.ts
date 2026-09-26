@@ -4,6 +4,7 @@ export { ItemCard } from "./ItemCard";
 export { PollCard, type PollOption } from "./PollCard";
 export { PieceRow } from "./PieceRow";
 export { TabBar, type TabId } from "./TabBar";
+export { Tabs, type TabItem } from "./Tabs";
 export { Sheet, PrimaryButton } from "./Sheet";
 export { Toast } from "./Toast";
 export { Chip } from "./Chip";

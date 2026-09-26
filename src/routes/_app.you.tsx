@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { EmptyState } from "@/components/kleit";
+import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
 
@@ -20,6 +20,12 @@ export const Route = createFileRoute("/_app/you")({
 });
 
 type Tab = "sets" | "drafts" | "hidden";
+
+const TABS: readonly TabItem<Tab>[] = [
+  { id: "sets", label: t("profile.sets") },
+  { id: "drafts", label: t("profile.drafts") },
+  { id: "hidden", label: t("profile.hidden") },
+];
 
 type Me = { username: string; display_name: string; is_private: boolean };
 
@@ -69,34 +75,15 @@ function YourProfile() {
         </Link>
       </div>
 
-      <div role="tablist" aria-label={t("tabs.you")} className="mt-6 flex border-b border-line">
-        {(["sets", "drafts", "hidden"] as Tab[]).map((id) => (
-          <button
-            key={id}
-            role="tab"
-            type="button"
-            aria-selected={tab === id}
-            onClick={() => setTab(id)}
-            className={
-              tab === id
-                ? "min-h-12 flex-1 border-b-2 border-brand text-base font-semibold text-brand"
-                : "min-h-12 flex-1 border-b-2 border-transparent text-base text-ink-soft"
-            }
-          >
-            {t(id === "sets" ? "profile.sets" : id === "drafts" ? "profile.drafts" : "profile.hidden")}
-          </button>
-        ))}
-      </div>
+      <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.you")}>
+        {tab === "sets" ? null : <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>}
 
-      {tab === "sets" ? null : (
-        <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
-      )}
-
-      <EmptyState
-        line={t(
-          tab === "sets" ? "profile.setsEmpty" : tab === "drafts" ? "profile.draftsEmpty" : "profile.hiddenEmpty",
-        )}
-      />
+        <EmptyState
+          line={t(
+            tab === "sets" ? "profile.setsEmpty" : tab === "drafts" ? "profile.draftsEmpty" : "profile.hiddenEmpty",
+          )}
+        />
+      </Tabs>
     </div>
   );
 }

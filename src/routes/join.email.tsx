@@ -19,6 +19,7 @@ export const Route = createFileRoute("/join/email")({
 });
 
 function EmailEntry() {
+  const { mode } = Route.useSearch();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -32,13 +33,18 @@ function EmailEntry() {
     setSending(true);
     setProblem(null);
     const token = botCheckHost.current ? await botCheckToken(botCheckHost.current) : undefined;
-    const result = await sendCode(address, token);
+    // Only the sign-up path may create an account, because only that path is behind the 18+ box.
+    const result = await sendCode(address, token, mode !== "signin");
     setSending(false);
     if (result.ok) {
       void navigate({ to: "/join/code", search: { email: address } });
       return;
     }
-    setProblem(result.problem === "offline" ? t("join.offline") : t("join.failed"));
+    setProblem(
+      result.problem === "offline" ? t("join.offline")
+      : result.problem === "no-account" ? t("email.noAccount")
+      : t("join.failed"),
+    );
   }
 
   return (
@@ -65,7 +71,13 @@ function EmailEntry() {
           }}
           className="mt-2 min-h-12 w-full rounded-sm border border-line bg-surface px-4 text-base text-ink"
         />
-        {problem ? <p className="mt-3 text-sm text-danger">{problem}</p> : null}
+        <p aria-live="polite" className="mt-3 min-h-6 text-sm">
+          {problem ? (
+            <span className="text-danger">{problem}</span>
+          ) : address !== "" && !looksLikeAnEmail(address) ? (
+            <span className="text-ink-soft">{t("email.badAddress")}</span>
+          ) : null}
+        </p>
 
         <div className="mt-6">
           <PrimaryButton disabled={!ready} onClick={() => void send()}>

@@ -13,7 +13,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /** What went wrong, in terms the screens can turn into the design pack's wording. */
-export type CodeProblem = "wrong-code" | "expired" | "too-many" | "offline" | "unknown";
+export type CodeProblem = "wrong-code" | "expired" | "too-many" | "no-account" | "offline" | "unknown";
 
 export type CodeResult = { ok: true } | { ok: false; problem: CodeProblem };
 
@@ -27,20 +27,34 @@ function readProblem(error: {
   if (error.status === 429 || message.includes("rate limit") || message.includes("too many")) {
     return "too-many";
   }
+  // Supabase says this when shouldCreateUser is false and the address has no account.
+  if (code === "otp_disabled" || message.includes("signups not allowed") || message.includes("not found")) {
+    return "no-account";
+  }
   if (code === "otp_expired" || message.includes("expired")) return "expired";
   if (message.includes("invalid") || message.includes("token")) return "wrong-code";
   if (message.includes("fetch") || message.includes("network")) return "offline";
   return "unknown";
 }
 
-/** Sends a fresh code. `captchaToken` comes from the invisible bot check. */
-export async function sendCode(email: string, captchaToken?: string): Promise<CodeResult> {
+/**
+ * Sends a fresh code.
+ *
+ * `makeAccount` is the whole 18+ gate, in one boolean. Signing UP may create an account, because
+ * that path is behind the checkbox. Signing IN must never create one: otherwise "Sign in" is a
+ * way to make an account without ever agreeing to the Terms or saying you are 18, which is
+ * exactly what an independent test of the live site found on 2026-09-26 (lesson L25).
+ */
+export async function sendCode(
+  email: string,
+  captchaToken?: string,
+  makeAccount = true,
+): Promise<CodeResult> {
   try {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // A code, not a link: Supabase only creates the account on first verify.
-        shouldCreateUser: true,
+        shouldCreateUser: makeAccount,
         ...(captchaToken ? { captchaToken } : {}),
       },
     });

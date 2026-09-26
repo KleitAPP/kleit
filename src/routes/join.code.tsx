@@ -30,6 +30,7 @@ const PROBLEM_TEXT: Record<CodeProblem, string> = {
   "wrong-code": t("code.wrong"),
   expired: t("code.expired"),
   "too-many": t("code.tooMany"),
+  "no-account": t("email.noAccount"),
   offline: t("code.offline"),
   unknown: t("code.unknown"),
 };
@@ -76,8 +77,11 @@ function CodeEntry() {
     setDigits(next);
     const filled = Math.min(start + clean.length, 5);
     boxes.current[filled]?.focus();
-    const whole = next.join("");
-    if (whole.length === 6 && !whole.includes("")) void submit(whole);
+    // Every box holds exactly one digit, or we are not finished. The previous version joined the
+    // digits first and then asked `!whole.includes("")` - and "418293".includes("") is ALWAYS true
+    // in JavaScript, so the check could never pass and the code was never sent. Sign-up was dead
+    // at this screen for everyone (lesson L25).
+    if (next.every((d) => d.length === 1)) void submit(next.join(""));
   }
 
   async function resend() {

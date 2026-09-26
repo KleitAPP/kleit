@@ -114,6 +114,7 @@ export const en = {
   "email.hint": "We'll send a 6-digit code. No password to remember.",
   "email.send": "Send code",
   "email.badAddress": "That doesn't look like an email address yet",
+  "email.noAccount": "No Kleit account uses that address yet. Go back and tap Get started",
 
   "code.title": "Check your email",
   "code.sentTo": "We sent a 6-digit code to {email}",

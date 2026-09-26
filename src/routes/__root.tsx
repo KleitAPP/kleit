@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { LaunchGate } from "../screens/LaunchGate";
+import { endBreakOnRealSignIn } from "../auth/session";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -112,6 +113,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // A real sign-in ends a break. Mounted here so it is listening whichever door was used.
+  useEffect(() => endBreakOnRealSignIn(), []);
 
   return (
     <QueryClientProvider client={queryClient}>

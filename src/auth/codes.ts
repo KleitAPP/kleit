@@ -79,7 +79,13 @@ export async function checkCode(email: string, code: string): Promise<CodeResult
 /** An address we are willing to send to. Deliberately loose - the real test is whether a code arrives. */
 export function looksLikeAnEmail(value: string): boolean {
   const trimmed = value.trim();
-  return trimmed.length >= 6 && trimmed.length <= 320 && /^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(trimmed);
+  // One or more dot-separated pieces after the @, each with something in it: this is what
+  // rejects a@b..com, which the looser pattern let through.
+  return (
+    trimmed.length >= 6 &&
+    trimmed.length <= 320 &&
+    /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(trimmed)
+  );
 }
 
 /** Six digits, ignoring spaces, so "418 293" pasted from the email works. */

@@ -27,6 +27,7 @@ export function Sheet({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim data-[state=open]:animate-in data-[state=open]:fade-in-0 duration-slow" />
         <Dialog.Content
+          aria-modal="true"
           className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[90dvh] max-w-xl overflow-y-auto rounded-t-md bg-surface px-4 pb-[max(env(safe-area-inset-bottom),var(--kl-space-4))] pt-2 text-ink shadow-sheet data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom duration-slow"
           {...(description ? {} : { "aria-describedby": undefined })}
         >

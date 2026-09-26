@@ -90,7 +90,17 @@ export function LegalSheet({ doc, onClose }: { doc: LegalDoc | null; onClose: ()
       }}
       title={chosen?.title ?? ""}
     >
-      <div className="max-h-[60dvh] overflow-y-auto pr-1">{chosen ? render(chosen.body) : null}</div>
+      {/* tabIndex makes the scrolling box itself focusable, which is the only way a keyboard or
+          screen-reader user can scroll it. Without it, Tab cycled between one button and the
+          person could read just the first screen of a document they are asked to agree to. */}
+      <div
+        tabIndex={0}
+        role="document"
+        aria-label={chosen?.title ?? ""}
+        className="max-h-[60dvh] overflow-y-auto pr-1"
+      >
+        {chosen ? render(chosen.body) : null}
+      </div>
     </Sheet>
   );
 }

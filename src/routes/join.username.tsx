@@ -10,6 +10,7 @@ import {
   type UsernameStatus,
 } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
+import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
 
 /**
@@ -33,6 +34,18 @@ function PickUsername() {
   const [ideas, setIdeas] = useState<string[]>([]);
   const [claiming, setClaiming] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+
+  // These screens only make sense signed in. Reached signed out they used to fail with a 401
+  // and a message that contradicted the one above it, or silently bounce to Welcome.
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && !data.session) void navigate({ to: "/welcome", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const name = tidyUsername(typed);
   const shape = name === "" ? null : usernameShapeProblem(name);
@@ -97,7 +110,10 @@ function PickUsername() {
         <label htmlFor="username" className="mt-8 block text-sm text-ink-soft">
           {t("username.label")}
         </label>
-        <div className="mt-2 flex items-center gap-2 rounded-sm border border-line bg-surface px-4">
+        {/* The ring lives on the wrapper, because the input itself has its outline removed so
+            the "@" sits inside the same box. Without this the field was the only control in
+            Kleit with no visible focus. */}
+        <div className="mt-2 flex items-center gap-2 rounded-sm border border-line bg-surface px-4 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand">
           <span aria-hidden="true" className="text-base text-ink-soft">
             @
           </span>

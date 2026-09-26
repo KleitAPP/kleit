@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { KleitMark } from "@/brand/KleitMark";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { usingTestBotCheck } from "@/auth/turnstile";
+import { forgetAgreement, rememberAgreement } from "@/auth/agreement";
 
 /**
  * S5 - Sign-up sheet (design pack W1, flow 4.1 step 2).
@@ -50,7 +51,12 @@ function Join() {
             <input
               type="checkbox"
               checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
+              onChange={(e) => {
+                setAgreed(e.target.checked);
+                // Carried with the person, because the account is created two screens later.
+                if (e.target.checked) rememberAgreement();
+                else forgetAgreement();
+              }}
               className="mt-1 size-5 shrink-0 accent-brand"
             />
             <span className="text-base text-ink">
@@ -75,14 +81,22 @@ function Join() {
           <LegalLink onOpen={() => setOpenDoc("privacy")}>{t("join.privacy")}</LegalLink>
         </p>
 
-        {usingTestBotCheck ? (
-          <p className="mt-6 text-xs text-warning">{t("join.testBotCheck")}</p>
-        ) : null}
+        {/* The bot check still runs on Cloudflare's test key. That is a note for us, not for the
+            person signing up, so it goes to the console and never on screen. */}
+        {usingTestBotCheck ? <TestKeyNote /> : null}
       </div>
 
       <LegalSheet doc={openDoc} onClose={() => setOpenDoc(null)} />
     </main>
   );
+}
+
+/** Says once, in the console, that the bot check is still on the published test key. */
+function TestKeyNote() {
+  useEffect(() => {
+    console.warn("[Kleit] Bot check is using Cloudflare's test key. Real keys before the beta.");
+  }, []);
+  return null;
 }
 
 /** A link that opens a document over this screen instead of navigating away from it. */

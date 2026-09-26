@@ -19,9 +19,13 @@ export function usernameShapeProblem(candidate: string): "too-short" | "too-long
   return null;
 }
 
-/** Lower-cases and strips what a phone keyboard adds, so "Jay Wears " becomes "jaywears". */
+/**
+ * Lower-cases and strips what a phone keyboard adds, so "Jay Wears " becomes "jaywears".
+ * It does NOT cut the name short: it used to, which meant someone typing 40 characters was told
+ * a different name was theirs, and the "a bit shorter" message could never appear.
+ */
 export function tidyUsername(raw: string): string {
-  return raw.trim().toLowerCase().replace(/\s+/g, "").slice(0, USERNAME_MAX);
+  return raw.trim().toLowerCase().replace(/\s+/g, "");
 }
 
 /** Why a name cannot be used. "reserved" covers our own name anywhere in it, and staff words. */

@@ -48,6 +48,18 @@ function StyleVibes() {
     };
   }, []);
 
+  // These screens only make sense signed in. Reached signed out they used to fail with a 401
+  // and a message that contradicted the one above it, or silently bounce to Welcome.
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && !data.session) void navigate({ to: "/welcome", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
   function toggle(vibe: string) {
     setPicked((now) => (now.includes(vibe) ? now.filter((v) => v !== vibe) : [...now, vibe]));
   }

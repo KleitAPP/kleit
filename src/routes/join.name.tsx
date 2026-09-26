@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { setDisplayName } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
+import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
 
 /**
@@ -25,6 +26,18 @@ function NameAndPhoto() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // These screens only make sense signed in. Reached signed out they used to fail with a 401
+  // and a message that contradicted the one above it, or silently bounce to Welcome.
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && !data.session) void navigate({ to: "/welcome", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   async function finish(withName: boolean) {
     setSaving(true);

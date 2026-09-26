@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { sendCode, looksLikeAnEmail } from "@/auth/codes";
 import { botCheckToken } from "@/auth/turnstile";
+import { hasAgreed } from "@/auth/agreement";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
@@ -21,6 +22,13 @@ export const Route = createFileRoute("/join/email")({
 function EmailEntry() {
   const { mode } = Route.useSearch();
   const navigate = useNavigate();
+  const signingIn = mode === "signin";
+
+  // Typing this address straight into the bar used to skip the 18+ and Terms box entirely.
+  // Signing in is fine without it — that person agreed when they made the account.
+  useEffect(() => {
+    if (!signingIn && !hasAgreed()) void navigate({ to: "/join", replace: true });
+  }, [signingIn, navigate]);
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -34,7 +42,7 @@ function EmailEntry() {
     setProblem(null);
     const token = botCheckHost.current ? await botCheckToken(botCheckHost.current) : undefined;
     // Only the sign-up path may create an account, because only that path is behind the 18+ box.
-    const result = await sendCode(address, token, mode !== "signin");
+    const result = await sendCode(address, token, !signingIn);
     setSending(false);
     if (result.ok) {
       void navigate({ to: "/join/code", search: { email: address } });

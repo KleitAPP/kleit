@@ -44,11 +44,13 @@ jobs:
       # email) come from supabase/config.toml. Printed first so the run log shows what changed.
       - name: Show auth config
         run: cat supabase/config.toml
-      # `yes |` answers any confirmation prompt. Without a terminal an interactive prompt can be
-      # auto-declined, which would make the command report its plan and then change nothing --
-      # exactly what the read-back below caught on 2026-09-25.
+      # config push asks "Do you want to push auth config to remote? [y/N]". With no terminal the
+      # default N wins, so it prints its plan and changes nothing -- which is exactly what the
+      # read-back below caught on 2026-09-25. One "y" then end-of-input: `yes |` keeps the pipe
+      # open for ever and the command never returns.
       - name: Apply auth config
-        run: yes | supabase config push --project-ref "$SUPABASE_PROJECT_REF"
+        timeout-minutes: 3
+        run: printf 'y\n' | supabase config push --project-ref "$SUPABASE_PROJECT_REF"
       # Read back what the project actually holds now. When a sign-in email comes out wrong, this
       # is the difference between guessing and knowing.
       - name: Auth config, as the project now holds it

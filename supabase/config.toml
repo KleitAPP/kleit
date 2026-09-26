@@ -25,9 +25,17 @@ otp_expiry = 600
 # We are not a password app. Nobody confirms an address separately; the code IS the proof.
 enable_confirmations = false
 
-[auth.email.template.magic_link]
-subject = "Your Kleit code: {{ .Token }}"
-content_path = "./supabase/templates/magic_link.html"
+# 🔴 The sign-in email CANNOT be set from here yet. Supabase answers:
+#   "Email template modification is not available for free tier projects using the default email
+#    provider. Please upgrade your plan or configure a custom SMTP provider."
+# Until Kleit has its own domain and Resend, the built-in sender uses Supabase's own Magic Link
+# template, which sends a LINK and no code - so the 6-digit sign-up cannot be tested end to end.
+# The wording we intend is kept in supabase/templates/magic_link.html; turn this block back on
+# the day custom SMTP is configured. Leaving it on breaks the whole push, because one rejected
+# setting aborts all of them.
+# [auth.email.template.magic_link]
+# subject = "Your Kleit code: {{ .Token }}"
+# content_path = "./supabase/templates/magic_link.html"
 
 [auth.rate_limit]
 # Wrong codes are limited per device, not per email address (owner's decision, 2026-09-25).

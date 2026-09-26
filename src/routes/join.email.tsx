@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { sendCode, looksLikeAnEmail } from "@/auth/codes";
 import { botCheckToken } from "@/auth/turnstile";
-import { hasAgreed } from "@/auth/agreement";
+import { hasAgreed, rememberCodeSent } from "@/auth/agreement";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
@@ -32,6 +32,7 @@ function EmailEntry() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [noAccount, setNoAccount] = useState(false);
   const botCheckHost = useRef<HTMLDivElement>(null);
 
   const address = email.trim().toLowerCase();
@@ -45,9 +46,11 @@ function EmailEntry() {
     const result = await sendCode(address, token, !signingIn);
     setSending(false);
     if (result.ok) {
+      rememberCodeSent(address);
       void navigate({ to: "/join/code", search: { email: address } });
       return;
     }
+    setNoAccount(result.problem === "no-account");
     setProblem(
       result.problem === "offline" ? t("join.offline")
       : result.problem === "no-account" ? t("email.noAccount")
@@ -81,7 +84,17 @@ function EmailEntry() {
         />
         <p aria-live="polite" className="mt-3 min-h-6 text-sm">
           {problem ? (
-            <span className="text-danger">{problem}</span>
+            <span className="text-danger">
+              {problem}
+              {noAccount ? (
+                <>
+                  {". "}
+                  <Link to="/join" className="underline underline-offset-2 text-ink">
+                    {t("email.goSignUp")}
+                  </Link>
+                </>
+              ) : null}
+            </span>
           ) : address !== "" && !looksLikeAnEmail(address) ? (
             <span className="text-ink-soft">{t("email.badAddress")}</span>
           ) : null}

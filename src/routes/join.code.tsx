@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { checkCode, sendCode, tidyCode, type CodeProblem } from "@/auth/codes";
 import { whereDoIBelong } from "@/auth/session";
+import { codeWasSentTo } from "@/auth/agreement";
 import { t } from "@/i18n/en";
 
 /**
@@ -38,6 +39,13 @@ const PROBLEM_TEXT: Record<CodeProblem, string> = {
 function CodeEntry() {
   const { email } = Route.useSearch();
   const navigate = useNavigate();
+
+  // This screen is only honest if a code was actually sent from this tab. Reached by URL it used
+  // to announce "We sent a 6-digit code to …" when nothing had been sent, and offered anyone an
+  // unauthenticated place to guess codes at an address of their choosing.
+  useEffect(() => {
+    if (!codeWasSentTo(email)) void navigate({ to: "/join", replace: true });
+  }, [email, navigate]);
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [checking, setChecking] = useState(false);
   const [problem, setProblem] = useState<CodeProblem | null>(null);
@@ -65,7 +73,12 @@ function CodeEntry() {
     }
     setProblem(result.problem);
     setDigits(["", "", "", "", "", ""]);
-    boxes.current[0]?.focus();
+    // Free the resend button straight away: telling someone to send a new code while the only
+    // button says "in 51s" is telling them to do something the screen forbids.
+    setSecondsLeft(0);
+    // The boxes are still disabled in this tick, so focusing now does nothing. Wait for the
+    // re-render, or a keyboard user has to hunt for box one again.
+    setTimeout(() => boxes.current[0]?.focus(), 0);
   }
 
   /** Writes `value` into the boxes from `start` onwards, so one pasted code fills all six. */

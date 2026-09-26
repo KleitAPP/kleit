@@ -25,10 +25,16 @@ export async function whereDoIBelong(): Promise<Landing> {
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("user_id")
+      .select("user_id, deactivated_at")
       .eq("user_id", me)
       .abortSignal(controller.signal)
       .maybeSingle();
+
+    // Signing in is what ends a break (spec 3.6 #8). Clearing it here means it happens however
+    // the person got back in - the code, or the link in the email.
+    if (profile?.deactivated_at) {
+      await supabase.from("profiles").update({ deactivated_at: null }).eq("user_id", me);
+    }
 
     // If we cannot tell, assume the profile exists. Sending someone who already has a username
     // back to "pick a username" is worse than letting them through to a screen that works.

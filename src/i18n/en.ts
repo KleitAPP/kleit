@@ -35,6 +35,15 @@ export const en = {
   "loading": "Loading",
   "disclosure.commission": "We earn a commission from purchases",
 
+  "break.title": "Take a break",
+  "break.what": "Your profile and your sets disappear from Kleit. Nothing is deleted.",
+  "break.how": "Sign in again whenever you want and everything comes back exactly as it was.",
+  "break.notDelete": "This is not deleting your account. Deleting is separate, and it can't be undone.",
+  "break.confirm": "Hide my account",
+  "break.cancel": "Not now",
+  "break.done": "Your account is hidden. Sign in again to bring it back",
+  "break.restored": "Welcome back. Your account is visible again",
+
   "profile.sets": "Sets",
   "profile.drafts": "Drafts",
   "profile.hidden": "Hidden",

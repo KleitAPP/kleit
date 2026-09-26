@@ -46,7 +46,7 @@ function Settings() {
           can be undone (design pack G14). */}
       <hr className="mt-8 border-line" />
       <ul className="mt-4 overflow-hidden rounded-md border border-line bg-surface">
-        <Later title={t("settings.break")} />
+        <Row to="/settings/break" title={t("settings.break")} />
         <Later title={t("settings.delete")} danger />
       </ul>
     </div>

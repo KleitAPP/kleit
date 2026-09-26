@@ -9,8 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppInboxRouteImport } from './routes/_app.inbox'
+import { Route as AppSearchRouteImport } from './routes/_app.search'
+import { Route as AppYouRouteImport } from './routes/_app.you'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
 import { Route as JoinIndexRouteImport } from './routes/join.index'
@@ -19,15 +24,39 @@ import { Route as JoinEmailRouteImport } from './routes/join.email'
 import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VibesRoute = VibesRouteImport.update({
+  id: '/vibes',
+  path: '/vibes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInboxRoute = AppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppYouRoute = AppYouRouteImport.update({
+  id: '/you',
+  path: '/you',
+  getParentRoute: () => AppRoute,
 } as any)
 const DevComponentsRoute = DevComponentsRouteImport.update({
   id: '/dev/components',
@@ -66,8 +95,12 @@ const JoinUsernameRoute = JoinUsernameRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/inbox': typeof AppInboxRoute
+  '/search': typeof AppSearchRoute
+  '/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
@@ -77,33 +110,46 @@ export interface FileRoutesByFullPath {
   '/join/': typeof JoinIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/inbox': typeof AppInboxRoute
+  '/search': typeof AppSearchRoute
+  '/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
+  '/': typeof AppIndexRoute
   '/join': typeof JoinIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/inbox': typeof AppInboxRoute
+  '/_app/search': typeof AppSearchRoute
+  '/_app/you': typeof AppYouRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
+  '/_app/': typeof AppIndexRoute
   '/join/': typeof JoinIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/vibes'
     | '/welcome'
+    | '/inbox'
+    | '/search'
+    | '/you'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
@@ -113,30 +159,40 @@ export interface FileRouteTypes {
     | '/join/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/vibes'
     | '/welcome'
+    | '/inbox'
+    | '/search'
+    | '/you'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
     | '/join/name'
     | '/join/username'
+    | '/'
     | '/join'
   id:
     | '__root__'
-    | '/'
+    | '/_app'
+    | '/vibes'
     | '/welcome'
+    | '/_app/inbox'
+    | '/_app/search'
+    | '/_app/you'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
     | '/join/email'
     | '/join/name'
     | '/join/username'
+    | '/_app/'
     | '/join/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DevScreensRoute: typeof DevScreensRoute
@@ -149,11 +205,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vibes': {
+      id: '/vibes'
+      path: '/vibes'
+      fullPath: '/vibes'
+      preLoaderRoute: typeof VibesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/welcome': {
@@ -162,6 +225,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/welcome'
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inbox': {
+      id: '/_app/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/search': {
+      id: '/_app/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/you': {
+      id: '/_app/you'
+      path: '/you'
+      fullPath: '/you'
+      preLoaderRoute: typeof AppYouRouteImport
+      parentRoute: typeof AppRoute
     }
     '/dev/components': {
       id: '/dev/components'
@@ -215,8 +306,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppInboxRoute: typeof AppInboxRoute
+  AppSearchRoute: typeof AppSearchRoute
+  AppYouRoute: typeof AppYouRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppInboxRoute: AppInboxRoute,
+  AppSearchRoute: AppSearchRoute,
+  AppYouRoute: AppYouRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,
   DevComponentsRoute: DevComponentsRoute,
   DevScreensRoute: DevScreensRoute,

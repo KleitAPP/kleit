@@ -1,0 +1,105 @@
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+
+import { whereDoIBelong } from "@/auth/session";
+import { Sheet, TabBar, type TabId } from "@/components/kleit";
+import { t } from "@/i18n/en";
+import { LaunchSplash } from "@/screens/LaunchGate";
+
+/**
+ * The signed-in shell (design pack §3.1): five tabs, always visible, on every signed-in screen.
+ *
+ * This is a layout route — a real one, deliberately. Home, Search, Inbox and You are its children
+ * so the tab bar is mounted once and never re-created when a tab changes; only the middle of the
+ * screen swaps. Create is not a route at all: it opens the choice sheet over whatever you were
+ * looking at (decision 85), because it is an action, not a place.
+ *
+ * It also guards the whole shell — nobody reaches a tab without being signed in with a profile.
+ */
+export const Route = createFileRoute("/_app")({
+  component: AppShell,
+});
+
+const TAB_PATHS: Record<Exclude<TabId, "create">, string> = {
+  home: "/",
+  search: "/search",
+  inbox: "/inbox",
+  you: "/you",
+};
+
+function AppShell() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void whereDoIBelong().then((where) => {
+      if (cancelled) return;
+      if (where === "signed-out") {
+        void navigate({ to: "/welcome", replace: true });
+        return;
+      }
+      if (where === "needs-username") {
+        void navigate({ to: "/join/username", replace: true });
+        return;
+      }
+      setAllowed(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  if (allowed !== true) return <LaunchSplash />;
+
+  const current: TabId =
+    pathname.startsWith("/search") ? "search"
+    : pathname.startsWith("/inbox") ? "inbox"
+    : pathname.startsWith("/you") ? "you"
+    : "home";
+
+  return (
+    <div className="flex min-h-dvh flex-col bg-canvas">
+      <main className="flex-1">
+        <Outlet />
+      </main>
+
+      <TabBar
+        current={current}
+        onSelect={(tab) => {
+          if (tab === "create") {
+            setCreating(true);
+            return;
+          }
+          void navigate({ to: TAB_PATHS[tab] });
+        }}
+      />
+
+      <Sheet open={creating} onOpenChange={setCreating} title={t("create.title")}>
+        <ul className="flex flex-col">
+          <CreateChoice title={t("create.quick")} why={t("create.quickWhy")} />
+          <CreateChoice title={t("create.creative")} why={t("create.creativeWhy")} />
+          <CreateChoice title={t("create.clip")} why={t("create.clipWhy")} />
+          <CreateChoice title={t("create.photo")} why={t("create.photoWhy")} />
+        </ul>
+        <p className="mt-4 text-sm text-ink-soft">{t("create.notYet")}</p>
+      </Sheet>
+    </div>
+  );
+}
+
+/**
+ * One row of the Create sheet. Every one of these is built in M2 and M3, so today they are shown
+ * as plainly not-yet rather than hidden: a person who opens Create should see what Kleit is for,
+ * and a row that silently does nothing is worse than a row that says so.
+ */
+function CreateChoice({ title, why }: { title: string; why: string }) {
+  return (
+    <li className="border-b border-line py-3 last:border-b-0">
+      <p className="text-base text-ink-soft">{title}</p>
+      <p className="text-sm text-ink-soft">{why}</p>
+    </li>
+  );
+}

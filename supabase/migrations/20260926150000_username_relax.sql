@@ -25,9 +25,15 @@ as $$
     when candidate ~ '^[._]' or candidate ~ '[._]$' or candidate ~ '[._]{2}' then 'shape'
     -- Our name, on its own. ("kleit" folds to "kieit".)
     when (select f from folded) = 'kieit' then 'reserved'
-    -- Our name, plus a word that claims to speak for us.
+    -- Our name, plus a word that claims to speak for us. The word is looked for in BOTH the
+    -- folded form and the plainly-stripped one: folding maps l to i, which turns "official" into
+    -- "officiai" and would have missed @kleit_official entirely. The folded form is what catches
+    -- @k1eit.supp0rt; the plain form is what catches the ordinary spellings.
     when (select f from folded) like '%kieit%'
-     and (select f from folded) ~ '(official|support|team|app|hq|admin|help|staff|service|care|verified|real)'
+     and (
+       (select f from folded) ~ '(officiai|support|team|app|hq|admin|heip|staff|service|care|verified|reai)'
+       or translate(lower(candidate), '._', '') ~ '(official|support|team|app|hq|admin|help|staff|service|care|verified|real)'
+     )
       then 'reserved'
     -- A reserved word, however it is punctuated or spelled with lookalike characters.
     when exists (

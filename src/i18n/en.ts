@@ -35,6 +35,8 @@ export const en = {
   "loading": "Loading",
   "disclosure.commission": "We earn a commission from purchases",
 
+  "home.placeholder": "You're signed in. The rest of Home arrives next.",
+
   "username.title": "Pick your username",
   "username.hint": "This is your link: kleit.app/@{name}",
   "username.label": "Username",

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { checkCode, sendCode, tidyCode, type CodeProblem } from "@/auth/codes";
+import { whereDoIBelong } from "@/auth/session";
 import { t } from "@/i18n/en";
 
 /**
@@ -54,8 +55,11 @@ function CodeEntry() {
     const result = await checkCode(email, code);
     setChecking(false);
     if (result.ok) {
-      // M1.7 builds the username screen; until it exists, a signed-in person lands on Home.
-      void navigate({ to: "/" });
+      // A first sign-up has no profile yet and continues at the username screen; someone coming
+      // back has one and goes to Home. The front door asks the same question for the people who
+      // arrive by clicking the link in the email instead.
+      const where = await whereDoIBelong();
+      void navigate({ to: where === "needs-username" ? "/join/username" : "/" });
       return;
     }
     setProblem(result.problem);

@@ -113,6 +113,204 @@ export type Database = {
         }
         Relationships: []
       }
+      closet_items: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          shareable: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          shareable?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          shareable?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "closet_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawer_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          origin: Database["public"]["Enums"]["drawer_origin"]
+          picked_up_from_set_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          origin: Database["public"]["Enums"]["drawer_origin"]
+          picked_up_from_set_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          origin?: Database["public"]["Enums"]["drawer_origin"]
+          picked_up_from_set_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawer_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_flags: {
+        Row: {
+          created_at: string
+          item_id: string
+          labels: Json
+          scan_state: Database["public"]["Enums"]["scan_state"]
+          scanned_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          labels?: Json
+          scan_state?: Database["public"]["Enums"]["scan_state"]
+          scanned_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          labels?: Json
+          scan_state?: Database["public"]["Enums"]["scan_state"]
+          scanned_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_flags_item_fk"
+            columns: ["item_id"]
+            isOneToOne: true
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          alt_text: string | null
+          color_name: string | null
+          created_at: string
+          credit: string | null
+          deleted_at: string | null
+          id: string
+          image_hash: string | null
+          image_id: string | null
+          kind: Database["public"]["Enums"]["item_kind"]
+          owner_id: string
+          price_cents: number | null
+          price_checked_at: string | null
+          price_currency: string | null
+          sold_out: boolean
+          source_domain: string | null
+          source_url: string | null
+          store_name: string | null
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string | null
+          color_name?: string | null
+          created_at?: string
+          credit?: string | null
+          deleted_at?: string | null
+          id?: string
+          image_hash?: string | null
+          image_id?: string | null
+          kind: Database["public"]["Enums"]["item_kind"]
+          owner_id: string
+          price_cents?: number | null
+          price_checked_at?: string | null
+          price_currency?: string | null
+          sold_out?: boolean
+          source_domain?: string | null
+          source_url?: string | null
+          store_name?: string | null
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string | null
+          color_name?: string | null
+          created_at?: string
+          credit?: string | null
+          deleted_at?: string | null
+          id?: string
+          image_hash?: string | null
+          image_id?: string | null
+          kind?: Database["public"]["Enums"]["item_kind"]
+          owner_id?: string
+          price_cents?: number | null
+          price_checked_at?: string | null
+          price_currency?: string | null
+          sold_out?: boolean
+          source_domain?: string | null
+          source_url?: string | null
+          store_name?: string | null
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      optout_sites: {
+        Row: {
+          added_at: string
+          domain: string
+          source: Database["public"]["Enums"]["optout_source"]
+        }
+        Insert: {
+          added_at?: string
+          domain: string
+          source: Database["public"]["Enums"]["optout_source"]
+        }
+        Update: {
+          added_at?: string
+          domain?: string
+          source?: Database["public"]["Enums"]["optout_source"]
+        }
+        Relationships: []
+      }
       private_contact: {
         Row: {
           created_at: string
@@ -194,6 +392,24 @@ export type Database = {
         }
         Relationships: []
       }
+      removed_image_fingerprints: {
+        Row: {
+          added_at: string
+          image_hash: string
+          reason: string
+        }
+        Insert: {
+          added_at?: string
+          image_hash: string
+          reason: string
+        }
+        Update: {
+          added_at?: string
+          image_hash?: string
+          reason?: string
+        }
+        Relationships: []
+      }
       reserved_usernames: {
         Row: {
           username: string
@@ -205,6 +421,32 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      saved_items: {
+        Row: {
+          created_at: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_devices: {
         Row: {
@@ -318,7 +560,12 @@ export type Database = {
     }
     Enums: {
       deletion_state: "pending" | "cancelled" | "completed"
+      drawer_origin: "clipped" | "own_cutout" | "pickup"
+      item_kind: "product" | "non_product" | "own"
+      optout_source: "form" | "meta_tag"
+      scan_state: "pending" | "clean" | "review" | "blocked"
       staff_role: "admin" | "moderator"
+      takedown_state: "none" | "requested" | "removed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -447,7 +694,12 @@ export const Constants = {
   public: {
     Enums: {
       deletion_state: ["pending", "cancelled", "completed"],
+      drawer_origin: ["clipped", "own_cutout", "pickup"],
+      item_kind: ["product", "non_product", "own"],
+      optout_source: ["form", "meta_tag"],
+      scan_state: ["pending", "clean", "review", "blocked"],
       staff_role: ["admin", "moderator"],
+      takedown_state: ["none", "requested", "removed"],
     },
   },
 } as const

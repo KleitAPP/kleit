@@ -28,6 +28,11 @@ jobs:
       # in the system would notice. So it is checked on every push, not once when it was written.
       - name: Image fingerprint check
         run: bun scripts/check-fingerprint.ts
+      # The table that decides whether a photo is visible. A change to it that nobody notices is
+      # the worst kind of change in the app: one way people see what they should not, the other a
+      # seller's ordinary product shot vanishes.
+      - name: Image screening decision check
+        run: bun scripts/check-screening.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

@@ -42,7 +42,9 @@ async function hmac(key: Uint8Array, message: string): Promise<Uint8Array> {
 
 /** The four-step key derivation SigV4 uses so a signing key is scoped to one day, region and service. */
 async function signingKey(secret: string, date: string): Promise<Uint8Array> {
-  let key = encoder.encode(`AWS4${secret}`);
+  // Typed as a plain Uint8Array rather than inferred: TextEncoder and crypto.subtle disagree
+  // about which flavour of backing buffer they hand back, and the loop reassigns between them.
+  let key: Uint8Array = encoder.encode(`AWS4${secret}`);
   for (const part of [date, REGION, SERVICE, "aws4_request"]) {
     key = await hmac(key, part);
   }

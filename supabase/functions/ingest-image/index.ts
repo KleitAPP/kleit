@@ -93,13 +93,16 @@ Deno.serve(async (request) => {
   if (fileError || !file) return reply(502, { problem: "image-unreadable" });
 
   let hash: string;
+  let stage: "read" | "decode" | "clean" | "fingerprint" | "scan" | "record" = "read";
   try {
     let bytes = new Uint8Array(await file.arrayBuffer());
+    stage = "decode";
     let picture = await decode(bytes);
 
     // Step 1b. The second look at the metadata. Re-encoding is what removes it, for the same
     // reason the phone redraws rather than editing tags: a decoded picture has no metadata to
     // carry, so nothing can be left behind by a tag we did not think to look for.
+    stage = "clean";
     if (carriesMetadata(bytes)) {
       console.warn("[ingest-image] stored file still carried metadata; re-encoding", itemId);
       bytes = await picture.encodeJPEG(86);
@@ -114,6 +117,7 @@ Deno.serve(async (request) => {
 
     // A frame of an animation still has pixels; a format we cannot read does not, and that is a
     // refusal rather than a pass.
+    stage = "fingerprint";
     const pixels = new Uint8Array(picture.bitmap);
     hash = fingerprint(pixels, picture.width, picture.height);
 
@@ -136,12 +140,14 @@ Deno.serve(async (request) => {
     // `pending`, which is invisible.
     if (!accessKeyId || !secretAccessKey) return reply(503, { problem: "scanner-not-configured" });
 
+    stage = "scan";
     const labels = await detectModerationLabels(
       bytes,
       { accessKeyId, secretAccessKey },
       MIN_CONFIDENCE,
     );
     const verdict = decide(labels);
+    stage = "record";
 
     await server.from("item_flags").upsert({
       item_id: itemId,
@@ -158,7 +164,13 @@ Deno.serve(async (request) => {
   } catch (problem) {
     // Deliberately no flag write. The image stays unscanned and therefore invisible, and the
     // next attempt gets a clean run at it.
-    console.error("[ingest-image]", problem instanceof Error ? problem.message : problem);
-    return reply(502, { problem: "scan-failed" });
+    //
+    // `at` says WHICH step fell over and nothing about why. That distinction matters: the reason
+    // can contain a storage path or an AWS message and belongs only in the log, but "decode" vs
+    // "scan" vs "store" is worth its weight the first time something breaks in production - the
+    // first real photo through this pipeline failed at `decode`, and without this marker finding
+    // that meant guessing.
+    console.error("[ingest-image]", stage, problem instanceof Error ? problem.message : problem);
+    return reply(502, { problem: "scan-failed", at: stage });
   }
 });

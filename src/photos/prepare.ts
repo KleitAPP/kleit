@@ -31,7 +31,7 @@ export type Prepared = {
   blob: Blob;
   width: number;
   height: number;
-  /** What it became. WebP everywhere that has it; JPEG is the fallback for older browsers. */
+  /** What it became. See the note on JPEG below. */
   type: "image/webp" | "image/jpeg";
 };
 
@@ -71,13 +71,21 @@ export async function preparePhoto(
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
-  const blob = await toBlob(canvas, "image/webp", 0.86);
-  if (blob && blob.type === "image/webp") {
-    return { ok: true, photo: { blob, width, height, type: "image/webp" } };
-  }
-  const fallback = await toBlob(canvas, "image/jpeg", 0.86);
-  if (!fallback) return { ok: false, problem: "unreadable" };
-  return { ok: true, photo: { blob: fallback, width, height, type: "image/jpeg" } };
+  // JPEG, not WebP, and this is a deliberate step backwards.
+  //
+  // WebP is about a quarter smaller, and the first version used it. Then the very first photo put
+  // through the real pipeline came back "still checking": the screening function decodes the
+  // stored file to fingerprint it, and the decoder available to it reads JPEG and PNG but NOT
+  // WebP. So every upload succeeded, every scan failed, and every photo stayed invisible - the
+  // safe direction, but useless.
+  //
+  // It costs almost nothing to give up. What is stored is the original we keep and scan; what
+  // people are actually served is generated from it on the fly (decision 103), so the delivered
+  // picture is still WebP or AVIF. The only price is the upload itself being a quarter bigger.
+  // Worth revisiting if the server ever gains a WebP decoder.
+  const blob = await toBlob(canvas, "image/jpeg", 0.86);
+  if (!blob) return { ok: false, problem: "unreadable" };
+  return { ok: true, photo: { blob, width, height, type: "image/jpeg" } };
 }
 
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {

@@ -48,8 +48,22 @@ jobs:
       # default N wins, so it prints its plan and changes nothing -- which is exactly what the
       # read-back below caught on 2026-09-25. One "y" then end-of-input: `yes |` keeps the pipe
       # open for ever and the command never returns.
+      # The two secrets config.toml refers to with env(...). They are never in the repository;
+      # they arrive here from GitHub secrets and go straight to Supabase. If either is missing the
+      # step below fails loudly rather than pushing an empty password, which would silently stop
+      # every sign-in email.
+      - name: Check the auth secrets are present
+        run: |
+          test -n "$SUPABASE_AUTH_SMTP_PASS" || { echo "::error::SUPABASE_AUTH_SMTP_PASS is not set"; exit 1; }
+          test -n "$SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET" || { echo "::error::SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET is not set"; exit 1; }
+        env:
+          SUPABASE_AUTH_SMTP_PASS: ${{ secrets.SUPABASE_AUTH_SMTP_PASS }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
       - name: Apply auth config
         timeout-minutes: 3
+        env:
+          SUPABASE_AUTH_SMTP_PASS: ${{ secrets.SUPABASE_AUTH_SMTP_PASS }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
         run: printf 'y\n' | supabase config push --project-ref "$SUPABASE_PROJECT_REF"
       # Read back what the project actually holds now. When a sign-in email comes out wrong, this
       # is the difference between guessing and knowing.

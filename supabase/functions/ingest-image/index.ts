@@ -5,6 +5,10 @@
  *
  *   1. Who is asking, and is this their item? The item id comes from the caller, so it is checked
  *      against the caller's own account before anything else happens.
+ *   1b. Does the stored file still carry a location? The app strips that on the phone, before the
+ *      photo ever leaves - this is the second look, because anything a client does can be skipped
+ *      by anyone willing to call the upload API directly. If it is still there, the file is
+ *      re-encoded here and the stored copy replaced, so what we keep never carries it.
  *   2. Fingerprint the image and compare it with the list of images that may never come back
  *      (spec 13.1 #5). This costs nothing, needs no outside service, and is the one check that
  *      must never be skipped - it is how a removed image stays removed.
@@ -22,6 +26,7 @@ import { decode } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 import { fingerprint, distance, SAME_PICTURE } from "../_shared/fingerprint.ts";
 import { decide, MIN_CONFIDENCE } from "../_shared/screening.ts";
 import { detectModerationLabels } from "../_shared/aws.ts";
+import { carriesMetadata } from "../_shared/metadata.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -84,8 +89,24 @@ Deno.serve(async (request) => {
 
   let hash: string;
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const picture = await decode(bytes);
+    let bytes = new Uint8Array(await file.arrayBuffer());
+    let picture = await decode(bytes);
+
+    // Step 1b. The second look at the metadata. Re-encoding is what removes it, for the same
+    // reason the phone redraws rather than editing tags: a decoded picture has no metadata to
+    // carry, so nothing can be left behind by a tag we did not think to look for.
+    if (carriesMetadata(bytes)) {
+      console.warn("[ingest-image] stored file still carried metadata; re-encoding", itemId);
+      bytes = await picture.encodeJPEG(86);
+      picture = await decode(bytes);
+      const { error: replaceError } = await server.storage
+        .from("item-images")
+        .upload(item.image_id, bytes, { contentType: "image/jpeg", upsert: true });
+      // If the clean copy cannot replace the dirty one, stop. Carrying on would scan the clean
+      // bytes and mark as visible a stored file that still holds somebody's address.
+      if (replaceError) return reply(502, { problem: "could-not-clean" });
+    }
+
     // A frame of an animation still has pixels; a format we cannot read does not, and that is a
     // refusal rather than a pass.
     const pixels = new Uint8Array(picture.bitmap);

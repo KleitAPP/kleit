@@ -33,6 +33,10 @@ jobs:
       # seller's ordinary product shot vanishes.
       - name: Image screening decision check
         run: bun scripts/check-screening.ts
+      # The server's second look at photo metadata. The phone strips it before the photo leaves;
+      # this is what would notice if a phone ever did not.
+      - name: Photo metadata check
+        run: bun scripts/check-metadata.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

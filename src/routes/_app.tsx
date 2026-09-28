@@ -82,24 +82,42 @@ function AppShell() {
           <CreateChoice title={t("create.quick")} why={t("create.quickWhy")} />
           <CreateChoice title={t("create.creative")} why={t("create.creativeWhy")} />
           <CreateChoice title={t("create.clip")} why={t("create.clipWhy")} />
-          <CreateChoice title={t("create.photo")} why={t("create.photoWhy")} />
+          <CreateChoice
+            title={t("create.photo")}
+            why={t("create.photoWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void navigate({ to: "/add/photo" });
+            }}
+          />
         </ul>
-        <p className="mt-4 text-sm text-ink-soft">{t("create.notYet")}</p>
+        <p className="mt-4 text-sm text-ink-soft">{t("create.someNotYet")}</p>
       </Sheet>
     </div>
   );
 }
 
 /**
- * One row of the Create sheet. Every one of these is built in M2 and M3, so today they are shown
- * as plainly not-yet rather than hidden: a person who opens Create should see what Kleit is for,
- * and a row that silently does nothing is worse than a row that says so.
+ * One row of the Create sheet. The rest are built in M2 and M3, so until then they are shown as
+ * plainly not-yet rather than hidden: a person who opens Create should see what Kleit is for, and
+ * a row that silently does nothing is worse than a row that says so. A row that DOES work is a
+ * button; the others are not, so the difference is felt and not only read.
  */
-function CreateChoice({ title, why }: { title: string; why: string }) {
+function CreateChoice({ title, why, onChoose }: { title: string; why: string; onChoose?: () => void }) {
+  if (!onChoose) {
+    return (
+      <li className="border-b border-line py-3 opacity-60 last:border-b-0" aria-disabled="true">
+        <p className="text-base text-ink-soft">{title}</p>
+        <p className="text-sm text-ink-soft">{why}</p>
+      </li>
+    );
+  }
   return (
-    <li className="border-b border-line py-3 last:border-b-0">
-      <p className="text-base text-ink-soft">{title}</p>
-      <p className="text-sm text-ink-soft">{why}</p>
+    <li className="border-b border-line last:border-b-0">
+      <button type="button" onClick={onChoose} className="min-h-12 w-full py-3 text-left">
+        <span className="block text-base text-ink">{title}</span>
+        <span className="block text-sm text-ink-soft">{why}</span>
+      </button>
     </li>
   );
 }

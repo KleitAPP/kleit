@@ -24,6 +24,7 @@ import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
 import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
+import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
 import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings.break'
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
@@ -105,6 +106,11 @@ const JoinUsernameRoute = JoinUsernameRouteImport.update({
   path: '/join/username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAddPhotoRoute = AppAddPhotoRouteImport.update({
+  id: '/add/photo',
+  path: '/add/photo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
+  '/add/photo': typeof AppAddPhotoRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/join/username': typeof JoinUsernameRoute
   '/': typeof AppIndexRoute
   '/join': typeof JoinIndexRoute
+  '/add/photo': typeof AppAddPhotoRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/join/username': typeof JoinUsernameRoute
   '/_app/': typeof AppIndexRoute
   '/join/': typeof JoinIndexRoute
+  '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
   '/_app/settings/break': typeof AppSettingsBreakRoute
   '/_app/settings/devices': typeof AppSettingsDevicesRoute
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/join/name'
     | '/join/username'
     | '/join/'
+    | '/add/photo'
     | '/settings/account'
     | '/settings/break'
     | '/settings/devices'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/'
     | '/join'
+    | '/add/photo'
     | '/settings/account'
     | '/settings/break'
     | '/settings/devices'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/_app/'
     | '/join/'
+    | '/_app/add/photo'
     | '/_app/settings/account'
     | '/_app/settings/break'
     | '/_app/settings/devices'
@@ -394,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/add/photo': {
+      id: '/_app/add/photo'
+      path: '/add/photo'
+      fullPath: '/add/photo'
+      preLoaderRoute: typeof AppAddPhotoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings/account': {
       id: '/_app/settings/account'
       path: '/account'
@@ -465,6 +484,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppYouRoute: typeof AppYouRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAddPhotoRoute: typeof AppAddPhotoRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
 }
 
@@ -474,6 +494,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppYouRoute: AppYouRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAddPhotoRoute: AppAddPhotoRoute,
   AppUUsernameRoute: AppUUsernameRoute,
 }
 

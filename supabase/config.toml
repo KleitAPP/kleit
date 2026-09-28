@@ -17,8 +17,13 @@ additional_redirect_urls = [
 
 [auth.email]
 enable_signup = true
-# No magic links: people get a 6-digit code they can read out or paste (spec 3.1 #3).
-# The code arrives because the template below prints {{ .Token }} and never a link.
+# The app asks for a 6-digit code (spec 3.1 #3) and the screen has six boxes for it.
+# ⚠ BUT THE EMAIL THAT ARRIVES TODAY IS A LINK, NOT A CODE. The template that would print
+# {{ .Token }} is commented out below because Supabase stopped free-tier projects editing
+# auth email templates with its built-in sender on 3 June 2026, and one rejected setting
+# aborts the whole `config push`. So people get Supabase's default magic-link email. The
+# link works - it signs them in and the front door sends them on to pick a username - but
+# the six-box screen cannot be reached from the email. Fix: our own SMTP sender. See CL21.
 otp_length = 6
 # Ten minutes, matching what the email itself promises (design pack section 6.4).
 otp_expiry = 600

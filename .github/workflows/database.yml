@@ -4,8 +4,11 @@
 #                supabase/config.toml, so auth settings are a reviewed file, not dashboard clicks
 #   2. test    — runs the RLS test suite in supabase/tests/database/ against kleit-test
 #   3. types   — regenerates src/integrations/supabase/types.ts and commits it if it changed
+#   4. functions — deploys supabase/functions/ and hands them their secrets. Runs AFTER the tests,
+#                  because a function that screens images must never be live against a database
+#                  whose rules have just failed their own checks.
 # Secrets (pasted by the owner in GitHub → Settings → Secrets; never in chat or code):
-#   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
+#   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 name: database
 
 on:
@@ -106,3 +109,35 @@ jobs:
             git commit -m "chore: regenerate Supabase types [skip ci]"
             git push
           fi
+
+  functions:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # The scanner's key pair lives in Supabase's own secret store, not in the function's code and
+      # not in this repository. It gets there from GitHub secrets, once, on every deploy - so
+      # rotating the key is a paste in one place and a push.
+      - name: Check the scanner's keys are present
+        run: |
+          test -n "$AWS_ACCESS_KEY_ID" || { echo "::error::AWS_ACCESS_KEY_ID is not set"; exit 1; }
+          test -n "$AWS_SECRET_ACCESS_KEY" || { echo "::error::AWS_SECRET_ACCESS_KEY is not set"; exit 1; }
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Give the functions their secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
+            "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+            "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+      - name: Deploy ingest-image
+        run: supabase functions deploy ingest-image --project-ref "$SUPABASE_PROJECT_REF"
+      # Read back what is actually deployed, rather than trusting that deploy said so (lesson L24).
+      - name: Functions, as the project now holds them
+        run: supabase functions list --project-ref "$SUPABASE_PROJECT_REF"

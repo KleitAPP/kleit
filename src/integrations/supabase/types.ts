@@ -270,6 +270,7 @@ export type Database = {
           credit: string | null
           deleted_at: string | null
           id: string
+          image_bucket: Database["public"]["Enums"]["image_bucket"]
           image_hash: string | null
           image_id: string | null
           kind: Database["public"]["Enums"]["item_kind"]
@@ -292,6 +293,7 @@ export type Database = {
           credit?: string | null
           deleted_at?: string | null
           id?: string
+          image_bucket?: Database["public"]["Enums"]["image_bucket"]
           image_hash?: string | null
           image_id?: string | null
           kind: Database["public"]["Enums"]["item_kind"]
@@ -314,6 +316,7 @@ export type Database = {
           credit?: string | null
           deleted_at?: string | null
           id?: string
+          image_bucket?: Database["public"]["Enums"]["image_bucket"]
           image_hash?: string | null
           image_id?: string | null
           kind?: Database["public"]["Enums"]["item_kind"]
@@ -604,6 +607,7 @@ export type Database = {
         | "upload"
       deletion_state: "pending" | "cancelled" | "completed"
       drawer_origin: "clipped" | "own_cutout" | "pickup"
+      image_bucket: "item-images" | "closet-photos"
       item_kind: "product" | "non_product" | "own"
       optout_source: "form" | "meta_tag"
       scan_state: "pending" | "clean" | "review" | "blocked"
@@ -744,6 +748,7 @@ export const Constants = {
       ],
       deletion_state: ["pending", "cancelled", "completed"],
       drawer_origin: ["clipped", "own_cutout", "pickup"],
+      image_bucket: ["item-images", "closet-photos"],
       item_kind: ["product", "non_product", "own"],
       optout_source: ["form", "meta_tag"],
       scan_state: ["pending", "clean", "review", "blocked"],

@@ -72,7 +72,7 @@ Deno.serve(async (request) => {
 
   const { data: item } = await server
     .from("items")
-    .select("id, owner_id, image_id")
+    .select("id, owner_id, image_id, image_bucket")
     .eq("id", itemId)
     .maybeSingle();
 
@@ -82,8 +82,13 @@ Deno.serve(async (request) => {
   if (!item.image_id) return reply(400, { problem: "no-image" });
 
   // Step 2. The fingerprint, and the list of images that may never come back.
+  // Only ever these two. The column's type already forbids anything else, and this repeats it
+  // because this code runs as the server and bypasses every row policy: if the type were ever
+  // widened, the mistake must not reach a bucket nobody in the app may touch.
+  const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
+
   const { data: file, error: fileError } = await server.storage
-    .from("item-images")
+    .from(bucket)
     .download(item.image_id);
   if (fileError || !file) return reply(502, { problem: "image-unreadable" });
 
@@ -100,7 +105,7 @@ Deno.serve(async (request) => {
       bytes = await picture.encodeJPEG(86);
       picture = await decode(bytes);
       const { error: replaceError } = await server.storage
-        .from("item-images")
+        .from(bucket)
         .upload(item.image_id, bytes, { contentType: "image/jpeg", upsert: true });
       // If the clean copy cannot replace the dirty one, stop. Carrying on would scan the clean
       // bytes and mark as visible a stored file that still holds somebody's address.

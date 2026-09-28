@@ -9,6 +9,15 @@ name: launch-gate
 
 on:
   workflow_dispatch:
+  # The photo check below guards a promise made to people rather than a feature, so it runs on
+  # every change to the code it covers - not only on the weekly schedule.
+  push:
+    branches: [main]
+    paths:
+      - "src/photos/**"
+      - "scripts/check-photo-prepare.mjs"
+      - "scripts/fixtures/**"
+      - ".github/workflows/launch-gate.yml"
   schedule:
     # Once a week, so a change somewhere else cannot quietly break the one screen that can lock
     # everybody out. Tuesdays, 07:13 UTC.
@@ -32,3 +41,19 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Launch-gate smoke test
         run: node scripts/check-launch-gate.mjs
+
+  photos:
+    # Only the browser-needing part of the photo work. A canvas exists in a browser and nowhere
+    # else, so this cannot live with the per-push checks that run without one.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1 esbuild
+          npx playwright install --with-deps chromium
+      - name: A photo loses its location before it leaves the phone
+        run: node scripts/check-photo-prepare.mjs

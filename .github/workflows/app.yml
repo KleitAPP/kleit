@@ -24,6 +24,10 @@ jobs:
         run: node scripts/check-theme.mjs
       - name: Version rule check
         run: bun scripts/check-version-rule.ts
+      # A fingerprint that quietly stops matching lets a removed image back in, and nothing else
+      # in the system would notice. So it is checked on every push, not once when it was written.
+      - name: Image fingerprint check
+        run: bun scripts/check-fingerprint.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

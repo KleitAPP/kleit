@@ -10,6 +10,8 @@ import {
   type UsernameStatus,
 } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
+import { hasAgreed, rememberAgreement } from "@/auth/agreement";
+import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
 
@@ -19,6 +21,13 @@ import { t } from "@/i18n/en";
  * The answer arrives while you type, so nobody fills in a name, presses Next and only then finds
  * out it is gone. The database decides in the end (migration 003) - this screen is the courtesy.
  * A refusal always comes with two names that would work, because "taken" on its own is a dead end.
+ *
+ * It is also the last gate in front of a new account, and therefore the one that has to hold.
+ * Every new account passes through here, whichever door it came in by, and this is where the 18+
+ * record is written. Somebody arriving through Google from the SIGN-IN door never saw the 18+ and
+ * Terms box - Supabase creates an OAuth account before any of our code runs - so if they have not
+ * agreed, they are asked here, and the button stays dead until they do. Putting the check on the
+ * Google button instead would have looked tidier and left a hole beside it (lesson L25).
  */
 export const Route = createFileRoute("/join/username")({
   head: () => ({ meta: [{ title: "Pick your username" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -34,6 +43,11 @@ function PickUsername() {
   const [ideas, setIdeas] = useState<string[]>([]);
   const [claiming, setClaiming] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  // Read once, on mount: someone who ticked the box two screens ago must not be asked again.
+  const [mustAgree] = useState(() => !hasAgreed());
+  const [agreedHere, setAgreedHere] = useState(false);
+  const [openDoc, setOpenDoc] = useState<LegalDoc | null>(null);
+  const agreementDone = !mustAgree || agreedHere;
 
   // These screens only make sense signed in. Reached signed out they used to fail with a 401
   // and a message that contradicted the one above it, or silently bounce to Welcome.
@@ -76,7 +90,7 @@ function PickUsername() {
     };
   }, [name, shape]);
 
-  const ready = state === "free" && !claiming;
+  const ready = state === "free" && !claiming && agreementDone;
 
   async function take() {
     setClaiming(true);
@@ -158,12 +172,52 @@ function PickUsername() {
           {refusal ? <span className="text-danger">{refusal}</span> : null}
         </p>
 
+        {mustAgree ? (
+          <div className="mt-2">
+            <p className="text-base text-ink-soft">{t("username.agreeFirst")}</p>
+            <label className="mt-2 flex cursor-pointer items-start gap-3 py-2">
+              <input
+                type="checkbox"
+                checked={agreedHere}
+                onChange={(e) => {
+                  setAgreedHere(e.target.checked);
+                  if (e.target.checked) rememberAgreement();
+                }}
+                className="mt-1 size-5 shrink-0 accent-brand"
+              />
+              <span className="text-base text-ink">
+                I'm 18 or older and I agree to the{" "}
+                <LegalLink onOpen={() => setOpenDoc("terms")}>{t("join.terms")}</LegalLink> and{" "}
+                <LegalLink onOpen={() => setOpenDoc("guidelines")}>{t("join.guidelines")}</LegalLink>
+              </span>
+            </label>
+          </div>
+        ) : null}
+
         <div className="mt-4">
           <PrimaryButton disabled={!ready} onClick={() => void take()}>
             {claiming ? t("loading") : t("username.next")}
           </PrimaryButton>
         </div>
       </div>
+
+      <LegalSheet doc={openDoc} onClose={() => setOpenDoc(null)} />
     </main>
+  );
+}
+
+/** A link that opens a document over this screen instead of navigating away from it. */
+function LegalLink({ children, onOpen }: { children: React.ReactNode; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        onOpen();
+      }}
+      className="underline underline-offset-2"
+    >
+      {children}
+    </button>
   );
 }

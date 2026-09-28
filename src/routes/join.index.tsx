@@ -6,6 +6,7 @@ import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { usingTestBotCheck } from "@/auth/turnstile";
+import { GoogleButton } from "@/auth/GoogleButton";
 import { forgetAgreement, rememberAgreement } from "@/auth/agreement";
 
 /**
@@ -74,6 +75,18 @@ function Join() {
           >
             {t("join.withEmail")}
           </PrimaryButton>
+        </div>
+
+        {/* Google sits under the box like everything else on this screen: signing up with it is
+            still signing up. It is disabled rather than hidden so the choice is visible while the
+            reason it cannot be used is right above it. */}
+        <div className="mt-4 flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-sm text-ink-soft">{t("join.or")}</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+        <div className="mt-4">
+          <GoogleButton disabled={!canContinue} />
         </div>
 
         <p className="mt-4 text-sm text-ink-soft">

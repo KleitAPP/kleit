@@ -48,9 +48,16 @@ select lives_ok($$ update items set title = 'My jumper'
                    where id = 'bbbbbbbb-0000-4000-8000-000000000001' $$,
   'the ordinary fields still change freely');
 
--- Migration 013: the server may write the columns the trigger calls server-only. Running as
--- postgres with no JWT is exactly what an edge function with the secret key looks like.
+-- Migration 013: the server may write the columns the trigger calls server-only.
+--
+-- `reset role` alone is NOT enough, and getting that wrong is what made this test fail first
+-- time: the JWT claims were set transaction-locally and survive the role change, so auth.uid()
+-- still answered with the person's id and the trigger still saw a person. An edge function using
+-- the secret key sends a token with no `sub` at all, so the claims have to go too. That is the
+-- state being reproduced here.
 reset role;
+select set_config('request.jwt.claims', '', true);
+select set_config('request.jwt.claim.sub', '', true);
 select lives_ok($$ update items set image_hash = 'abc123'
                    where id = 'bbbbbbbb-0000-4000-8000-000000000001' $$,
   'the server CAN write the fingerprint the trigger calls server-only (migration 013)');

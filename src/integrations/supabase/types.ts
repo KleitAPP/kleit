@@ -113,6 +113,44 @@ export type Database = {
         }
         Relationships: []
       }
+      clip_records: {
+        Row: {
+          created_at: string
+          id: string
+          image_id: string | null
+          item_id: string | null
+          source_url: string | null
+          trigger: Database["public"]["Enums"]["clip_trigger"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_id?: string | null
+          item_id?: string | null
+          source_url?: string | null
+          trigger: Database["public"]["Enums"]["clip_trigger"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_id?: string | null
+          item_id?: string | null
+          source_url?: string | null
+          trigger?: Database["public"]["Enums"]["clip_trigger"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clip_records_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       closet_items: {
         Row: {
           created_at: string
@@ -559,6 +597,11 @@ export type Database = {
       username_status: { Args: { candidate: string }; Returns: string }
     }
     Enums: {
+      clip_trigger:
+        | "share_extension"
+        | "paste_link"
+        | "browser_extension"
+        | "upload"
       deletion_state: "pending" | "cancelled" | "completed"
       drawer_origin: "clipped" | "own_cutout" | "pickup"
       item_kind: "product" | "non_product" | "own"
@@ -693,6 +736,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      clip_trigger: [
+        "share_extension",
+        "paste_link",
+        "browser_extension",
+        "upload",
+      ],
       deletion_state: ["pending", "cancelled", "completed"],
       drawer_origin: ["clipped", "own_cutout", "pickup"],
       item_kind: ["product", "non_product", "own"],

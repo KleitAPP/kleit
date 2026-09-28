@@ -124,17 +124,25 @@ Deno.serve(async (request) => {
     const { data: removed } = await server.from("removed_image_fingerprints").select("image_hash");
     const seenBefore = (removed ?? []).find((row) => distance(row.image_hash, hash) <= SAME_PICTURE);
     if (seenBefore) {
-      await server.from("item_flags").upsert({
+      stage = "record";
+      const flagged = await server.from("item_flags").upsert({
         item_id: itemId,
         scan_state: "blocked",
         labels: { reason: "removed-before", matched: seenBefore.image_hash },
         scanned_at: new Date().toISOString(),
       });
-      await server.from("items").update({ image_hash: hash }).eq("id", itemId);
+      if (flagged.error) throw new Error(`could not record the block: ${flagged.error.message}`);
+      const stamped = await server.from("items").update({ image_hash: hash }).eq("id", itemId);
+      if (stamped.error) throw new Error(`could not store the fingerprint: ${stamped.error.message}`);
       return reply(200, { state: "blocked" });
     }
 
-    await server.from("items").update({ image_hash: hash }).eq("id", itemId);
+    // Checked, not hoped for. This write was refused for a week by a trigger meant to keep PEOPLE
+    // out of this column, and because nothing looked at the error the function went on to report
+    // a clean scan while the fingerprint - the thing that stops a removed image coming back - was
+    // never stored. A write whose result nobody reads is a wish.
+    const stamped = await server.from("items").update({ image_hash: hash }).eq("id", itemId);
+    if (stamped.error) throw new Error(`could not store the fingerprint: ${stamped.error.message}`);
 
     // Step 3. AWS. Anything that goes wrong from here leaves the flag as it is - which is
     // `pending`, which is invisible.
@@ -149,7 +157,7 @@ Deno.serve(async (request) => {
     const verdict = decide(labels);
     stage = "record";
 
-    await server.from("item_flags").upsert({
+    const recorded = await server.from("item_flags").upsert({
       item_id: itemId,
       scan_state: verdict.state,
       labels: {
@@ -159,6 +167,10 @@ Deno.serve(async (request) => {
       },
       scanned_at: new Date().toISOString(),
     });
+    // If the verdict cannot be recorded, there IS no verdict. Answering "clean" here would tell
+    // the app a photo had passed while the database still says it was never scanned - which is
+    // invisible - so the person would be told it worked and then find it nowhere.
+    if (recorded.error) throw new Error(`could not record the verdict: ${recorded.error.message}`);
 
     return reply(200, { state: verdict.state, keepOutOfFeatured: verdict.keepOutOfFeatured });
   } catch (problem) {

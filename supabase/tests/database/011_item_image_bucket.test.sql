@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(6);
+select plan(8);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'owner@test.kleit');
@@ -47,6 +47,16 @@ select throws_ok($$ update items set image_bucket = 'item-images'
 select lives_ok($$ update items set title = 'My jumper'
                    where id = 'bbbbbbbb-0000-4000-8000-000000000001' $$,
   'the ordinary fields still change freely');
+
+-- Migration 013: the server may write the columns the trigger calls server-only. Running as
+-- postgres with no JWT is exactly what an edge function with the secret key looks like.
+reset role;
+select lives_ok($$ update items set image_hash = 'abc123'
+                   where id = 'bbbbbbbb-0000-4000-8000-000000000001' $$,
+  'the server CAN write the fingerprint the trigger calls server-only (migration 013)');
+select is((select image_hash from items where id = 'bbbbbbbb-0000-4000-8000-000000000001'),
+  'abc123',
+  'and the fingerprint is actually there afterwards - the write was not silently refused');
 
 select * from finish();
 rollback;

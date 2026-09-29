@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(61);
+select plan(63);
 
 -- Five people.
 insert into auth.users (id, email) values
@@ -222,6 +222,15 @@ insert into blocks (blocker_id, blocked_id) values ('aaaaaaaa-0000-4000-8000-000
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000005');
 select throws_ok($$ insert into follows (follower_id, followee_id) values ('aaaaaaaa-0000-4000-8000-000000000005', 'aaaaaaaa-0000-4000-8000-000000000002') $$,
   '42501', null, 'a blocked person cannot follow the one who blocked them');
+select pg_temp.back();
+
+-- A person makes a set and gets its id back in the same statement (migration 020). This is how
+-- the app inserts (PostgREST's return=representation), and it is what the live site broke on.
+select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000002');
+select lives_ok($$ insert into sets (owner_id, status) values ('aaaaaaaa-0000-4000-8000-000000000002', 'draft') returning id $$,
+  'stranger · can make a draft of their own and read its id back at once');
+select lives_ok($$ insert into collections (owner_id, name) values ('aaaaaaaa-0000-4000-8000-000000000002', 'mine') returning id $$,
+  'stranger · can make a collection of their own and read its id back at once');
 select pg_temp.back();
 
 -- Templates: ours are readable by anyone signed in.

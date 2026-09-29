@@ -113,6 +113,38 @@ export type Database = {
         }
         Relationships: []
       }
+      clicks: {
+        Row: {
+          click_id: string
+          created_at: string
+          item_id: string
+          network: string
+          set_id: string | null
+        }
+        Insert: {
+          click_id?: string
+          created_at?: string
+          item_id: string
+          network?: string
+          set_id?: string | null
+        }
+        Update: {
+          click_id?: string
+          created_at?: string
+          item_id?: string
+          network?: string
+          set_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clicks_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clip_records: {
         Row: {
           created_at: string

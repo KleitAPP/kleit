@@ -74,7 +74,7 @@ Deno.serve(async (request) => {
   // through this same code from CI); the save never is - a clip is always somebody's.
   const authorization = request.headers.get("Authorization") ?? "";
   const bearer = authorization.replace(/^Bearer\s+/i, "");
-  const isServer = bearer.length > 0 && bearer === serviceKey;
+  const isServer = bearer.length > 0 && (bearer === serviceKey || (await canActAsServer(url, bearer)));
   let me: string | null = null;
   if (!isServer) {
     const asCaller = createClient(url, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
@@ -94,6 +94,21 @@ Deno.serve(async (request) => {
 });
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Is this key the server's? Not by looking at it - a project has more than one shape of secret
+ * key - but by what it can do: read a table no person may read. A person's token gets a
+ * permission error there; the anon key gets one too.
+ */
+async function canActAsServer(url: string, bearer: string): Promise<boolean> {
+  try {
+    const probe = createClient(url, bearer);
+    const { error } = await probe.from("removed_image_fingerprints").select("image_hash").limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
+}
 
 async function optedOut(server: SupabaseClient, hostname: string): Promise<boolean> {
   // The site itself and every parent: shop.brand.com is covered by brand.com.

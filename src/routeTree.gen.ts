@@ -36,6 +36,8 @@ import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
+import { Route as AppSetSetIdEditRouteImport } from './routes/_app.set.$setId.edit'
+import { Route as AppSetSetIdSendRouteImport } from './routes/_app.set.$setId.send'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -171,6 +173,16 @@ const AppYouItemsRoute = AppYouItemsRouteImport.update({
   path: '/you/items',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSetSetIdEditRoute = AppSetSetIdEditRouteImport.update({
+  id: '/set/$setId/edit',
+  path: '/set/$setId/edit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSetSetIdSendRoute = AppSetSetIdSendRouteImport.update({
+  id: '/set/$setId/send',
+  path: '/set/$setId/send',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -199,6 +211,8 @@ export interface FileRoutesByFullPath {
   '/you/closet': typeof AppYouClosetRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
+  '/set/$setId/edit': typeof AppSetSetIdEditRoute
+  '/set/$setId/send': typeof AppSetSetIdSendRoute
 }
 export interface FileRoutesByTo {
   '/vibes': typeof VibesRoute
@@ -227,6 +241,8 @@ export interface FileRoutesByTo {
   '/you/closet': typeof AppYouClosetRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
+  '/set/$setId/edit': typeof AppSetSetIdEditRoute
+  '/set/$setId/send': typeof AppSetSetIdSendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -257,6 +273,8 @@ export interface FileRoutesById {
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/items': typeof AppYouItemsRoute
+  '/_app/set/$setId/edit': typeof AppSetSetIdEditRoute
+  '/_app/set/$setId/send': typeof AppSetSetIdSendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -287,6 +305,8 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/drawer'
     | '/you/items'
+    | '/set/$setId/edit'
+    | '/set/$setId/send'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/vibes'
@@ -315,6 +335,8 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/drawer'
     | '/you/items'
+    | '/set/$setId/edit'
+    | '/set/$setId/send'
   id:
     | '__root__'
     | '/_app'
@@ -344,6 +366,8 @@ export interface FileRouteTypes {
     | '/_app/you_/closet'
     | '/_app/you_/drawer'
     | '/_app/you_/items'
+    | '/_app/set/$setId/edit'
+    | '/_app/set/$setId/send'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -550,6 +574,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouItemsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/set/$setId/edit': {
+      id: '/_app/set/$setId/edit'
+      path: '/set/$setId/edit'
+      fullPath: '/set/$setId/edit'
+      preLoaderRoute: typeof AppSetSetIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/set/$setId/send': {
+      id: '/_app/set/$setId/send'
+      path: '/set/$setId/send'
+      fullPath: '/set/$setId/send'
+      preLoaderRoute: typeof AppSetSetIdSendRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -586,6 +624,8 @@ interface AppRouteChildren {
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
+  AppSetSetIdEditRoute: typeof AppSetSetIdEditRoute
+  AppSetSetIdSendRoute: typeof AppSetSetIdSendRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -601,6 +641,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouItemsRoute: AppYouItemsRoute,
+  AppSetSetIdEditRoute: AppSetSetIdEditRoute,
+  AppSetSetIdSendRoute: AppSetSetIdSendRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

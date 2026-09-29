@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
+import { createQuickDraft, myDrafts, type SetSummary } from "@/sets/sets";
 import { t } from "@/i18n/en";
 
 /**
@@ -30,8 +31,21 @@ const TABS: readonly TabItem<Tab>[] = [
 type Me = { username: string; display_name: string; is_private: boolean };
 
 function YourProfile() {
+  const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [tab, setTab] = useState<Tab>("sets");
+  const [drafts, setDrafts] = useState<SetSummary[] | null>(null);
+
+  useEffect(() => {
+    if (tab !== "drafts" || drafts !== null) return;
+    let cancelled = false;
+    void myDrafts().then((list) => {
+      if (!cancelled) setDrafts(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, drafts]);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,15 +114,45 @@ function YourProfile() {
           <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
         )}
 
-        <EmptyState
-          line={t(
-            tab === "sets"
-              ? "profile.setsEmpty"
-              : tab === "drafts"
-                ? "profile.draftsEmpty"
-                : "profile.hiddenEmpty",
-          )}
-        />
+        {tab === "drafts" && drafts && drafts.length > 0 ? (
+          <ul className="mt-4 divide-y divide-line">
+            {drafts.map((d) => (
+              <li key={d.id}>
+                <Link
+                  to="/set/$setId/edit"
+                  params={{ setId: d.id }}
+                  className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
+                >
+                  <span className="truncate">
+                    {d.title || d.layout.caption || t("profile.draftUntitled")}
+                  </span>
+                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
+                    {new Date(d.updated_at).toLocaleDateString()}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            line={t(
+              tab === "sets"
+                ? "profile.setsEmpty"
+                : tab === "drafts"
+                  ? "profile.draftsEmpty"
+                  : "profile.hiddenEmpty",
+            )}
+            {...(tab === "drafts"
+              ? {
+                  actionLabel: t("profile.newDraft"),
+                  onAction: () =>
+                    void createQuickDraft().then((id) => {
+                      if (id) void navigate({ to: "/set/$setId/edit", params: { setId: id } });
+                    }),
+                }
+              : {})}
+          />
+        )}
       </Tabs>
     </div>
   );

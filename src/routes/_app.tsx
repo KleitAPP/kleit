@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { whereDoIBelong } from "@/auth/session";
 import { Sheet, TabBar, type TabId } from "@/components/kleit";
+import { createQuickDraft } from "@/sets/sets";
 import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 
@@ -81,7 +82,16 @@ function AppShell() {
 
       <Sheet open={creating} onOpenChange={setCreating} title={t("create.title")}>
         <ul className="flex flex-col">
-          <CreateChoice title={t("create.quick")} why={t("create.quickWhy")} />
+          <CreateChoice
+            title={t("create.quick")}
+            why={t("create.quickWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void createQuickDraft().then((id) => {
+                if (id) void navigate({ to: "/set/$setId/edit", params: { setId: id } });
+              });
+            }}
+          />
           <CreateChoice title={t("create.creative")} why={t("create.creativeWhy")} />
           <CreateChoice
             title={t("create.clip")}

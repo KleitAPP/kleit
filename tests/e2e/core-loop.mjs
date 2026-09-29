@@ -160,9 +160,11 @@ page.setDefaultTimeout(20_000);
 try {
   // 1. Sign up: the first screen after the code.
   await page.goto(`${SITE}/`);
-  await page.waitForURL((u) => /\/join\/username|\/$/.test(new URL(u).pathname), {
-    timeout: 20_000,
-  });
+  // Either the username screen (a brand-new account) or Home with its Create tab.
+  await Promise.race([
+    page.waitForURL(/\/join\/username/, { timeout: 20_000 }),
+    page.getByRole("button", { name: "Create" }).waitFor({ timeout: 20_000 }),
+  ]);
   if (new URL(page.url()).pathname.startsWith("/join/username")) {
     await page.getByLabel("Username").fill(USERNAME);
     const box = page.getByRole("checkbox");

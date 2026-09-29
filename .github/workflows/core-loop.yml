@@ -47,6 +47,7 @@ jobs:
         run: sleep 90
       - name: Run the loop
         run: |
+          set -o pipefail
           KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
             | jq -r '.[] | select(.name == "service_role") | .api_key')"

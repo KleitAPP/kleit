@@ -503,6 +503,87 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_options: {
+        Row: {
+          id: string
+          label: string
+          poll_id: string
+          set_id: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          label?: string
+          poll_id: string
+          set_id: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          label?: string
+          poll_id?: string
+          set_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_options_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          closed_at: string | null
+          closes_at: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          locked: boolean
+          owner_id: string
+          question: string
+          share_code: string
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          locked?: boolean
+          owner_id: string
+          question?: string
+          share_code?: string
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          locked?: boolean
+          owner_id?: string
+          question?: string
+          share_code?: string
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       private_contact: {
         Row: {
           created_at: string
@@ -678,72 +759,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      poll_options: {
-        Row: {
-          id: string
-          label: string
-          poll_id: string
-          set_id: string
-          sort_order: number
-        }
-        Insert: {
-          id?: string
-          label?: string
-          poll_id: string
-          set_id: string
-          sort_order?: number
-        }
-        Update: {
-          id?: string
-          label?: string
-          poll_id?: string
-          set_id?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      polls: {
-        Row: {
-          closed_at: string | null
-          closes_at: string
-          created_at: string
-          deleted_at: string | null
-          id: string
-          locked: boolean
-          owner_id: string
-          question: string
-          share_code: string
-          takedown_state: Database["public"]["Enums"]["takedown_state"]
-          updated_at: string
-        }
-        Insert: {
-          closed_at?: string | null
-          closes_at?: string
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          locked?: boolean
-          owner_id: string
-          question?: string
-          share_code?: string
-          takedown_state?: Database["public"]["Enums"]["takedown_state"]
-          updated_at?: string
-        }
-        Update: {
-          closed_at?: string | null
-          closes_at?: string
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          locked?: boolean
-          owner_id?: string
-          question?: string
-          share_code?: string
-          takedown_state?: Database["public"]["Enums"]["takedown_state"]
-          updated_at?: string
-        }
-        Relationships: []
       }
       set_versions: {
         Row: {
@@ -974,6 +989,67 @@ export type Database = {
         }
         Relationships: []
       }
+      votes: {
+        Row: {
+          created_at: string
+          device_hash: string
+          hidden: boolean
+          id: string
+          ip_hash: string | null
+          option_id: string
+          poll_id: string
+          updated_at: string
+          voter_id: string | null
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          hidden?: boolean
+          id?: string
+          ip_hash?: string | null
+          option_id: string
+          poll_id: string
+          updated_at?: string
+          voter_id?: string | null
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          hidden?: boolean
+          id?: string
+          ip_hash?: string | null
+          option_id?: string
+          poll_id?: string
+          updated_at?: string
+          voter_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_totals"
+            referencedColumns: ["option_id"]
+          },
+          {
+            foreignKeyName: "votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       poll_totals: {
@@ -984,7 +1060,15 @@ export type Database = {
           raw_votes: number | null
           votes: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       public_item_stats: {
         Row: {
@@ -1054,6 +1138,16 @@ export type Database = {
         }[]
       }
       piece_is_shareable: { Args: { p_item_id: string }; Returns: boolean }
+      record_vote: {
+        Args: {
+          p_device_hash: string
+          p_ip_hash: string
+          p_option_id: string
+          p_poll_id: string
+          p_voter_id: string
+        }
+        Returns: Json
+      }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       save_set_layout: {
@@ -1097,9 +1191,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      shared_poll: { Args: { p_code: string }; Returns: Json }
       shared_set: { Args: { p_code: string }; Returns: Json }
       username_available: { Args: { candidate: string }; Returns: boolean }
       username_status: { Args: { candidate: string }; Returns: string }
+      vote_status: {
+        Args: { p_device_hash: string; p_poll_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       clip_trigger:

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
-import { createQuickDraft, myDrafts, type SetSummary } from "@/sets/sets";
+import { createQuickDraft, myDrafts, mySets, type SetSummary } from "@/sets/sets";
 import { t } from "@/i18n/en";
 
 /**
@@ -35,6 +35,18 @@ function YourProfile() {
   const [me, setMe] = useState<Me | null>(null);
   const [tab, setTab] = useState<Tab>("sets");
   const [drafts, setDrafts] = useState<SetSummary[] | null>(null);
+  const [sets, setSets] = useState<SetSummary[] | null>(null);
+
+  useEffect(() => {
+    if (tab !== "sets" || sets !== null) return;
+    let cancelled = false;
+    void mySets().then((list) => {
+      if (!cancelled) setSets(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, sets]);
 
   useEffect(() => {
     if (tab !== "drafts" || drafts !== null) return;
@@ -114,7 +126,32 @@ function YourProfile() {
           <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
         )}
 
-        {tab === "drafts" && drafts && drafts.length > 0 ? (
+        {tab === "sets" && sets && sets.length > 0 ? (
+          <ul className="mt-4 divide-y divide-line">
+            {sets.map((d) => (
+              <li key={d.id}>
+                <Link
+                  to="/set/$setId"
+                  params={{ setId: d.id }}
+                  className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
+                >
+                  <span className="truncate">{d.title || t("profile.draftUntitled")}</span>
+                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
+                    {d.visibility === "public"
+                      ? t("vis.public")
+                      : d.visibility === "link"
+                        ? t("vis.link")
+                        : d.visibility === "only_me"
+                          ? t("vis.onlyMe")
+                          : d.visibility === "friends"
+                            ? t("vis.friends")
+                            : t("vis.followers")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : tab === "drafts" && drafts && drafts.length > 0 ? (
           <ul className="mt-4 divide-y divide-line">
             {drafts.map((d) => (
               <li key={d.id}>

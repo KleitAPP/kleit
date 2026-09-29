@@ -148,6 +148,21 @@ export async function clearSlot(setId: string, slot: number): Promise<boolean> {
   return !error;
 }
 
+/** Your published sets, newest first (S12's Sets tab). */
+export async function mySets(): Promise<SetSummary[]> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return [];
+  const { data } = await supabase
+    .from("sets")
+    .select("id, title, status, visibility, share_code, layout, updated_at")
+    .eq("owner_id", me)
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .order("published_at", { ascending: false });
+  return (data ?? []) as unknown as SetSummary[];
+}
+
 /** Your drafts, newest first (S12's Drafts tab). */
 export async function myDrafts(): Promise<SetSummary[]> {
   const { data: who } = await supabase.auth.getUser();

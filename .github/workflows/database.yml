@@ -249,3 +249,51 @@ jobs:
           test "$N" = "2" || { echo "::error::expected 2 clicks recorded, found $N"; exit 1; }
           psql "$DSN" -tA -c "select count(*) from information_schema.columns where table_name='clicks' and (column_name ilike '%user%' or column_name ilike '%email%')" | grep -q "^0$" || { echo "::error::clicks has a column that could name a person"; exit 1; }
           psql "$DSN" -v ON_ERROR_STOP=1 -c "delete from public.items where id = '$ITEM'"
+      # The gate itself, proven (M2.5 "Done when"; spec 13.1 #5): a picture that has been removed
+      # may never come back. A throwaway picture is screened once (clean - this also proves the
+      # AWS call from here), its fingerprint is put on the never-again list, the same picture is
+      # uploaded again, and the sweeper must block it and leave it invisible. Both runs go through
+      # the deployed sweeper with this deploy's own secret.
+      - name: Prove a removed picture stays removed
+        run: |
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
+          OWNER="$(psql "$DSN" -tAq -c "select id from auth.users order by created_at limit 1")"
+          psql "$DSN" -q -c "delete from public.items where title like 'CI never-again %'; delete from public.removed_image_fingerprints where reason = 'CI throwaway'"
+          # A plain, obviously harmless picture.
+          convert -size 96x64 gradient:orange-navy /tmp/never.jpg
+          PATH_A="$OWNER/ci-never-again-a.jpg"; PATH_B="$OWNER/ci-never-again-b.jpg"
+          for P in "$PATH_A" "$PATH_B"; do
+            curl -sS -o /dev/null -w "upload $P: %{http_code}\n" -X POST "$BASE/storage/v1/object/item-images/$P" \
+              -H "Authorization: Bearer $KEY" -H "Content-Type: image/jpeg" -H "x-upsert: true" --data-binary @/tmp/never.jpg
+          done
+          sweep() { curl -sS -X POST "$BASE/functions/v1/sweep-images" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'; }
+          A="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, created_at) values ('$OWNER', 'own', 'CI never-again A', 'item-images', '$PATH_A', now() - interval '3 minutes') returning id" | head -1)"
+          echo "first pass:"; sweep; echo
+          HASH="$(psql "$DSN" -tAq -c "select image_hash from public.items where id = '$A'")"
+          STATE_A="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$A'")"
+          echo "A: state=$STATE_A hash=$HASH"
+          test "$STATE_A" = "clean" || { echo "::error::the first pass should have been clean, was '$STATE_A'"; exit 1; }
+          test -n "$HASH" || { echo "::error::no fingerprint stored for A"; exit 1; }
+          psql "$DSN" -v ON_ERROR_STOP=1 -q -c "insert into public.removed_image_fingerprints (image_hash, reason) values ('$HASH', 'CI throwaway')"
+          B="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, created_at) values ('$OWNER', 'own', 'CI never-again B', 'item-images', '$PATH_B', now() - interval '3 minutes') returning id" | head -1)"
+          echo "second pass:"; sweep; echo
+          STATE_B="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$B'")"
+          CLEARED_B="$(psql "$DSN" -tAq -c "select private.image_cleared('$B')")"
+          echo "B: state=$STATE_B cleared=$CLEARED_B"
+          test "$STATE_B" = "blocked" || { echo "::error::the removed picture came back as '$STATE_B', not blocked"; exit 1; }
+          test "$CLEARED_B" = "f" || { echo "::error::a blocked picture reads as cleared"; exit 1; }
+          psql "$DSN" -q -c "delete from public.items where id in ('$A', '$B'); delete from public.removed_image_fingerprints where reason = 'CI throwaway'"
+          for P in "$PATH_A" "$PATH_B"; do
+            curl -sS -o /dev/null -X DELETE "$BASE/storage/v1/object/item-images/$P" -H "Authorization: Bearer $KEY"
+          done

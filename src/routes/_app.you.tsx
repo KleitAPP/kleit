@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
 import { createQuickDraft, myDrafts, mySets, type SetSummary } from "@/sets/sets";
+import { isClosed, myPolls, type PollSummary } from "@/polls/polls";
 import { t } from "@/i18n/en";
 
 /**
@@ -20,12 +21,13 @@ export const Route = createFileRoute("/_app/you")({
   component: YourProfile,
 });
 
-type Tab = "sets" | "drafts" | "hidden";
+type Tab = "sets" | "drafts" | "hidden" | "polls";
 
 const TABS: readonly TabItem<Tab>[] = [
   { id: "sets", label: t("profile.sets") },
   { id: "drafts", label: t("profile.drafts") },
   { id: "hidden", label: t("profile.hidden") },
+  { id: "polls", label: t("profile.polls") },
 ];
 
 type Me = { username: string; display_name: string; is_private: boolean };
@@ -36,6 +38,18 @@ function YourProfile() {
   const [tab, setTab] = useState<Tab>("sets");
   const [drafts, setDrafts] = useState<SetSummary[] | null>(null);
   const [sets, setSets] = useState<SetSummary[] | null>(null);
+  const [polls, setPolls] = useState<PollSummary[] | null>(null);
+
+  useEffect(() => {
+    if (tab !== "polls" || polls !== null) return;
+    let cancelled = false;
+    void myPolls().then((list) => {
+      if (!cancelled) setPolls(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, polls]);
 
   useEffect(() => {
     if (tab !== "sets" || sets !== null) return;
@@ -170,6 +184,25 @@ function YourProfile() {
               </li>
             ))}
           </ul>
+        ) : tab === "polls" && polls && polls.length > 0 ? (
+          <ul className="mt-4 divide-y divide-line">
+            {polls.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to="/poll/$pollId"
+                  params={{ pollId: p.id }}
+                  className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
+                >
+                  <span className="truncate">{p.question || t("pollbuilder.title")}</span>
+                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
+                    {isClosed(p)
+                      ? t("pollpage.closed")
+                      : new Date(p.closes_at).toLocaleDateString()}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         ) : (
           <EmptyState
             line={t(
@@ -177,7 +210,9 @@ function YourProfile() {
                 ? "profile.setsEmpty"
                 : tab === "drafts"
                   ? "profile.draftsEmpty"
-                  : "profile.hiddenEmpty",
+                  : tab === "polls"
+                    ? "profile.pollsEmpty"
+                    : "profile.hiddenEmpty",
             )}
             {...(tab === "drafts"
               ? {

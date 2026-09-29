@@ -27,6 +27,7 @@ import { Route as JoinUsernameRouteImport } from './routes/join.username'
 import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
+import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
 import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings.break'
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
@@ -36,6 +37,8 @@ import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
+import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
+import { Route as AppPollPollIdEditRouteImport } from './routes/_app.poll.$pollId.edit'
 import { Route as AppSetSetIdIndexRouteImport } from './routes/_app.set.$setId.index'
 import { Route as AppSetSetIdEditRouteImport } from './routes/_app.set.$setId.edit'
 import { Route as AppSetSetIdHistoryRouteImport } from './routes/_app.set.$setId.history'
@@ -130,6 +133,11 @@ const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
   path: '/item/$itemId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPollNewRoute = AppPollNewRouteImport.update({
+  id: '/poll/new',
+  path: '/poll/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -175,6 +183,16 @@ const AppYouItemsRoute = AppYouItemsRouteImport.update({
   path: '/you/items',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPollPollIdIndexRoute = AppPollPollIdIndexRouteImport.update({
+  id: '/poll/$pollId/',
+  path: '/poll/$pollId/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPollPollIdEditRoute = AppPollPollIdEditRouteImport.update({
+  id: '/poll/$pollId/edit',
+  path: '/poll/$pollId/edit',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSetSetIdIndexRoute = AppSetSetIdIndexRouteImport.update({
   id: '/set/$setId/',
   path: '/set/$setId/',
@@ -214,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
@@ -223,9 +242,11 @@ export interface FileRoutesByFullPath {
   '/you/closet': typeof AppYouClosetRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
+  '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/poll/$pollId/': typeof AppPollPollIdIndexRoute
   '/set/$setId/': typeof AppSetSetIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -246,6 +267,7 @@ export interface FileRoutesByTo {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
@@ -255,9 +277,11 @@ export interface FileRoutesByTo {
   '/you/closet': typeof AppYouClosetRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
+  '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/poll/$pollId': typeof AppPollPollIdIndexRoute
   '/set/$setId': typeof AppSetSetIdIndexRoute
 }
 export interface FileRoutesById {
@@ -280,6 +304,7 @@ export interface FileRoutesById {
   '/_app/add/link': typeof AppAddLinkRoute
   '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
+  '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
   '/_app/settings/break': typeof AppSettingsBreakRoute
   '/_app/settings/devices': typeof AppSettingsDevicesRoute
@@ -289,9 +314,11 @@ export interface FileRoutesById {
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/items': typeof AppYouItemsRoute
+  '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/_app/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/_app/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/_app/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/_app/poll/$pollId/': typeof AppPollPollIdIndexRoute
   '/_app/set/$setId/': typeof AppSetSetIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -314,6 +341,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/item/$itemId'
+    | '/poll/new'
     | '/settings/account'
     | '/settings/break'
     | '/settings/devices'
@@ -323,9 +351,11 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/drawer'
     | '/you/items'
+    | '/poll/$pollId/edit'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
+    | '/poll/$pollId/'
     | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -346,6 +376,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/item/$itemId'
+    | '/poll/new'
     | '/settings/account'
     | '/settings/break'
     | '/settings/devices'
@@ -355,9 +386,11 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/drawer'
     | '/you/items'
+    | '/poll/$pollId/edit'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
+    | '/poll/$pollId'
     | '/set/$setId'
   id:
     | '__root__'
@@ -379,6 +412,7 @@ export interface FileRouteTypes {
     | '/_app/add/link'
     | '/_app/add/photo'
     | '/_app/item/$itemId'
+    | '/_app/poll/new'
     | '/_app/settings/account'
     | '/_app/settings/break'
     | '/_app/settings/devices'
@@ -388,9 +422,11 @@ export interface FileRouteTypes {
     | '/_app/you_/closet'
     | '/_app/you_/drawer'
     | '/_app/you_/items'
+    | '/_app/poll/$pollId/edit'
     | '/_app/set/$setId/edit'
     | '/_app/set/$setId/history'
     | '/_app/set/$setId/send'
+    | '/_app/poll/$pollId/'
     | '/_app/set/$setId/'
   fileRoutesById: FileRoutesById
 }
@@ -535,6 +571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppItemItemIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/poll/new': {
+      id: '/_app/poll/new'
+      path: '/poll/new'
+      fullPath: '/poll/new'
+      preLoaderRoute: typeof AppPollNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings/account': {
       id: '/_app/settings/account'
       path: '/account'
@@ -598,6 +641,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouItemsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/poll/$pollId/': {
+      id: '/_app/poll/$pollId/'
+      path: '/poll/$pollId'
+      fullPath: '/poll/$pollId/'
+      preLoaderRoute: typeof AppPollPollIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/poll/$pollId/edit': {
+      id: '/_app/poll/$pollId/edit'
+      path: '/poll/$pollId/edit'
+      fullPath: '/poll/$pollId/edit'
+      preLoaderRoute: typeof AppPollPollIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/set/$setId/': {
       id: '/_app/set/$setId/'
       path: '/set/$setId'
@@ -658,13 +715,16 @@ interface AppRouteChildren {
   AppAddLinkRoute: typeof AppAddLinkRoute
   AppAddPhotoRoute: typeof AppAddPhotoRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
+  AppPollNewRoute: typeof AppPollNewRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
+  AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
   AppSetSetIdEditRoute: typeof AppSetSetIdEditRoute
   AppSetSetIdHistoryRoute: typeof AppSetSetIdHistoryRoute
   AppSetSetIdSendRoute: typeof AppSetSetIdSendRoute
+  AppPollPollIdIndexRoute: typeof AppPollPollIdIndexRoute
   AppSetSetIdIndexRoute: typeof AppSetSetIdIndexRoute
 }
 
@@ -677,13 +737,16 @@ const AppRouteChildren: AppRouteChildren = {
   AppAddLinkRoute: AppAddLinkRoute,
   AppAddPhotoRoute: AppAddPhotoRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
+  AppPollNewRoute: AppPollNewRoute,
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouItemsRoute: AppYouItemsRoute,
+  AppPollPollIdEditRoute: AppPollPollIdEditRoute,
   AppSetSetIdEditRoute: AppSetSetIdEditRoute,
   AppSetSetIdHistoryRoute: AppSetSetIdHistoryRoute,
   AppSetSetIdSendRoute: AppSetSetIdSendRoute,
+  AppPollPollIdIndexRoute: AppPollPollIdIndexRoute,
   AppSetSetIdIndexRoute: AppSetSetIdIndexRoute,
 }
 

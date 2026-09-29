@@ -95,3 +95,9 @@ verify_jwt = false
 # screening has cleared, with a signed address that dies in ten minutes; no token is asked for.
 [functions.item-image]
 verify_jwt = false
+
+# Guest votes (spec 7.3 #2): people with no account vote through this function, which checks
+# Turnstile and the per-device and per-network limits itself. A Kleit session, when there is one,
+# is read from the Authorization header by the function.
+[functions.cast-vote]
+verify_jwt = false

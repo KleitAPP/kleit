@@ -162,6 +162,10 @@ jobs:
       # own screening state, and the id is unguessable.
       - name: Deploy item-image
         run: supabase functions deploy item-image --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # Guest votes come from people with no account, so no gateway token; the function checks
+      # Turnstile and the limits itself, and the database's record_vote is service-role only.
+      - name: Deploy cast-vote
+        run: supabase functions deploy cast-vote --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

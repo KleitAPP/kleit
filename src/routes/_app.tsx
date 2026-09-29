@@ -109,6 +109,14 @@ function AppShell() {
               void navigate({ to: "/add/photo" });
             }}
           />
+          <CreateChoice
+            title={t("create.poll")}
+            why={t("create.pollWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void navigate({ to: "/poll/new" });
+            }}
+          />
         </ul>
         <p className="mt-4 text-sm text-ink-soft">{t("create.someNotYet")}</p>
       </Sheet>

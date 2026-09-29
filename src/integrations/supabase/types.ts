@@ -679,6 +679,72 @@ export type Database = {
           },
         ]
       }
+      poll_options: {
+        Row: {
+          id: string
+          label: string
+          poll_id: string
+          set_id: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          label?: string
+          poll_id: string
+          set_id: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          label?: string
+          poll_id?: string
+          set_id?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      polls: {
+        Row: {
+          closed_at: string | null
+          closes_at: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          locked: boolean
+          owner_id: string
+          question: string
+          share_code: string
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          locked?: boolean
+          owner_id: string
+          question?: string
+          share_code?: string
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          locked?: boolean
+          owner_id?: string
+          question?: string
+          share_code?: string
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       set_versions: {
         Row: {
           id: string
@@ -910,6 +976,16 @@ export type Database = {
       }
     }
     Views: {
+      poll_totals: {
+        Row: {
+          friend_votes: number | null
+          option_id: string | null
+          poll_id: string | null
+          raw_votes: number | null
+          votes: number | null
+        }
+        Relationships: []
+      }
       public_item_stats: {
         Row: {
           item_id: string | null
@@ -978,6 +1054,7 @@ export type Database = {
         }[]
       }
       piece_is_shareable: { Args: { p_item_id: string }; Returns: boolean }
+      reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }

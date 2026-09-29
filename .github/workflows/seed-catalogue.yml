@@ -1,0 +1,40 @@
+# Kleit — the fake catalogue for building (roadmap M2.8; technical pack §7 #5).
+# Sixty public-domain garment photographs from The Met's Costume Institute, seeded as items owned
+# by the test account catalogue@test.kleit, through the same rows a real clip writes. By hand only;
+# re-running replaces the last run. Nothing in it is a real store or a real person.
+name: seed-catalogue
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: zoimaafxtweeoqnmrbkh
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save @supabase/supabase-js@2
+      - name: Seed the catalogue
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          SEED_URL="https://$SUPABASE_PROJECT_REF.supabase.co" SEED_KEY="$KEY" node scripts/seed-catalogue.mjs > seeded.md
+          cat seeded.md >> "$GITHUB_STEP_SUMMARY"
+          head -5 seeded.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seeded-catalogue
+          path: seeded.md

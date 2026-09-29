@@ -158,6 +158,10 @@ jobs:
         run: supabase functions deploy buy-redirect --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       - name: Deploy clip-url
         run: supabase functions deploy clip-url --project-ref "$SUPABASE_PROJECT_REF"
+      # Pictures of cleared catalogue items, for <img> tags, so no token: the gate is the item's
+      # own screening state, and the id is unguessable.
+      - name: Deploy item-image
+        run: supabase functions deploy item-image --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

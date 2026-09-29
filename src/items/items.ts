@@ -80,21 +80,29 @@ export async function myScanStates(ids: string[]): Promise<Map<string, ScanState
  *
  * Your own pictures live in private buckets, so the URL is a signed one that stops working
  * after an hour - long enough for a screen, short enough that a copied link is not a permanent
- * hole. Other people's cleared pictures are served by Cloudflare Images later (technical pack
- * §3.1); until that exists there is no path a browser can read, and the tile shows without a
- * picture rather than pretending.
+ * hole. Other people's cleared products come through the item-image function, which asks the
+ * screening question the bucket cannot; Cloudflare Images takes that over at the domain stage.
  */
 export async function imageUrlFor(
-  item: Pick<ItemSummary, "image_id" | "image_bucket">,
+  item: Pick<ItemSummary, "id" | "kind" | "image_id" | "image_bucket">,
 ): Promise<string | null> {
   if (!item.image_id) return null;
-  // Both buckets are private and both let the owner read their own folder (migrations 011 and
-  // 016), so a signed URL works for your own pictures and fails - to a blank tile - for anyone
-  // else's, which is right until Cloudflare Images serves cleared pictures to everyone.
+  // Your own pictures: both buckets let the owner read their own folder (migrations 011 and
+  // 016), so a signed URL works and shows a piece that is still being checked.
   const { data } = await supabase.storage
     .from(item.image_bucket)
     .createSignedUrl(item.image_id, 60 * 60);
-  return data?.signedUrl ?? null;
+  if (data?.signedUrl) return data.signedUrl;
+  // Somebody else's product: the item-image function answers only once screening has cleared
+  // it, and stands in for Cloudflare Images until the domain stage.
+  if (item.kind === "product") {
+    const base = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+    if (!base) return null;
+    const url = new URL("/functions/v1/item-image", base);
+    url.searchParams.set("item", item.id);
+    return url.toString();
+  }
+  return null;
 }
 
 /** "$24.00" from cents and a currency; null when there is no price. */

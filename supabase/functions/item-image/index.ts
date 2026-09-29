@@ -4,11 +4,10 @@
  *
  * `item-images` is a private bucket on purpose: a bucket cannot ask whether a picture has passed
  * screening, so a public one would serve an unscanned photo to anyone who guessed the path.
- * This function is the gate the bucket cannot be. It answers only for an item that is
- *
- *   - a product (a person's own piece is theirs alone until a shared set says otherwise, M3.1),
- *   - not deleted and not taken down,
- *   - and cleared by screening - the same question the `items` read policy asks,
+ * This function is the gate the bucket cannot be. It answers only for an item that
+ * `piece_is_shareable` (migration 021) says the world may see: a cleared product, or a person's
+ * own piece that their closet marks shareable and that sits on a published public or link set;
+ * never anything deleted or taken down,
  *
  * and then sends the browser to a signed address that dies after ten minutes. It is the stand-in
  * for Cloudflare Images (decision 103's delivery), which takes over at the domain stage; nothing
@@ -37,13 +36,16 @@ Deno.serve(async (request) => {
   const server = createClient(url, serviceKey);
   const { data: item } = await server
     .from("items")
-    .select("id, kind, deleted_at, takedown_state, image_id, image_bucket")
+    .select("id, image_id, image_bucket")
     .eq("id", itemId)
     .maybeSingle();
-  if (!item || item.kind !== "product" || item.deleted_at || item.takedown_state !== "none" || !item.image_id) return notFound();
+  if (!item || !item.image_id) return notFound();
 
-  const { data: flag } = await server.from("item_flags").select("scan_state").eq("item_id", itemId).maybeSingle();
-  if (flag?.scan_state !== "clean") return notFound();
+  // The one question, answered by the database (migration 021): a cleared product, or a
+  // person's own piece that their closet marks shareable and that sits on a set the world may
+  // see. Everything else is the same 404 as "no such item".
+  const { data: allowed } = await server.rpc("piece_is_shareable", { p_item_id: itemId });
+  if (allowed !== true) return notFound();
 
   const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
   const { data: signed } = await server.storage.from(bucket).createSignedUrl(item.image_id, 600);

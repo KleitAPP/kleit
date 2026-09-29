@@ -20,5 +20,11 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/s/*"]
   },
+  // The share Worker's one question goes to the database with the PUBLIC key (the same one the
+  // app ships with); the function it calls answers only what a guest may see.
+  "vars": {
+    "SUPABASE_URL": "https://zoimaafxtweeoqnmrbkh.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvaW1hYWZ4dHdlZW9xbm1yYmtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTk0NTksImV4cCI6MjEwNTMzNTQ1OX0.Y36kR7rHVNdSACsZFK39lxdyjgR3PUWZyP0ae0UGjZw"
+  },
   "observability": { "enabled": true }
 }

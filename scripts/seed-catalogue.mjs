@@ -91,10 +91,22 @@ async function clearLastRun(ownerId) {
 // ---------------------------------------------------------------------------
 // 3. The Met
 // ---------------------------------------------------------------------------
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** The Met's API is generous but not to a burst: a small pause per call, and a back-off on 403/429. */
 async function metJson(path) {
-  const response = await fetch(`${MET}${path}`, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`Met ${path}: ${response.status}`);
-  return response.json();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await sleep(250);
+    const response = await fetch(`${MET}${path}`, { headers: { Accept: "application/json", "User-Agent": "kleit-seed/1 (kleitapp.team@gmail.com)" } });
+    if (response.ok) return response.json();
+    if (response.status === 403 || response.status === 429 || response.status >= 500) {
+      console.error(`  Met ${response.status}; waiting ${(attempt + 1) * 15}s`);
+      await sleep((attempt + 1) * 15000);
+      continue;
+    }
+    throw new Error(`Met ${path}: ${response.status}`);
+  }
+  throw new Error(`Met ${path}: gave up`);
 }
 
 /** A deterministic, plausible price from the object id: $18 to $240, ending in .00 or .50. */
@@ -104,8 +116,8 @@ function fakePriceCents(objectId) {
 }
 
 async function pickObjects(category) {
-  const search = await metJson(`/search?departmentId=8&hasImages=true&isOnView=false&q=${encodeURIComponent(category.query)}`);
-  const ids = (search.objectIDs ?? []).slice(0, 120);
+  const search = await metJson(`/search?departmentId=8&hasImages=true&q=${encodeURIComponent(category.query)}`);
+  const ids = (search.objectIDs ?? []).slice(0, 80);
   const picked = [];
   for (const id of ids) {
     if (picked.length >= category.want) break;

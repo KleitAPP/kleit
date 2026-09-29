@@ -108,7 +108,7 @@ function YourProfile() {
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Link
           to="/you/closet"
           className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
@@ -126,6 +126,12 @@ function YourProfile() {
           className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
         >
           {t("profile.myItems")}
+        </Link>
+        <Link
+          to="/you/collections"
+          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("profile.folders")}
         </Link>
         <Link
           to="/settings"

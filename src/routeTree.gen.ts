@@ -26,6 +26,7 @@ import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
 import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
+import { Route as AppCollectionCollectionIdRouteImport } from './routes/_app.collection.$collectionId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
@@ -35,6 +36,7 @@ import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.leg
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
+import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collections'
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
 import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
@@ -128,6 +130,12 @@ const AppAddPhotoRoute = AppAddPhotoRouteImport.update({
   path: '/add/photo',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCollectionCollectionIdRoute =
+  AppCollectionCollectionIdRouteImport.update({
+    id: '/collection/$collectionId',
+    path: '/collection/$collectionId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
   id: '/item/$itemId',
   path: '/item/$itemId',
@@ -171,6 +179,11 @@ const AppUUsernameRoute = AppUUsernameRouteImport.update({
 const AppYouClosetRoute = AppYouClosetRouteImport.update({
   id: '/you_/closet',
   path: '/you/closet',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppYouCollectionsRoute = AppYouCollectionsRouteImport.update({
+  id: '/you_/collections',
+  path: '/you/collections',
   getParentRoute: () => AppRoute,
 } as any)
 const AppYouDrawerRoute = AppYouDrawerRouteImport.update({
@@ -231,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/join/': typeof JoinIndexRoute
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
+  '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -240,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
+  '/you/collections': typeof AppYouCollectionsRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
@@ -266,6 +281,7 @@ export interface FileRoutesByTo {
   '/join': typeof JoinIndexRoute
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
+  '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -275,6 +291,7 @@ export interface FileRoutesByTo {
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
+  '/you/collections': typeof AppYouCollectionsRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
@@ -303,6 +320,7 @@ export interface FileRoutesById {
   '/join/': typeof JoinIndexRoute
   '/_app/add/link': typeof AppAddLinkRoute
   '/_app/add/photo': typeof AppAddPhotoRoute
+  '/_app/collection/$collectionId': typeof AppCollectionCollectionIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
@@ -312,6 +330,7 @@ export interface FileRoutesById {
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
+  '/_app/you_/collections': typeof AppYouCollectionsRoute
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/items': typeof AppYouItemsRoute
   '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
@@ -340,6 +359,7 @@ export interface FileRouteTypes {
     | '/join/'
     | '/add/link'
     | '/add/photo'
+    | '/collection/$collectionId'
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
@@ -349,6 +369,7 @@ export interface FileRouteTypes {
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
+    | '/you/collections'
     | '/you/drawer'
     | '/you/items'
     | '/poll/$pollId/edit'
@@ -375,6 +396,7 @@ export interface FileRouteTypes {
     | '/join'
     | '/add/link'
     | '/add/photo'
+    | '/collection/$collectionId'
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
@@ -384,6 +406,7 @@ export interface FileRouteTypes {
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
+    | '/you/collections'
     | '/you/drawer'
     | '/you/items'
     | '/poll/$pollId/edit'
@@ -411,6 +434,7 @@ export interface FileRouteTypes {
     | '/join/'
     | '/_app/add/link'
     | '/_app/add/photo'
+    | '/_app/collection/$collectionId'
     | '/_app/item/$itemId'
     | '/_app/poll/new'
     | '/_app/settings/account'
@@ -420,6 +444,7 @@ export interface FileRouteTypes {
     | '/_app/settings/privacy'
     | '/_app/u/$username'
     | '/_app/you_/closet'
+    | '/_app/you_/collections'
     | '/_app/you_/drawer'
     | '/_app/you_/items'
     | '/_app/poll/$pollId/edit'
@@ -564,6 +589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAddPhotoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/collection/$collectionId': {
+      id: '/_app/collection/$collectionId'
+      path: '/collection/$collectionId'
+      fullPath: '/collection/$collectionId'
+      preLoaderRoute: typeof AppCollectionCollectionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/item/$itemId': {
       id: '/_app/item/$itemId'
       path: '/item/$itemId'
@@ -625,6 +657,13 @@ declare module '@tanstack/react-router' {
       path: '/you/closet'
       fullPath: '/you/closet'
       preLoaderRoute: typeof AppYouClosetRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/you_/collections': {
+      id: '/_app/you_/collections'
+      path: '/you/collections'
+      fullPath: '/you/collections'
+      preLoaderRoute: typeof AppYouCollectionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/you_/drawer': {
@@ -714,10 +753,12 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAddLinkRoute: typeof AppAddLinkRoute
   AppAddPhotoRoute: typeof AppAddPhotoRoute
+  AppCollectionCollectionIdRoute: typeof AppCollectionCollectionIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppPollNewRoute: typeof AppPollNewRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
+  AppYouCollectionsRoute: typeof AppYouCollectionsRoute
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
   AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
@@ -736,10 +777,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAddLinkRoute: AppAddLinkRoute,
   AppAddPhotoRoute: AppAddPhotoRoute,
+  AppCollectionCollectionIdRoute: AppCollectionCollectionIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppPollNewRoute: AppPollNewRoute,
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
+  AppYouCollectionsRoute: AppYouCollectionsRoute,
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouItemsRoute: AppYouItemsRoute,
   AppPollPollIdEditRoute: AppPollPollIdEditRoute,

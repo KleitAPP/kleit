@@ -13,6 +13,7 @@ import {
   type Template,
 } from "@/sets/sets";
 import { inkFor } from "@/sets/swatches";
+import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
 
 /**
@@ -54,6 +55,7 @@ function SetPage() {
   const [options, setOptions] = useState(false);
   const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -306,6 +308,18 @@ function SetPage() {
             </div>
           </li>
           <li>
+            <button
+              type="button"
+              onClick={() => {
+                setOptions(false);
+                setSaving(true);
+              }}
+              className="flex min-h-12 w-full items-center text-left text-base text-ink"
+            >
+              {t("collections.saveTo")}
+            </button>
+          </li>
+          <li>
             <Link
               to="/set/$setId/history"
               params={{ setId }}
@@ -340,6 +354,8 @@ function SetPage() {
           </li>
         </ul>
       </Sheet>
+
+      <SaveToCollection setId={setId} open={saving} onOpenChange={setSaving} />
 
       {/* G6: the plain warning, before it happens. */}
       <Sheet

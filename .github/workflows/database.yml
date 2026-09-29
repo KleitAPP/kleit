@@ -184,3 +184,29 @@ jobs:
       # Read back what is actually deployed, rather than trusting that deploy said so (lesson L24).
       - name: Functions, as the project now holds them
         run: supabase functions list --project-ref "$SUPABASE_PROJECT_REF"
+      # The sweeper, proven rather than assumed: fire the timer's own function once by hand, give
+      # the HTTP call time to come back, and read what the database recorded - the reply status
+      # from pg_net, the last few timer runs, and how many items were claimed. A 401 here means the
+      # vault and the function disagree about the secret; anything but 200 fails the run.
+      - name: Prove the sweeper runs
+        run: |
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          psql "$DSN" -v ON_ERROR_STOP=1 -c "select private.sweep_scans()"
+          sleep 75
+          psql "$DSN" -v ON_ERROR_STOP=1 <<'SQL'
+          select id, status_code, left(content::text, 200) as reply, created
+            from net._http_response order by id desc limit 3;
+          select jobid, status, left(return_message, 80) as message, start_time
+            from cron.job_run_details
+            where jobid = (select jobid from cron.job where jobname = 'sweep-images')
+            order by start_time desc limit 3;
+          select scan_state, attempts, count(*) from public.item_flags
+            group by scan_state, attempts order by 1, 2;
+          SQL
+          STATUS="$(psql "$DSN" -tA -c "select status_code from net._http_response order by id desc limit 1")"
+          test "$STATUS" = "200" || { echo "::error::the sweeper answered $STATUS, not 200"; exit 1; }

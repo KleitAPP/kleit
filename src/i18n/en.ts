@@ -25,6 +25,7 @@ export const en = {
 
   "poll.vote": "Vote for {label}",
   "poll.votes": "{count} votes",
+  "poll.vote1": "1 vote",
   "poll.oneVote": "One vote per device",
   "poll.privacy": "Votes are anonymous. Privacy",
 

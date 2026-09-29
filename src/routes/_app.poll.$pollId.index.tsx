@@ -169,7 +169,9 @@ function PollPage() {
                 <div className="h-full rounded-pill bg-brand" style={{ width: `${pct}%` }} />
               </div>
               <p className="mt-1 text-sm text-ink-soft">
-                {t("poll.votes", { count: row?.raw_votes ?? 0 })}
+                {(row?.raw_votes ?? 0) === 1
+                  ? t("poll.vote1")
+                  : t("poll.votes", { count: row?.raw_votes ?? 0 })}
               </p>
             </li>
           );
@@ -178,7 +180,7 @@ function PollPage() {
       <p className="mt-3 text-sm text-ink-soft">
         {rawSum === 0
           ? t("pollpage.noVotes")
-          : `${t("poll.votes", { count: rawSum })} · ${t("pollpage.friends", { count: friends })}`}{" "}
+          : `${rawSum === 1 ? t("poll.vote1") : t("poll.votes", { count: rawSum })} · ${t("pollpage.friends", { count: friends })}`}{" "}
         · {t("pollpage.totalsOnly")}
       </p>
 

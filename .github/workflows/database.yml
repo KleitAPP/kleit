@@ -225,10 +225,12 @@ jobs:
           HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
           USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
           DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
-          ITEM="$(psql "$DSN" -tA -v ON_ERROR_STOP=1 -c "
+          # Any throwaway a failed earlier run left behind goes first.
+          psql "$DSN" -q -c "delete from public.items where title = 'CI throwaway'"
+          ITEM="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "
             insert into public.items (owner_id, kind, title, source_url, source_domain, store_name)
             select id, 'product', 'CI throwaway', 'https://example.com/ci-buy-check?x=1', 'example.com', 'Example'
-            from auth.users order by created_at limit 1 returning id")"
+            from auth.users order by created_at limit 1 returning id" | head -1)"
           test -n "$ITEM" || { echo "::error::could not make the throwaway item"; exit 1; }
           echo "throwaway item $ITEM"
           FN="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/buy-redirect"

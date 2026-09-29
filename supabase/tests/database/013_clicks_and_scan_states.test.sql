@@ -70,8 +70,8 @@ select results_eq(
             ('dddddddd-0000-4000-8000-000000000002'::uuid, 'clean') $$,
   'the owner gets one word per item of theirs - pending when unscanned - and nothing for anyone else''s');
 
-select throws_ok($$ select * from item_flags $$, '42501', null,
-  'and still cannot read item_flags itself');
+select is((select count(*) from item_flags), 0::bigint,
+  'and still sees nothing in item_flags itself - the reasons are the scanner''s, not theirs');
 reset role;
 select set_config('request.jwt.claims', '', true);
 

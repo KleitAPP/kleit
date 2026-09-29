@@ -214,3 +214,34 @@ jobs:
           SQL
           STATUS="$(psql "$DSN" -tA -c "select status_code from net._http_response order by id desc limit 1")"
           test "$STATUS" = "200" || { echo "::error::the sweeper answered $STATUS, not 200"; exit 1; }
+      # The Buy redirect, proven the same way (M2.7 "Done when"): a throwaway item with a store
+      # address, one tap through the live function, and then the database read back - a 302 to
+      # exactly that address, one click row with a random id, and no column that could name who.
+      - name: Prove the Buy redirect
+        run: |
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          ITEM="$(psql "$DSN" -tA -v ON_ERROR_STOP=1 -c "
+            insert into public.items (owner_id, kind, title, source_url, source_domain, store_name)
+            select id, 'product', 'CI throwaway', 'https://example.com/ci-buy-check?x=1', 'example.com', 'Example'
+            from auth.users order by created_at limit 1 returning id")"
+          test -n "$ITEM" || { echo "::error::could not make the throwaway item"; exit 1; }
+          echo "throwaway item $ITEM"
+          FN="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/buy-redirect"
+          # A tap. -o /dev/null so nothing is followed; we want the redirect itself.
+          curl -sS -o /dev/null -D /tmp/buy-headers.txt "$FN?item=$ITEM&network=direct"
+          cat /tmp/buy-headers.txt
+          grep -qi "^HTTP/.* 302" /tmp/buy-headers.txt || { echo "::error::Buy did not answer 302"; exit 1; }
+          grep -qi "^location: https://example.com/ci-buy-check?x=1" /tmp/buy-headers.txt || { echo "::error::Buy did not point at the stored address"; exit 1; }
+          # An address in the query must never be followed.
+          curl -sS -o /dev/null -w "%{http_code}\n" "$FN?item=$ITEM&url=https://evil.example" | grep -q "^302$"
+          curl -sS -o /dev/null -w "%{http_code}\n" "$FN?item=00000000-0000-4000-8000-000000000000" | grep -q "^404$" || { echo "::error::an unknown item should be 404"; exit 1; }
+          psql "$DSN" -v ON_ERROR_STOP=1 -c "select click_id, network, set_id, created_at from public.clicks where item_id = '$ITEM'"
+          N="$(psql "$DSN" -tA -c "select count(*) from public.clicks where item_id = '$ITEM'")"
+          test "$N" = "2" || { echo "::error::expected 2 clicks recorded, found $N"; exit 1; }
+          psql "$DSN" -tA -c "select count(*) from information_schema.columns where table_name='clicks' and (column_name ilike '%user%' or column_name ilike '%email%')" | grep -q "^0$" || { echo "::error::clicks has a column that could name a person"; exit 1; }
+          psql "$DSN" -v ON_ERROR_STOP=1 -c "delete from public.items where id = '$ITEM'"

@@ -46,8 +46,10 @@ select is((select count(*)::int from collection_entries where collection_id = '9
 select is((select count(*)::int from collection_entries where collection_id = '98989898-0000-4000-8000-000000000002'), 1, 'stranger: in the public folder, only the set they could see anyway');
 select throws_ok($$ insert into collection_entries (collection_id, set_id) values ('98989898-0000-4000-8000-000000000002', '99999999-0000-4000-8000-000000000001') $$,
   '42501', null, 'stranger: cannot add to someone else''s folder');
-select is((select count(*)::int from (update collections set name = 'hijacked' where id = '98989898-0000-4000-8000-000000000002' returning id) u), 0, 'stranger: cannot rename it');
-select is((select count(*)::int from (delete from collection_entries where collection_id = '98989898-0000-4000-8000-000000000002' returning id) d), 0, 'stranger: cannot empty it');
+update collections set name = 'hijacked' where id = '98989898-0000-4000-8000-000000000002';
+select is((select name from collections where id = '98989898-0000-4000-8000-000000000002'), 'Public folder', 'stranger: cannot rename it (the update touched no row)');
+delete from collection_entries where collection_id = '98989898-0000-4000-8000-000000000002';
+select is((select count(*)::int from collection_entries where collection_id = '98989898-0000-4000-8000-000000000002'), 1, 'stranger: cannot empty it (the delete touched no row)');
 select lives_ok($$ insert into collections (owner_id, name) values ('cccccccc-0000-4000-8000-000000000002', 'my own') $$, 'stranger: can make their own');
 
 select pg_temp.act_as('cccccccc-0000-4000-8000-000000000003');

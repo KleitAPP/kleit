@@ -66,10 +66,14 @@ reset role;
 -- ---------------------------------------------------------------------------
 -- The server claims exactly the stragglers.
 -- ---------------------------------------------------------------------------
-create temp table first_batch as select * from claim_scans(10);
+-- The tests run against the real test database, which has real stragglers of its own (the first
+-- run of this file found one - a photo from 2026-09-28 whose scan never came back, which is the
+-- exact thing the sweeper is for). So the batch is asked for at its largest and only the rows
+-- this file created are counted; everything claimed here rolls back with the transaction.
+create temp table first_batch as select * from claim_scans(50);
 
 select results_eq(
-  $$ select id from first_batch order by id $$,
+  $$ select id from first_batch where id::text like 'cccccccc-%' order by id $$,
   $$ values ('cccccccc-0000-4000-8000-000000000001'::uuid), ('cccccccc-0000-4000-8000-000000000006'::uuid) $$,
   'the batch is the never-scanned old item and the one claimed long ago - nothing else');
 
@@ -88,7 +92,7 @@ select is((select attempts from item_flags where item_id = 'cccccccc-0000-4000-8
   'the given-up item was not tried a sixth time');
 
 -- Claiming is something that happens once.
-select is((select count(*) from claim_scans(10)), 0::bigint,
+select is((select count(*) from claim_scans(50)), 0::bigint,
   'a second sweep straight after the first finds nothing to do');
 
 -- The app's own call counts itself.

@@ -270,8 +270,9 @@ jobs:
           BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
           OWNER="$(psql "$DSN" -tAq -c "select id from auth.users order by created_at limit 1")"
           psql "$DSN" -q -c "delete from public.items where title like 'CI never-again %'; delete from public.removed_image_fingerprints where reason = 'CI throwaway'"
-          # A plain, obviously harmless picture.
-          convert -size 96x64 gradient:orange-navy /tmp/never.jpg
+          # A plain, obviously harmless picture: two flat colour blocks.
+          python3 -m pip install -q pillow
+          python3 -c "from PIL import Image; im=Image.new('RGB',(96,64),(240,140,40)); im.paste((20,30,120),(0,32,96,64)); im.save('/tmp/never.jpg','JPEG',quality=90)"
           PATH_A="$OWNER/ci-never-again-a.jpg"; PATH_B="$OWNER/ci-never-again-b.jpg"
           for P in "$PATH_A" "$PATH_B"; do
             curl -sS -o /dev/null -w "upload $P: %{http_code}\n" -X POST "$BASE/storage/v1/object/item-images/$P" \

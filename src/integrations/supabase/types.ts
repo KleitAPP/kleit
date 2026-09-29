@@ -113,6 +113,24 @@ export type Database = {
         }
         Relationships: []
       }
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       clicks: {
         Row: {
           click_id: string
@@ -141,6 +159,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clicks_set_fk"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
             referencedColumns: ["id"]
           },
         ]
@@ -224,6 +249,79 @@ export type Database = {
           },
         ]
       }
+      collection_entries: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          item_id: string | null
+          set_id: string | null
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          set_id?: string | null
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          set_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_entries_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_entries_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_entries_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["collection_visibility"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["collection_visibility"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["collection_visibility"]
+        }
+        Relationships: []
+      }
       drawer_items: {
         Row: {
           created_at: string
@@ -258,6 +356,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          followee_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followee_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followee_id?: string
+          follower_id?: string
+        }
+        Relationships: []
       }
       item_flags: {
         Row: {
@@ -524,6 +640,202 @@ export type Database = {
           },
         ]
       }
+      set_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          position: Json
+          set_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          position?: Json
+          set_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          position?: Json
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "set_items_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      set_versions: {
+        Row: {
+          id: string
+          layout: Json
+          saved_at: string
+          set_id: string
+        }
+        Insert: {
+          id?: string
+          layout: Json
+          saved_at?: string
+          set_id: string
+        }
+        Update: {
+          id?: string
+          layout?: Json
+          saved_at?: string
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_versions_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sets: {
+        Row: {
+          alt_text: string | null
+          caption: string
+          comments_mode: Database["public"]["Enums"]["comments_mode"]
+          created_at: string
+          deleted_at: string | null
+          description: string
+          id: string
+          layout: Json
+          layout_version: number
+          owner_id: string
+          preview_image_id: string | null
+          published_at: string | null
+          remix_mode: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label: string | null
+          remixed_from_set_id: string | null
+          share_code: string
+          song_artist: string | null
+          song_cover_url: string | null
+          song_title: string | null
+          song_url: string | null
+          status: Database["public"]["Enums"]["set_status"]
+          tags: string[]
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["set_visibility"]
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string
+          comments_mode?: Database["public"]["Enums"]["comments_mode"]
+          created_at?: string
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          layout?: Json
+          layout_version?: number
+          owner_id: string
+          preview_image_id?: string | null
+          published_at?: string | null
+          remix_mode?: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label?: string | null
+          remixed_from_set_id?: string | null
+          share_code?: string
+          song_artist?: string | null
+          song_cover_url?: string | null
+          song_title?: string | null
+          song_url?: string | null
+          status?: Database["public"]["Enums"]["set_status"]
+          tags?: string[]
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          title?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["set_visibility"]
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string
+          comments_mode?: Database["public"]["Enums"]["comments_mode"]
+          created_at?: string
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          layout?: Json
+          layout_version?: number
+          owner_id?: string
+          preview_image_id?: string | null
+          published_at?: string | null
+          remix_mode?: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label?: string | null
+          remixed_from_set_id?: string | null
+          share_code?: string
+          song_artist?: string | null
+          song_cover_url?: string | null
+          song_title?: string | null
+          song_url?: string | null
+          status?: Database["public"]["Enums"]["set_status"]
+          tags?: string[]
+          takedown_state?: Database["public"]["Enums"]["takedown_state"]
+          title?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["set_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sets_remixed_from_set_id_fkey"
+            columns: ["remixed_from_set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          kind: Database["public"]["Enums"]["template_kind"]
+          layout: Json
+          name: string
+          owner_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          kind?: Database["public"]["Enums"]["template_kind"]
+          layout: Json
+          name: string
+          owner_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          kind?: Database["public"]["Enums"]["template_kind"]
+          layout?: Json
+          name?: string
+          owner_id?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
       user_devices: {
         Row: {
           city: string | null
@@ -598,9 +910,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_item_stats: {
+        Row: {
+          item_id: string | null
+          set_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      can_view_set: {
+        Args: { p_code?: string; p_set_id: string; p_viewer: string }
+        Returns: boolean
+      }
       claim_profile: {
         Args: {
           p_display_name?: string
@@ -647,6 +977,48 @@ export type Database = {
           scan_state: string
         }[]
       }
+      reset_share_code: { Args: { p_set_id: string }; Returns: string }
+      save_set_layout: {
+        Args: { p_layout: Json; p_set_id: string }
+        Returns: number
+      }
+      set_by_share_code: {
+        Args: { p_code: string }
+        Returns: {
+          alt_text: string | null
+          caption: string
+          comments_mode: Database["public"]["Enums"]["comments_mode"]
+          created_at: string
+          deleted_at: string | null
+          description: string
+          id: string
+          layout: Json
+          layout_version: number
+          owner_id: string
+          preview_image_id: string | null
+          published_at: string | null
+          remix_mode: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label: string | null
+          remixed_from_set_id: string | null
+          share_code: string
+          song_artist: string | null
+          song_cover_url: string | null
+          song_title: string | null
+          song_url: string | null
+          status: Database["public"]["Enums"]["set_status"]
+          tags: string[]
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["set_visibility"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       username_available: { Args: { candidate: string }; Returns: boolean }
       username_status: { Args: { candidate: string }; Returns: string }
     }
@@ -656,14 +1028,20 @@ export type Database = {
         | "paste_link"
         | "browser_extension"
         | "upload"
+      collection_visibility: "public" | "only_me"
+      comments_mode: "everyone" | "followers" | "off"
       deletion_state: "pending" | "cancelled" | "completed"
       drawer_origin: "clipped" | "own_cutout" | "pickup"
       image_bucket: "item-images" | "closet-photos"
       item_kind: "product" | "non_product" | "own"
       optout_source: "form" | "meta_tag"
+      remix_mode: "anyone" | "followers" | "off"
       scan_state: "pending" | "clean" | "review" | "blocked"
+      set_status: "draft" | "published"
+      set_visibility: "public" | "link" | "followers" | "friends" | "only_me"
       staff_role: "admin" | "moderator"
       takedown_state: "none" | "requested" | "removed"
+      template_kind: "slot" | "stacked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -797,14 +1175,20 @@ export const Constants = {
         "browser_extension",
         "upload",
       ],
+      collection_visibility: ["public", "only_me"],
+      comments_mode: ["everyone", "followers", "off"],
       deletion_state: ["pending", "cancelled", "completed"],
       drawer_origin: ["clipped", "own_cutout", "pickup"],
       image_bucket: ["item-images", "closet-photos"],
       item_kind: ["product", "non_product", "own"],
       optout_source: ["form", "meta_tag"],
+      remix_mode: ["anyone", "followers", "off"],
       scan_state: ["pending", "clean", "review", "blocked"],
+      set_status: ["draft", "published"],
+      set_visibility: ["public", "link", "followers", "friends", "only_me"],
       staff_role: ["admin", "moderator"],
       takedown_state: ["none", "requested", "removed"],
+      template_kind: ["slot", "stacked"],
     },
   },
 } as const

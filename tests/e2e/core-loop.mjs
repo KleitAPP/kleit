@@ -226,7 +226,8 @@ try {
   // 4. A poll of the two, for the guest to vote on.
   await page.goto(`${SITE}/poll/new`);
   await page.getByPlaceholder("Which one for Friday?").fill("Which one?");
-  const setButtons = page.locator("button[aria-pressed]");
+  // The sets are the pressable rows in the list; the duration chips below are pressable too.
+  const setButtons = page.locator("ul button[aria-pressed]");
   await setButtons.first().waitFor();
   await setButtons.nth(0).click();
   await setButtons.nth(1).click();

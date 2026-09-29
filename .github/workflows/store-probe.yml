@@ -1,0 +1,44 @@
+# Kleit — the M2.1 store probe (roadmap M2.1; spec 4.1 #5).
+# Asks the deployed clip-url function to read one product page from each of twenty US fashion
+# stores and writes the pass/fail table to the run summary. By hand, and monthly, because stores
+# change their minds about bots without telling anyone.
+name: store-probe
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 8 1 * *"
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: zoimaafxtweeoqnmrbkh
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The function's read is open to the project's own service key. Fetched from the
+      # management API for this run only; never stored anywhere.
+      - name: Probe the twenty stores
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          PROBE_URL="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/clip-url" PROBE_KEY="$KEY" \
+            node scripts/store-probe.mjs > probe.md
+          cat probe.md >> "$GITHUB_STEP_SUMMARY"
+          cat probe.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-probe
+          path: probe.md

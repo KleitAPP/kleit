@@ -37,6 +37,10 @@ jobs:
       # this is what would notice if a phone ever did not.
       - name: Photo metadata check
         run: bun scripts/check-metadata.ts
+      # The store-page reader and the door it fetches through: private addresses refused,
+      # tracking codes stripped, four shapes of product page read right (M2.4).
+      - name: Product page reader check
+        run: bun scripts/check-product-page.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

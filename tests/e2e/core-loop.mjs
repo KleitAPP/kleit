@@ -297,6 +297,11 @@ try {
   // 7. Sign up from the link.
   await gp.getByRole("link", { name: "Sign up" }).first().click();
   await gp.waitForURL(/\/welcome/);
+  // The app shell boots after the launch check; wait for the screen's words, not the URL.
+  await gp
+    .getByText(/Get started|Build an outfit/)
+    .first()
+    .waitFor({ timeout: 20_000 });
   const welcome = await gp.innerText("body");
   check(
     /Get started|Build an outfit/.test(welcome),

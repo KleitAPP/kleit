@@ -977,6 +977,7 @@ export type Database = {
           scan_state: string
         }[]
       }
+      piece_is_shareable: { Args: { p_item_id: string }; Returns: boolean }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }
@@ -1019,6 +1020,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      shared_set: { Args: { p_code: string }; Returns: Json }
       username_available: { Args: { candidate: string }; Returns: boolean }
       username_status: { Args: { candidate: string }; Returns: string }
     }

@@ -31,8 +31,8 @@ export type Prepared = {
   blob: Blob;
   width: number;
   height: number;
-  /** What it became. See the note on JPEG below. */
-  type: "image/webp" | "image/jpeg";
+  /** What it became. See the note on JPEG below; PNG is the cutout editor's, when something was cut away. */
+  type: "image/webp" | "image/jpeg" | "image/png";
 };
 
 export type PrepareProblem = "not-an-image" | "unreadable" | "too-big";
@@ -40,10 +40,14 @@ export type PrepareProblem = "not-an-image" | "unreadable" | "too-big";
 /** Refused before we even decode it: a 25 MB file is not a garment photo, it is a mistake. */
 export const MAX_INPUT_BYTES = 10 * 1024 * 1024;
 
-export async function preparePhoto(
+/**
+ * The redraw on its own: the photo the right way up, capped, on a canvas with no metadata. This
+ * is what the cutout editor starts from (cutout.ts), and what preparePhoto encodes.
+ */
+export async function prepareCanvas(
   file: Blob,
   longestSide: number = LONGEST_SIDE,
-): Promise<{ ok: true; photo: Prepared } | { ok: false; problem: PrepareProblem }> {
+): Promise<{ ok: true; canvas: HTMLCanvasElement } | { ok: false; problem: PrepareProblem }> {
   if (!file.type.startsWith("image/")) return { ok: false, problem: "not-an-image" };
   if (file.size > MAX_INPUT_BYTES) return { ok: false, problem: "too-big" };
 
@@ -70,6 +74,17 @@ export async function preparePhoto(
   }
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
+  return { ok: true, canvas };
+}
+
+export async function preparePhoto(
+  file: Blob,
+  longestSide: number = LONGEST_SIDE,
+): Promise<{ ok: true; photo: Prepared } | { ok: false; problem: PrepareProblem }> {
+  const prepared = await prepareCanvas(file, longestSide);
+  if (!prepared.ok) return prepared;
+  const canvas = prepared.canvas;
+  const { width, height } = canvas;
 
   // JPEG, not WebP, and this is a deliberate step backwards.
   //

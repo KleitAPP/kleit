@@ -16,7 +16,7 @@
  * it.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { preparePhoto, type PrepareProblem } from "@/photos/prepare";
+import { preparePhoto, type Prepared, type PrepareProblem } from "@/photos/prepare";
 
 export type AddProblem =
   PrepareProblem | "signed-out" | "upload-failed" | "save-failed" | "offline";
@@ -25,9 +25,20 @@ export type AddResult =
   | { ok: true; itemId: string; state: "clean" | "review" | "blocked" | "checking" }
   | { ok: false; problem: AddProblem };
 
-export async function addOwnPhoto(file: Blob): Promise<AddResult> {
-  const prepared = await preparePhoto(file);
-  if (!prepared.ok) return { ok: false, problem: prepared.problem };
+/**
+ * `photo` is either the file as chosen (it is prepared here) or something already prepared - the
+ * cutout editor's output, which has been through the same redraw and must not go through it
+ * again, because a second JPEG pass would throw away the transparency it just made.
+ */
+export async function addOwnPhoto(photo: Blob | Prepared): Promise<AddResult> {
+  let ready: Prepared;
+  if (photo instanceof Blob) {
+    const prepared = await preparePhoto(photo);
+    if (!prepared.ok) return { ok: false, problem: prepared.problem };
+    ready = prepared.photo;
+  } else {
+    ready = photo;
+  }
 
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;
@@ -36,12 +47,13 @@ export async function addOwnPhoto(file: Blob): Promise<AddResult> {
   // The first folder in the path is the account id, which is what the storage policy checks.
   // crypto.randomUUID rather than the file's own name: a name can carry its own story
   // ("IMG_2024_hospital.jpg"), and two people uploading "jumper.webp" must not collide.
-  const extension = prepared.photo.type === "image/webp" ? "webp" : "jpg";
+  const extension =
+    ready.type === "image/png" ? "png" : ready.type === "image/webp" ? "webp" : "jpg";
   const path = `${me}/${crypto.randomUUID()}.${extension}`;
 
   const { error: uploadError } = await supabase.storage
     .from("closet-photos")
-    .upload(path, prepared.photo.blob, { contentType: prepared.photo.type, upsert: false });
+    .upload(path, ready.blob, { contentType: ready.type, upsert: false });
   if (uploadError) return { ok: false, problem: "upload-failed" };
 
   const { data: item, error: saveError } = await supabase

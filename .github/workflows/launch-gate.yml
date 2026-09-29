@@ -16,6 +16,7 @@ on:
     paths:
       - "src/photos/**"
       - "scripts/check-photo-prepare.mjs"
+      - "scripts/check-cutout.mjs"
       - "scripts/fixtures/**"
       - ".github/workflows/launch-gate.yml"
   schedule:
@@ -57,3 +58,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: A photo loses its location before it leaves the phone
         run: node scripts/check-photo-prepare.mjs
+      # The cutout editor's mask: erase, restore, undo and reset, and that the photo itself is
+      # never painted on. Same real browser, same real module (M2.6).
+      - name: The cutout editor cuts, restores and undoes exactly
+        run: node scripts/check-cutout.mjs

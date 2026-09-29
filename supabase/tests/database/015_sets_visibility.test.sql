@@ -113,7 +113,9 @@ select pg_temp.back();
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
 select ok(pg_temp.sees('public') and pg_temp.sees('link') and pg_temp.sees('followers') and pg_temp.sees('friends') and pg_temp.sees('only_me') and pg_temp.sees('draft'),
   'owner · all six: yes');
-select is((select count(*) from sets), 6::bigint, 'owner · sees exactly their six and nothing else');
+-- Counted among this file's own sets: the live database has real public sets too, and a real
+-- public set is visible to everyone here by design.
+select is((select count(*) from sets where id::text like '55555555-%'), 6::bigint, 'owner · sees exactly their six and nothing else');
 select pg_temp.back();
 
 -- ---------------------------------------------------------------------------
@@ -145,7 +147,7 @@ insert into set_items (set_id, item_id) values
   ('55555555-0000-4000-8000-000000000006', '66666666-0000-4000-8000-000000000001');
 
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000002');
-select is((select count(*) from set_items), 1::bigint, 'stranger · sees the piece on the public set only');
+select is((select count(*) from set_items where set_id::text like '55555555-%'), 1::bigint, 'stranger · sees the piece on the public set only');
 select is((select set_count from public_item_stats where item_id = '66666666-0000-4000-8000-000000000001'), 1,
   'public_item_stats counts the public set and NOT the only_me or draft ones');
 select throws_ok($$ insert into set_items (set_id, item_id) values ('55555555-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001') $$,
@@ -153,7 +155,7 @@ select throws_ok($$ insert into set_items (set_id, item_id) values ('55555555-00
 select pg_temp.back();
 
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
-select is((select count(*) from set_items), 3::bigint, 'owner · sees all three placements');
+select is((select count(*) from set_items where set_id::text like '55555555-%'), 3::bigint, 'owner · sees all three placements');
 select pg_temp.back();
 
 -- A shareable own piece is visible to the set's viewers; a non-shareable one is not (row 7).

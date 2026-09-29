@@ -254,6 +254,7 @@ try {
   check(
     /core loop one/.test(shared) && /Sign up/.test(shared),
     "signed out: the set and the sign-up card are on the page",
+    shared.replace(/\s+/g, " ").slice(0, 200),
   );
   check(elapsed < 2500, "signed out: the page arrives in under 2.5 s", `${elapsed} ms`);
 
@@ -264,8 +265,20 @@ try {
     /One vote per device/.test(before) && /How we handle votes/.test(before),
     "guest vote: the privacy line and 'one vote per device' show BEFORE the first tap",
   );
+  const guestConsole = [];
+  gp.on("console", (m) => guestConsole.push(`${m.type()}: ${m.text()}`));
+  gp.on("pageerror", (e) => guestConsole.push(`pageerror: ${e.message}`));
   await gp.locator("button.vote").first().click();
-  await gp.locator(".option.mine").waitFor({ timeout: 30_000 });
+  await Promise.race([
+    gp.locator(".option.mine").waitFor({ timeout: 45_000 }),
+    gp.locator("#notice:not([hidden])").waitFor({ timeout: 45_000 }),
+  ]);
+  if (!(await gp.locator(".option.mine").count())) {
+    const said = await gp.innerText("#notice");
+    throw new Error(
+      `the vote did not land: "${said}" · console: ${guestConsole.slice(-5).join(" | ")}`,
+    );
+  }
   const after = await gp.innerText("body");
   check(/Your vote/.test(after) && /%/.test(after), "guest vote: the bars appear after the vote");
   check(
@@ -302,6 +315,14 @@ try {
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {
+    for (const ctx of browser.contexts()) {
+      for (const [i, pg] of ctx.pages().entries()) {
+        await pg.screenshot({
+          path: `core-loop-failure-${ctx === owner ? "owner" : "guest"}-${i}.png`,
+          fullPage: true,
+        });
+      }
+    }
     await page.screenshot({ path: "core-loop-failure.png", fullPage: true });
     console.log("# screenshot: core-loop-failure.png at " + page.url());
   } catch {

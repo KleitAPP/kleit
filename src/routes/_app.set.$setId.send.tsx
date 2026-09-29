@@ -45,6 +45,7 @@ function SendSet() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [altText, setAltText] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +99,14 @@ function SendSet() {
     setSet({ ...set, status: "published", title: title.trim() || autoTitle(placements) });
   }
 
+  async function saveAltText() {
+    if (!set) return;
+    await supabase
+      .from("sets")
+      .update({ alt_text: altText.trim() || null })
+      .eq("id", set.id);
+  }
+
   async function changeVisibility(next: Visibility) {
     if (!set) return;
     const { error } = await supabase.from("sets").update({ visibility: next }).eq("id", set.id);
@@ -144,6 +153,23 @@ function SendSet() {
           className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
         />
       </label>
+
+      {/* G5: alt text lives under Advanced - offered, never in the way. */}
+      <details className="mt-4 rounded-md border border-line bg-surface p-3">
+        <summary className="cursor-pointer text-base text-ink">{t("send.advanced")}</summary>
+        <label className="mt-3 block">
+          <span className="text-sm text-ink-soft">{t("send.altText")}</span>
+          <input
+            type="text"
+            maxLength={300}
+            value={altText}
+            onChange={(e) => setAltText(e.target.value)}
+            onBlur={() => void saveAltText()}
+            placeholder={t("send.altHint")}
+            className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+          />
+        </label>
+      </details>
 
       {/* Decision 5: a plain line with a one-tap switch. */}
       <div className="mt-4 rounded-md border border-line bg-surface p-3">

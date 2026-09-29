@@ -1,0 +1,68 @@
+# Kleit — the core loop, clicked through on the deployed test site (roadmap M3.9; technical
+# pack §7.3): sign up → build → send → open signed out → guest vote → sign up from the link.
+# If this breaks, everything breaks, so it runs after every app deploy, and on demand.
+#
+# The one step a machine cannot click is the 6-digit code (no mailbox), so the session is minted
+# the way the code screen mints it - see tests/e2e/core-loop.mjs. The service key it needs for
+# that is read from the management API at run time and masked; it never sits in a secret.
+name: core-loop
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [app]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-loop
+  cancel-in-progress: false
+
+env:
+  SUPABASE_PROJECT_REF: zoimaafxtweeoqnmrbkh
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  KLEIT_TEST_SITE: https://kleit-test.kleitapp-team.workers.dev
+
+jobs:
+  core-loop:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Browser and the two libraries
+        run: |
+          npm install --no-save playwright@1 @supabase/supabase-js@2
+          npx playwright install --with-deps chromium
+      # Workers Builds deploys a push in about a minute; give it a moment so the run drives the
+      # bundle the app workflow just checked, not the one before it.
+      - name: Wait for the deploy
+        if: ${{ github.event_name == 'workflow_run' }}
+        run: sleep 90
+      - name: Run the loop
+        run: |
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          ANON="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "anon") | .api_key')"
+          SUPABASE_URL="https://$SUPABASE_PROJECT_REF.supabase.co" SUPABASE_ANON_KEY="$ANON" SUPABASE_SERVICE_KEY="$KEY" \
+            node tests/e2e/core-loop.mjs | tee core-loop.txt
+          echo '### Core loop' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"; cat core-loop.txt >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the screenshot if it failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-loop-failure
+          path: core-loop-failure.png
+          if-no-files-found: ignore

@@ -298,7 +298,11 @@ try {
   await gp.getByRole("link", { name: "Sign up" }).first().click();
   await gp.waitForURL(/\/welcome/);
   const welcome = await gp.innerText("body");
-  check(/Kleit/.test(welcome), "sign up from the link: the Welcome screen opens");
+  check(
+    /Get started|Build an outfit/.test(welcome),
+    "sign up from the link: the Welcome screen opens",
+    welcome.replace(/\s+/g, " ").slice(0, 120),
+  );
 
   // 8. The owner sees totals, never names, and the poll knows about the guest.
   await page.reload();

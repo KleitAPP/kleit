@@ -24,6 +24,7 @@ import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
 import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
+import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
@@ -33,6 +34,7 @@ import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.leg
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
+import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
 
 const AppRoute = AppRouteImport.update({
@@ -109,6 +111,11 @@ const JoinUsernameRoute = JoinUsernameRouteImport.update({
   path: '/join/username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAddLinkRoute = AppAddLinkRouteImport.update({
+  id: '/add/link',
+  path: '/add/link',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAddPhotoRoute = AppAddPhotoRouteImport.update({
   id: '/add/photo',
   path: '/add/photo',
@@ -154,6 +161,11 @@ const AppYouClosetRoute = AppYouClosetRouteImport.update({
   path: '/you/closet',
   getParentRoute: () => AppRoute,
 } as any)
+const AppYouDrawerRoute = AppYouDrawerRouteImport.update({
+  id: '/you_/drawer',
+  path: '/you/drawer',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppYouItemsRoute = AppYouItemsRouteImport.update({
   id: '/you_/items',
   path: '/you/items',
@@ -175,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
+  '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -184,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
+  '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
 }
 export interface FileRoutesByTo {
@@ -201,6 +215,7 @@ export interface FileRoutesByTo {
   '/join/username': typeof JoinUsernameRoute
   '/': typeof AppIndexRoute
   '/join': typeof JoinIndexRoute
+  '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -210,6 +225,7 @@ export interface FileRoutesByTo {
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
+  '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
 }
 export interface FileRoutesById {
@@ -229,6 +245,7 @@ export interface FileRoutesById {
   '/join/username': typeof JoinUsernameRoute
   '/_app/': typeof AppIndexRoute
   '/join/': typeof JoinIndexRoute
+  '/_app/add/link': typeof AppAddLinkRoute
   '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
@@ -238,6 +255,7 @@ export interface FileRoutesById {
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
+  '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/items': typeof AppYouItemsRoute
 }
 export interface FileRouteTypes {
@@ -257,6 +275,7 @@ export interface FileRouteTypes {
     | '/join/name'
     | '/join/username'
     | '/join/'
+    | '/add/link'
     | '/add/photo'
     | '/item/$itemId'
     | '/settings/account'
@@ -266,6 +285,7 @@ export interface FileRouteTypes {
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
+    | '/you/drawer'
     | '/you/items'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -283,6 +303,7 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/'
     | '/join'
+    | '/add/link'
     | '/add/photo'
     | '/item/$itemId'
     | '/settings/account'
@@ -292,6 +313,7 @@ export interface FileRouteTypes {
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
+    | '/you/drawer'
     | '/you/items'
   id:
     | '__root__'
@@ -310,6 +332,7 @@ export interface FileRouteTypes {
     | '/join/username'
     | '/_app/'
     | '/join/'
+    | '/_app/add/link'
     | '/_app/add/photo'
     | '/_app/item/$itemId'
     | '/_app/settings/account'
@@ -319,6 +342,7 @@ export interface FileRouteTypes {
     | '/_app/settings/privacy'
     | '/_app/u/$username'
     | '/_app/you_/closet'
+    | '/_app/you_/drawer'
     | '/_app/you_/items'
   fileRoutesById: FileRoutesById
 }
@@ -442,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/add/link': {
+      id: '/_app/add/link'
+      path: '/add/link'
+      fullPath: '/add/link'
+      preLoaderRoute: typeof AppAddLinkRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/add/photo': {
       id: '/_app/add/photo'
       path: '/add/photo'
@@ -505,6 +536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouClosetRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/you_/drawer': {
+      id: '/_app/you_/drawer'
+      path: '/you/drawer'
+      fullPath: '/you/drawer'
+      preLoaderRoute: typeof AppYouDrawerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/you_/items': {
       id: '/_app/you_/items'
       path: '/you/items'
@@ -541,10 +579,12 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppYouRoute: typeof AppYouRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAddLinkRoute: typeof AppAddLinkRoute
   AppAddPhotoRoute: typeof AppAddPhotoRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
+  AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
 }
 
@@ -554,10 +594,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppYouRoute: AppYouRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAddLinkRoute: AppAddLinkRoute,
   AppAddPhotoRoute: AppAddPhotoRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
+  AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouItemsRoute: AppYouItemsRoute,
 }
 

@@ -54,11 +54,13 @@ function AppShell() {
 
   if (allowed !== true) return <LaunchSplash />;
 
-  const current: TabId =
-    pathname.startsWith("/search") ? "search"
-    : pathname.startsWith("/inbox") ? "inbox"
-    : pathname.startsWith("/you") ? "you"
-    : "home";
+  const current: TabId = pathname.startsWith("/search")
+    ? "search"
+    : pathname.startsWith("/inbox")
+      ? "inbox"
+      : pathname.startsWith("/you")
+        ? "you"
+        : "home";
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
@@ -81,7 +83,14 @@ function AppShell() {
         <ul className="flex flex-col">
           <CreateChoice title={t("create.quick")} why={t("create.quickWhy")} />
           <CreateChoice title={t("create.creative")} why={t("create.creativeWhy")} />
-          <CreateChoice title={t("create.clip")} why={t("create.clipWhy")} />
+          <CreateChoice
+            title={t("create.clip")}
+            why={t("create.clipWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void navigate({ to: "/add/link" });
+            }}
+          />
           <CreateChoice
             title={t("create.photo")}
             why={t("create.photoWhy")}
@@ -103,7 +112,15 @@ function AppShell() {
  * a row that silently does nothing is worse than a row that says so. A row that DOES work is a
  * button; the others are not, so the difference is felt and not only read.
  */
-function CreateChoice({ title, why, onChoose }: { title: string; why: string; onChoose?: () => void }) {
+function CreateChoice({
+  title,
+  why,
+  onChoose,
+}: {
+  title: string;
+  why: string;
+  onChoose?: () => void;
+}) {
   if (!onChoose) {
     return (
       <li className="border-b border-line py-3 opacity-60 last:border-b-0" aria-disabled="true">

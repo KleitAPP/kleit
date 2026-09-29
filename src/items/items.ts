@@ -37,6 +37,16 @@ export async function myCloset(): Promise<ItemSummary[]> {
   return data.flatMap((row) => (row.item ? [row.item as unknown as ItemSummary] : []));
 }
 
+/** Your drawer: what you clipped, cut out, or picked up (decision 103). Newest first. */
+export async function myDrawer(): Promise<ItemSummary[]> {
+  const { data, error } = await supabase
+    .from("drawer_items")
+    .select(`item:items(${ITEM_FIELDS})`)
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return data.flatMap((row) => (row.item ? [row.item as unknown as ItemSummary] : []));
+}
+
 /** "My items": the catalogue items you have hearted. */
 export async function mySavedItems(): Promise<ItemSummary[]> {
   const { data, error } = await supabase
@@ -68,9 +78,9 @@ export async function myScanStates(ids: string[]): Promise<Map<string, ScanState
 /**
  * A URL the browser can load for an item's picture, or null if there is none you may see.
  *
- * Your own closet photos live in a private bucket, so the URL is a signed one that stops
- * working after an hour - long enough for a screen, short enough that a copied link is not a
- * permanent hole. Clipped shop images are served by Cloudflare Images later (technical pack
+ * Your own pictures live in private buckets, so the URL is a signed one that stops working
+ * after an hour - long enough for a screen, short enough that a copied link is not a permanent
+ * hole. Other people's cleared pictures are served by Cloudflare Images later (technical pack
  * §3.1); until that exists there is no path a browser can read, and the tile shows without a
  * picture rather than pretending.
  */
@@ -78,9 +88,11 @@ export async function imageUrlFor(
   item: Pick<ItemSummary, "image_id" | "image_bucket">,
 ): Promise<string | null> {
   if (!item.image_id) return null;
-  if (item.image_bucket !== "closet-photos") return null;
+  // Both buckets are private and both let the owner read their own folder (migrations 011 and
+  // 016), so a signed URL works for your own pictures and fails - to a blank tile - for anyone
+  // else's, which is right until Cloudflare Images serves cleared pictures to everyone.
   const { data } = await supabase.storage
-    .from("closet-photos")
+    .from(item.image_bucket)
     .createSignedUrl(item.image_id, 60 * 60);
   return data?.signedUrl ?? null;
 }

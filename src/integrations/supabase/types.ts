@@ -229,6 +229,7 @@ export type Database = {
       }
       item_flags: {
         Row: {
+          attempts: number
           created_at: string
           item_id: string
           labels: Json
@@ -237,6 +238,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attempts?: number
           created_at?: string
           item_id: string
           labels?: Json
@@ -245,6 +247,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attempts?: number
           created_at?: string
           item_id?: string
           labels?: Json
@@ -596,6 +599,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_scans: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+          image_bucket: string
+          image_id: string
+        }[]
+      }
+      count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
       username_available: { Args: { candidate: string }; Returns: boolean }
       username_status: { Args: { candidate: string }; Returns: string }
     }

@@ -9,6 +9,7 @@
 #                  whose rules have just failed their own checks.
 # Secrets (pasted by the owner in GitHub → Settings → Secrets; never in chat or code):
 #   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+#   (the sweep secret is not one of them: CI makes it fresh on every deploy, see below)
 name: database
 
 on:
@@ -128,6 +129,14 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # The sweep secret (migration 014) is made fresh here on every deploy and put in the two
+      # places that need it - the sweeper's environment and the database's vault - so it is never
+      # pasted anywhere, never in a chat, and rotates itself. `::add-mask::` keeps it out of the log.
+      - name: Make this deploy's sweep secret
+        run: |
+          SWEEP_SECRET="$(openssl rand -hex 32)"
+          echo "::add-mask::$SWEEP_SECRET"
+          echo "SWEEP_SECRET=$SWEEP_SECRET" >> "$GITHUB_ENV"
       - name: Give the functions their secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -135,9 +144,38 @@ jobs:
         run: |
           supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
             "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
-            "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+            "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+            "SWEEP_SECRET=$SWEEP_SECRET"
       - name: Deploy ingest-image
         run: supabase functions deploy ingest-image --project-ref "$SUPABASE_PROJECT_REF"
+      # The sweeper is called by the database, which holds no user token, so the gateway's JWT
+      # check is off for this one function. It checks the sweep secret itself instead.
+      - name: Deploy sweep-images
+        run: supabase functions deploy sweep-images --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # The database's half of the secret, plus the sweeper's address. Written through the
+      # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
+      - name: Put the sweep secret and address in the vault
+        run: |
+          command -v psql >/dev/null || sudo apt-get install -y -q postgresql-client
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          test -n "$HOST" -a "$HOST" != "null" || { echo "::error::could not read the pooler host"; exit 1; }
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          psql "host=$HOST port=5432 user=$USER dbname=postgres sslmode=require" -v ON_ERROR_STOP=1 \
+            -v url="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/sweep-images" \
+            -v secret="$SWEEP_SECRET" <<'SQL'
+          select case when exists (select 1 from vault.secrets where name = 'sweep_url')
+            then vault.update_secret((select id from vault.secrets where name = 'sweep_url'), :'url')
+            else vault.create_secret(:'url', 'sweep_url') end;
+          select case when exists (select 1 from vault.secrets where name = 'sweep_secret')
+            then vault.update_secret((select id from vault.secrets where name = 'sweep_secret'), :'secret')
+            else vault.create_secret(:'secret', 'sweep_secret') end;
+          -- Read back, not trusted: the names must be there and the address must be ours.
+          select name, length(decrypted_secret) as chars from vault.decrypted_secrets
+            where name in ('sweep_url', 'sweep_secret') order by name;
+          SQL
       # Read back what is actually deployed, rather than trusting that deploy said so (lesson L24).
       - name: Functions, as the project now holds them
         run: supabase functions list --project-ref "$SUPABASE_PROJECT_REF"

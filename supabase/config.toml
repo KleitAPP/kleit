@@ -79,3 +79,9 @@ token_verifications = 10
 # Supabase's built-in sender is capped at 2 an hour and only reaches team addresses. Real
 # sending waits for our own domain and Resend, at the domain stage before M8.
 email_sent = 2
+
+# The sweeper (migration 014) is called by the database on a timer, which carries no user token,
+# so the gateway's token check is off for this one function. It checks a secret of its own
+# instead - see supabase/functions/sweep-images/index.ts.
+[functions.sweep-images]
+verify_jwt = false

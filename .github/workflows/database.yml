@@ -278,9 +278,19 @@ jobs:
             curl -sS -o /dev/null -w "upload $P: %{http_code}\n" -X POST "$BASE/storage/v1/object/item-images/$P" \
               -H "Authorization: Bearer $KEY" -H "Content-Type: image/jpeg" -H "x-upsert: true" --data-binary @/tmp/never.jpg
           done
-          sweep() { curl -sS -X POST "$BASE/functions/v1/sweep-images" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'; }
+          # Sweeps until the given item has a verdict. The sweeper takes ten at a time, oldest
+          # first, so when the fake catalogue has just been seeded it can take a few rounds.
+          sweep_until() {
+            for round in $(seq 1 15); do
+              curl -sS -o /tmp/sweep.json -X POST "$BASE/functions/v1/sweep-images" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
+              STATE="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$1'")"
+              echo "  round $round: $(head -c 80 /tmp/sweep.json) ... state=$STATE"
+              test -n "$STATE" -a "$STATE" != "pending" && return 0
+            done
+            return 1
+          }
           A="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, created_at) values ('$OWNER', 'own', 'CI never-again A', 'item-images', '$PATH_A', now() - interval '3 minutes') returning id" | head -1)"
-          echo "first pass:"; sweep; echo
+          echo "first pass:"; sweep_until "$A" || true
           HASH="$(psql "$DSN" -tAq -c "select image_hash from public.items where id = '$A'")"
           STATE_A="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$A'")"
           echo "A: state=$STATE_A hash=$HASH"
@@ -288,7 +298,7 @@ jobs:
           test -n "$HASH" || { echo "::error::no fingerprint stored for A"; exit 1; }
           psql "$DSN" -v ON_ERROR_STOP=1 -q -c "insert into public.removed_image_fingerprints (image_hash, reason) values ('$HASH', 'CI throwaway')"
           B="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, created_at) values ('$OWNER', 'own', 'CI never-again B', 'item-images', '$PATH_B', now() - interval '3 minutes') returning id" | head -1)"
-          echo "second pass:"; sweep; echo
+          echo "second pass:"; sweep_until "$B" || true
           STATE_B="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$B'")"
           CLEARED_B="$(psql "$DSN" -tAq -c "select private.image_cleared('$B')")"
           echo "B: state=$STATE_B cleared=$CLEARED_B"

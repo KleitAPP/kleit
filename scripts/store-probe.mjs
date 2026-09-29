@@ -24,6 +24,7 @@ const stores = JSON.parse(readFileSync("scripts/fixtures/store-probe.json", "utf
 const rows = [];
 for (const { store, url } of stores) {
   const started = Date.now();
+  let lastBody = null;
   let outcome,
     found = "",
     fallback = "";

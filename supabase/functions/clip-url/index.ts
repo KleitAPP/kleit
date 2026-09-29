@@ -85,7 +85,10 @@ Deno.serve(async (request) => {
     if (!me) return reply(401, { problem: "signed-out" });
   }
 
-  if (action === "read") return readPage(server, rawUrl);
+  if (action === "read") return readPage(server, rawUrl, false);
+  // The M2.1 probe: the read plus a look at WHY a page came back thin. Server only, because the
+  // diagnostics quote the page.
+  if (action === "probe" && isServer) return readPage(server, rawUrl, true);
   if (action === "save") {
     if (!me) return reply(401, { problem: "signed-out" });
     return saveClip(server, me, body);
@@ -119,7 +122,7 @@ async function optedOut(server: SupabaseClient, hostname: string): Promise<boole
   return (data ?? []).length > 0;
 }
 
-async function readPage(server: SupabaseClient, rawUrl: string): Promise<Response> {
+async function readPage(server: SupabaseClient, rawUrl: string, diagnose: boolean): Promise<Response> {
   let pageUrl: URL;
   try {
     pageUrl = parsePublicUrl(rawUrl);
@@ -150,12 +153,26 @@ async function readPage(server: SupabaseClient, rawUrl: string): Promise<Respons
       sourceDomain: domainOf(source),
       // Why the read answered as it did, for the probe's table and for the log.
       finalUrl: page.url.toString(),
+      ...(diagnose ? { diagnostics: diagnostics(html, page) } : {}),
     });
   } catch (problem) {
     if (problem instanceof SafeFetchError) return reply(422, { problem: problem.problem });
     console.error("[clip-url] read", problem instanceof Error ? problem.message : problem);
     return reply(502, { problem: "read-failed" });
   }
+}
+
+/** What the probe prints for a thin page: size, title tag, whether it looks like a bot wall, where "price" shows up. */
+function diagnostics(html: string, page: { status: number; contentType: string; bytes: Uint8Array }) {
+  const titleTag = html.match(/<title[^>]*>([\s\S]{0,120}?)<\/title>/i)?.[1]?.trim() ?? null;
+  const botWall = /captcha|access denied|are you a human|bot detection|px-captcha|_incapsula_|akamai|cf-chl|challenge-platform|distil/i.test(html.slice(0, 20000));
+  const priceMentions = [...html.matchAll(/"price"\s*:\s*"?[\d.]+/gi)].slice(0, 3).map((m) => {
+    const at = m.index ?? 0;
+    return html.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " ");
+  });
+  const metaCount = (html.match(/<meta\b/gi) ?? []).length;
+  const ldCount = (html.match(/application\/ld\+json/gi) ?? []).length;
+  return { status: page.status, contentType: page.contentType, bytes: page.bytes.length, titleTag, botWall, metaCount, ldCount, priceMentions };
 }
 
 /** A canonical address is trusted only on the same site; a canonical pointing elsewhere is ignored. */

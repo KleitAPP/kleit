@@ -31,9 +31,10 @@ for (const { store, url } of stores) {
     const response = await fetch(fn, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ action: "read", url }),
+      body: JSON.stringify({ action: "probe", url }),
     });
     const body = await response.json().catch(() => ({}));
+    lastBody = body;
     const ms = Date.now() - started;
     if (response.status === 200) {
       const bits = [
@@ -60,6 +61,7 @@ for (const { store, url } of stores) {
   }
   rows.push({ store, outcome, found, fallback });
   console.error(`${store}: ${outcome}`);
+  if (lastBody?.diagnostics) console.error("   ", JSON.stringify(lastBody.diagnostics));
 }
 
 const passes = rows.filter((r) => r.outcome.startsWith("✅")).length;

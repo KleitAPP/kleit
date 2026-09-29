@@ -14,9 +14,12 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { screenItem, ScreenFailure, awsKeysFromEnv } from "../_shared/screen.ts";
 
+// supabase-js sends `apikey` and `x-client-info` with every call, and a browser refuses the whole
+// request at the preflight if either is missing from this list. Found live on 2026-09-29: the app's
+// call never left the browser, so every photo waited for the sweeper - which is safe, and slow.
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 function reply(status: number, body: Record<string, unknown>): Response {

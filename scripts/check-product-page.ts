@@ -14,6 +14,7 @@ import {
   readProductPage,
   toCents,
   cleanSourceUrl,
+  looksLikeAShell,
 } from "../supabase/functions/_shared/product-page.ts";
 import {
   isPrivateAddress,
@@ -112,6 +113,49 @@ check(
     blog.currency === null &&
     blog.images.length === 0,
   blog,
+);
+
+// 5. A ProductGroup whose price sits on the first variant, inside a priceSpecification (H&M's shape).
+const group = readProductPage(
+  `<html><head><script type="application/ld+json">
+   {"@context":"https://schema.org","@type":"ProductGroup","name":"Satin Strappy Dress","brand":{"name":"H&M"},
+    "hasVariant":[{"@type":"Product","name":"Satin Strappy Dress - Black","offers":{"@type":"Offer","url":"x",
+      "priceCurrency":"USD","priceSpecification":{"@type":"UnitPriceSpecification","price":11.99,"priceCurrency":"USD"}}}]}
+   </script></head></html>`,
+  new URL("https://www2.hm.example/en_us/productpage.1312058001.html"),
+);
+check(
+  "Group: price from the first variant's priceSpecification",
+  group.priceCents === 1199 && group.currency === "USD",
+  group,
+);
+
+// 6. A zero price in JSON-LD is not a price; the meta tag's real one wins (Free People's shape).
+const zero = readProductPage(
+  `<html><head><script type="application/ld+json">{"@type":"Product","name":"Slip","offers":{"@type":"Offer","price":0,"priceCurrency":"USD"}}</script>
+   <meta property="product:price:amount" content="128.00"><meta property="product:price:currency" content="USD"></head></html>`,
+  new URL("https://fp.example/shop/slip/"),
+);
+check("Zero: a zero price falls through to the next source", zero.priceCents === 12800, zero);
+
+// 7. Shells and bot walls.
+check(
+  "Shell: a 2 KB page with a blank title is a shell",
+  looksLikeAShell(
+    "<html><head><title>&nbsp;</title><meta charset=utf-8></head><body></body></html>",
+  ) === true,
+);
+check(
+  "Shell: a big page with no meta at all is a shell",
+  looksLikeAShell(
+    "<html><head><title></title></head><body>" + "x".repeat(300000) + "</body></html>",
+  ) === true,
+);
+check(
+  "Shell: a real product page is not",
+  looksLikeAShell(
+    `<html><head><title>Wool Coat | Coats</title>${'<meta property="og:x" content="y">'.repeat(6)}</head><body>${"p".repeat(5000)}</body></html>`,
+  ) === false,
 );
 
 // toCents

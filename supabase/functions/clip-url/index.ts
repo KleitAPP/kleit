@@ -27,7 +27,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, type Frame, type Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 import { safeFetch, SafeFetchError, parsePublicUrl } from "../_shared/safe-fetch.ts";
-import { readProductPage, cleanSourceUrl, domainOf } from "../_shared/product-page.ts";
+import { readProductPage, cleanSourceUrl, domainOf, looksLikeAShell } from "../_shared/product-page.ts";
 import { screenItem, ScreenFailure, awsKeysFromEnv } from "../_shared/screen.ts";
 
 const CORS = {
@@ -140,6 +140,10 @@ async function readPage(server: SupabaseClient, rawUrl: string, diagnose: boolea
     if (page.status >= 400) return reply(422, { problem: "refused", status: page.status });
     if (!page.contentType.includes("html")) return reply(422, { problem: "not-a-page" });
     const html = new TextDecoder("utf-8", { fatal: false }).decode(page.bytes);
+    // A bot wall or an empty JavaScript shell is a refusal that did not say so.
+    if (looksLikeAShell(html)) {
+      return reply(422, { problem: "refused", status: page.status, ...(diagnose ? { diagnostics: diagnostics(html, page) } : {}) });
+    }
     const read = readProductPage(html, page.url);
     const canonical = read.canonical ? safeCanonical(read.canonical, page.url) : null;
     const source = canonical ?? page.url;

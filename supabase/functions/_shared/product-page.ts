@@ -25,8 +25,21 @@ export type ProductRead = {
 
 const MAX_IMAGES = 8;
 
+/**
+ * True when what came back is not the page at all: a bot wall or a JavaScript shell. Zara answers
+ * a server with 2 KB and a title of "&nbsp;"; Nordstrom with 250 KB and not one <meta>. Neither
+ * says "no" out loud, so this is how the reader tells the app the store did not really answer.
+ */
+export function looksLikeAShell(html: string): boolean {
+  const metaCount = (html.match(/<meta\b/gi) ?? []).length;
+  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "").replace(/&nbsp;|\s/g, "");
+  return metaCount < 2 || (title.length === 0 && metaCount < 5) || html.length < 4000;
+}
+
 export function readProductPage(html: string, pageUrl: URL): ProductRead {
-  const head = html.slice(0, 400_000);
+  // The whole of what was fetched (the fetch itself is capped). A JSON-LD block can sit a
+  // megabyte in - Lululemon's does - and a cut at the "head" lost it.
+  const head = html;
 
   const meta = collectMeta(head);
   const ld = collectJsonLd(head);
@@ -38,14 +51,25 @@ export function readProductPage(html: string, pageUrl: URL): ProductRead {
     clean(firstMatch(head, /<title[^>]*>([\s\S]*?)<\/title>/i)) ??
     null;
 
-  const priceRaw =
-    ld.price ??
-    meta.get("product:price:amount") ??
-    meta.get("og:price:amount") ??
-    meta.get("twitter:data1") ??
-    firstMatch(head, /itemprop=["']price["'][^>]*content=["']([^"']+)["']/i) ??
-    null;
-  const priceCents = toCents(priceRaw);
+  // First source with a REAL price wins. A zero is "no price" - Free People's JSON-LD says
+  // "price": 0 while its meta tags carry the real one - so zero falls through to the next.
+  const priceCandidates = [
+    ld.price,
+    meta.get("product:price:amount"),
+    meta.get("og:price:amount"),
+    meta.get("twitter:data1"),
+    firstMatch(head, /itemprop=["']price["'][^>]*content=["']([^"']+)["']/i),
+  ];
+  let priceRaw: string | undefined;
+  let priceCents: number | null = null;
+  for (const candidate of priceCandidates) {
+    const cents = toCents(candidate);
+    if (cents != null && cents > 0) {
+      priceRaw = candidate ?? undefined;
+      priceCents = cents;
+      break;
+    }
+  }
 
   const currency =
     normaliseCurrency(ld.currency) ??
@@ -154,12 +178,22 @@ function collectJsonLd(head: string): Ld {
       const u = str((image as Record<string, unknown>)["url"]);
       if (u) found.images.push(u);
     }
-    const offersRaw = product["offers"];
+    // Offers: on the product, or - for a ProductGroup (H&M) - on its first variant. An Offer, a
+    // list of Offers, or an AggregateOffer with a lowPrice; a price may also sit one level down
+    // in a priceSpecification.
+    let offersRaw = product["offers"];
+    if (!offersRaw && Array.isArray(product["hasVariant"])) {
+      const variant = product["hasVariant"][0];
+      if (variant && typeof variant === "object") offersRaw = (variant as Record<string, unknown>)["offers"];
+    }
     const offers = Array.isArray(offersRaw) ? offersRaw[0] : offersRaw;
     if (offers && typeof offers === "object") {
       const o = offers as Record<string, unknown>;
-      found.price = str(o["price"]) ?? str(o["lowPrice"]);
-      found.currency = str(o["priceCurrency"]);
+      const spec = o["priceSpecification"];
+      const specPrice = spec && typeof spec === "object" ? str((spec as Record<string, unknown>)["price"]) : undefined;
+      found.price = str(o["price"]) ?? str(o["lowPrice"]) ?? specPrice;
+      found.currency = str(o["priceCurrency"]) ??
+        (spec && typeof spec === "object" ? str((spec as Record<string, unknown>)["priceCurrency"]) : undefined);
     }
     break;
   }

@@ -166,12 +166,17 @@ jobs:
           psql "host=$HOST port=5432 user=$USER dbname=postgres sslmode=require" -v ON_ERROR_STOP=1 \
             -v url="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/sweep-images" \
             -v secret="$SWEEP_SECRET" <<'SQL'
-          select case when exists (select 1 from vault.secrets where name = 'sweep_url')
-            then vault.update_secret((select id from vault.secrets where name = 'sweep_url'), :'url')
-            else vault.create_secret(:'url', 'sweep_url') end;
-          select case when exists (select 1 from vault.secrets where name = 'sweep_secret')
-            then vault.update_secret((select id from vault.secrets where name = 'sweep_secret'), :'secret')
-            else vault.create_secret(:'secret', 'sweep_secret') end;
+          select set_config('kleit.url', :'url', false), set_config('kleit.secret', :'secret', false);
+          do $$
+          declare v_id uuid;
+          begin
+            select id into v_id from vault.secrets where name = 'sweep_url';
+            if v_id is null then perform vault.create_secret(current_setting('kleit.url'), 'sweep_url');
+            else perform vault.update_secret(v_id, current_setting('kleit.url')); end if;
+            select id into v_id from vault.secrets where name = 'sweep_secret';
+            if v_id is null then perform vault.create_secret(current_setting('kleit.secret'), 'sweep_secret');
+            else perform vault.update_secret(v_id, current_setting('kleit.secret')); end if;
+          end $$;
           -- Read back, not trusted: the names must be there and the address must be ours.
           select name, length(decrypted_secret) as chars from vault.decrypted_secrets
             where name in ('sweep_url', 'sweep_secret') order by name;

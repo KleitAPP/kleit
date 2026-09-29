@@ -58,6 +58,8 @@ function QuickBuilder() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const saveTimer = useRef<number | null>(null);
   const pending = useRef<QuickLayout | null>(null);
+  /** Always the newest layout - for code that runs after an await and must not use a stale copy. */
+  const latest = useRef<QuickLayout | null>(null);
 
   // Load everything once.
   useEffect(() => {
@@ -70,11 +72,11 @@ function QuickBuilder() {
         return;
       }
       setAll(tpls);
-      setLayout(
-        loaded.set.layout.template
-          ? loaded.set.layout
-          : { ...loaded.set.layout, template: tpls[0]?.id ?? "" },
-      );
+      const opening = loaded.set.layout.template
+        ? loaded.set.layout
+        : { ...loaded.set.layout, template: tpls[0]?.id ?? "" };
+      latest.current = opening;
+      setLayout(opening);
       setPlacements(loaded.placements);
       setTray(drawer);
       const urls: Record<string, string | null> = {};
@@ -94,6 +96,7 @@ function QuickBuilder() {
   const commit = useCallback(
     (next: QuickLayout) => {
       setLayout(next);
+      latest.current = next;
       pending.current = next;
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
       saveTimer.current = window.setTimeout(async function attempt() {
@@ -128,7 +131,10 @@ function QuickBuilder() {
     setPicking(null);
     const ok = await placeItem(setId, slot, item.id);
     setSaveState(ok ? "saved" : "failed");
-    if (ok && layout) commit({ ...layout }); // a version, so undo-by-history sees the piece too
+    // A version, so undo-by-history sees the piece too. From the ref, not the closure: this runs
+    // after an await, and a caption typed in the meantime must not be overwritten (found by the
+    // core-loop test, 2026-09-29 - it types faster than the network answers).
+    if (ok && latest.current) commit({ ...latest.current });
   }
 
   async function empty(slot: number) {

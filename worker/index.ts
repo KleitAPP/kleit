@@ -392,12 +392,22 @@ const POLL_SCRIPT = `
     });
     before.hidden=true; after.hidden=false; signup.hidden=false;
   }
-  var ts=null, tsReady=null;
+  var tsReady=null;
+  // The script tag's onload fires before the API is usable - window.turnstile is an empty stub
+  // until Cloudflare's own onload callback runs - so wait for render() to exist, not for the tag.
   function turnstileToken(){
-    if(!tsReady){ tsReady=new Promise(function(res){ if(window.turnstile){res(window.turnstile);return;} var s=document.createElement('script');
-      s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'; s.async=true; s.onload=function(){res(window.turnstile||null);}; s.onerror=function(){res(null);}; document.head.appendChild(s); }); }
+    if(!tsReady){ tsReady=new Promise(function(res){
+      var giveUp=setTimeout(function(){res(null);},8000);
+      function ready(){ if(window.turnstile&&typeof window.turnstile.render==='function'){clearTimeout(giveUp);res(window.turnstile);return true;} return false; }
+      if(ready()) return;
+      window.__kleitTurnstileReady=ready;
+      var s=document.createElement('script');
+      s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__kleitTurnstileReady'; s.async=true;
+      s.onload=function(){ var tries=0; (function poll(){ if(ready()) return; if(++tries<40) setTimeout(poll,200); })(); };
+      s.onerror=function(){clearTimeout(giveUp);res(null);}; document.head.appendChild(s); }); }
     return tsReady.then(function(t){ if(!t) return null; return new Promise(function(res){ var done=setTimeout(function(){res(null);},8000); var host=document.getElementById('turnstile'); host.innerHTML='';
-      t.render(host,{sitekey:C.siteKey,appearance:'interaction-only',callback:function(tok){clearTimeout(done);res(tok);},'error-callback':function(){clearTimeout(done);res(null);}}); }); });
+      try { t.render(host,{sitekey:C.siteKey,appearance:'interaction-only',callback:function(tok){clearTimeout(done);res(tok);},'error-callback':function(){clearTimeout(done);res(null);}}); }
+      catch(e){ clearTimeout(done); res(null); } }); });
   }
   function vote(optionId, button){
     if(busy) return; busy=true; say(''); var label=button.textContent; button.textContent='…'; button.disabled=true;

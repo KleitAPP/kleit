@@ -37,15 +37,38 @@ function load(): Promise<Turnstile> {
       resolve(existing);
       return;
     }
+    // The tag's onload fires before the API is usable: `window.turnstile` is an empty stub until
+    // Cloudflare's own onload callback runs (found 2026-09-29 on the poll page, where the same
+    // loader threw "render is not a function"). So wait for render() to exist, not for the tag.
+    const usable = (): Turnstile | null => {
+      const t = (window as unknown as { turnstile?: Partial<Turnstile> }).turnstile;
+      return t && typeof t.render === "function" ? (t as Turnstile) : null;
+    };
+    const giveUp = window.setTimeout(() => reject(new Error("Turnstile did not load")), 8_000);
+    const settle = () => {
+      const t = usable();
+      if (t) {
+        window.clearTimeout(giveUp);
+        resolve(t);
+      }
+      return t !== null;
+    };
+    (window as unknown as Record<string, unknown>)["__kleitTurnstileReady"] = settle;
     const tag = document.createElement("script");
-    tag.src = SCRIPT;
+    tag.src = SCRIPT + "&onload=__kleitTurnstileReady";
     tag.async = true;
     tag.onload = () => {
-      const t = (window as unknown as { turnstile?: Turnstile }).turnstile;
-      if (t) resolve(t);
-      else reject(new Error("Turnstile did not load"));
+      let tries = 0;
+      const poll = () => {
+        if (settle()) return;
+        if (++tries < 40) window.setTimeout(poll, 200);
+      };
+      poll();
     };
-    tag.onerror = () => reject(new Error("Turnstile did not load"));
+    tag.onerror = () => {
+      window.clearTimeout(giveUp);
+      reject(new Error("Turnstile did not load"));
+    };
     document.head.appendChild(tag);
   });
   return loading;

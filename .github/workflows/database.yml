@@ -152,6 +152,10 @@ jobs:
       # check is off for this one function. It checks the sweep secret itself instead.
       - name: Deploy sweep-images
         run: supabase functions deploy sweep-images --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # Buy links must work for a signed-out visitor on a shared page, so no token is asked for.
+      # It reads one row and writes one that cannot name a person (migration 015).
+      - name: Deploy buy-redirect
+        run: supabase functions deploy buy-redirect --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

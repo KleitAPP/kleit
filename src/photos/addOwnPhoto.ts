@@ -18,7 +18,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { preparePhoto, type PrepareProblem } from "@/photos/prepare";
 
-export type AddProblem = PrepareProblem | "signed-out" | "upload-failed" | "save-failed" | "offline";
+export type AddProblem =
+  PrepareProblem | "signed-out" | "upload-failed" | "save-failed" | "offline";
 
 export type AddResult =
   | { ok: true; itemId: string; state: "clean" | "review" | "blocked" | "checking" }
@@ -54,6 +55,13 @@ export async function addOwnPhoto(file: Blob): Promise<AddResult> {
     .select("id")
     .single();
   if (saveError || !item) return { ok: false, problem: "save-failed" };
+
+  // A photo of your own piece IS a closet piece. The closet is the row policy's business
+  // (owner-only), so this insert can only ever land in the caller's own closet.
+  const { error: closetError } = await supabase
+    .from("closet_items")
+    .insert({ user_id: me, item_id: item.id });
+  if (closetError) return { ok: false, problem: "save-failed" };
 
   // Step 4. If this does not land, the item simply stays unscanned - which is invisible - and the
   // screen says it is still being checked, which is true. Nothing is lost and nothing leaks.

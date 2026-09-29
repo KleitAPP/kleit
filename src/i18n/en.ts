@@ -30,20 +30,22 @@ export const en = {
 
   "sheet.close": "Close",
   "chip.selected": "selected",
-  "saved": "Saved",
-  "notSaved": "Not saved yet — we'll keep trying. Your work is safe on this phone",
-  "loading": "Loading",
+  saved: "Saved",
+  notSaved: "Not saved yet — we'll keep trying. Your work is safe on this phone",
+  loading: "Loading",
   "disclosure.commission": "We earn a commission from purchases",
 
   "break.title": "Take a break",
   "break.what": "Your profile and your sets disappear from Kleit. Nothing is deleted.",
   "break.how": "Sign in again whenever you want and everything comes back exactly as it was.",
   "break.notDelete": "This is not deleting your account. Nothing here removes anything.",
-  "break.signsYouOut": "It also signs you out on every phone and computer you use Kleit on. Signing back in on any one of them ends the break.",
+  "break.signsYouOut":
+    "It also signs you out on every phone and computer you use Kleit on. Signing back in on any one of them ends the break.",
   "break.confirm": "Hide my account",
   "break.cancel": "Not now",
   "break.sureTitle": "Hide your account?",
-  "break.sureWhat": "Your profile and sets disappear from Kleit, and you are signed out everywhere. Nothing is deleted.",
+  "break.sureWhat":
+    "Your profile and sets disappear from Kleit, and you are signed out everywhere. Nothing is deleted.",
   "break.sureYes": "Yes, hide it",
   "break.sureNo": "Keep it visible",
   "break.failed": "That didn't save. Nothing has changed - have another go in a moment.",
@@ -91,12 +93,14 @@ export const en = {
 
   "privacy.title": "Privacy",
   "privacy.privateAccount": "Private account",
-  "privacy.privateWhy": "Only people you approve can see your sets. Your shared links keep working.",
+  "privacy.privateWhy":
+    "Only people you approve can see your sets. Your shared links keep working.",
   "privacy.findEmail": "Let people find me by email",
   "privacy.findPhone": "Let people find me by phone number",
   "privacy.suggest": "Suggest my account to others",
   "privacy.saved": "Saved",
-  "privacy.failed": "That didn't save, so the setting is back as it was. Have another go in a moment.",
+  "privacy.failed":
+    "That didn't save, so the setting is back as it was. Have another go in a moment.",
 
   "devices.title": "Where you're signed in",
   "devices.none": "Just this one, so far",
@@ -147,12 +151,14 @@ export const en = {
   "create.someNotYet": "The dimmed ones arrive with the next milestone.",
   "photo.title": "Add one of your pieces",
   "photo.what": "Take a photo of something you own, or pick one from your camera roll.",
-  "photo.privacy": "The photo is redrawn on your phone before it is sent, so the place it was taken never leaves your device.",
+  "photo.privacy":
+    "The photo is redrawn on your phone before it is sent, so the place it was taken never leaves your device.",
   "photo.choose": "Choose a photo",
   "photo.change": "Choose a different one",
   "photo.add": "Add it",
   "photo.checking": "Checking your photo",
-  "photo.checkingWhy": "Every photo is looked at before it appears anywhere. This is usually a few seconds.",
+  "photo.checkingWhy":
+    "Every photo is looked at before it appears anywhere. This is usually a few seconds.",
   "photo.clean": "Added. It's in your closet.",
   "photo.review": "This one needs a person to look at it first. We'll let you know.",
   "photo.blocked": "This photo can't be added. If you think that's wrong, you can appeal.",
@@ -163,6 +169,28 @@ export const en = {
   "photo.uploadFailed": "That didn't upload. Have another go in a moment.",
   "photo.saveFailed": "That didn't save. Have another go in a moment.",
   "photo.signedOut": "You need to be signed in to add a photo.",
+
+  "closet.title": "Closet",
+  "closet.private": "Only you can see your closet.",
+  "closet.empty": "Nothing in your closet yet",
+  "closet.add": "Add a piece",
+  "myItems.title": "My items",
+  "myItems.what": "Pieces from the catalogue you've hearted.",
+  "myItems.empty": "Hearting arrives with the catalogue",
+  "item.yourPiece": "Your piece",
+  "item.untitled": "Untitled",
+  "item.checking": "Checking",
+  "item.review": "Being looked at",
+  "item.blocked": "Not allowed",
+  "item.checkingLong": "Still being checked. Only you can see it until it's done.",
+  "item.reviewLong": "A person is looking at this one. Only you can see it until then.",
+  "item.blockedLong":
+    "This photo can't be shown on Kleit. If you think that's wrong, you can appeal.",
+  "item.added": "Added {date}",
+  "item.notFound": "We couldn't find that item",
+  "item.backToCloset": "Back to your closet",
+  "profile.closet": "Closet",
+  "profile.myItems": "My items",
 
   "home.placeholder": "You're signed in. The rest of Home arrives next.",
 
@@ -230,7 +258,8 @@ export const en = {
   "launch.checking": "Loading Kleit",
 
   "update.title": "Update Kleit to keep going",
-  "update.body": "This version of Kleit is too old to run. Get the newest one and you're straight back in.",
+  "update.body":
+    "This version of Kleit is too old to run. Get the newest one and you're straight back in.",
   "update.action": "Reload Kleit",
   "update.versions": "You have {running}. Kleit needs {minimum}.",
 

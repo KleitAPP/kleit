@@ -608,6 +608,13 @@ export type Database = {
         }[]
       }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
+      my_items_scan_states: {
+        Args: { p_item_ids: string[] }
+        Returns: {
+          item_id: string
+          scan_state: string
+        }[]
+      }
       username_available: { Args: { candidate: string }; Returns: boolean }
       username_status: { Args: { candidate: string }; Returns: string }
     }

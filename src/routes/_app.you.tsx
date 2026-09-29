@@ -62,11 +62,25 @@ function YourProfile() {
         <div className="min-w-0">
           <h1 className="truncate font-display text-2xl text-ink">{name || t("tabs.you")}</h1>
           {me ? <p className="truncate text-base text-ink-soft">@{me.username}</p> : null}
-          {me?.is_private ? <p className="mt-1 text-sm text-ink-soft">{t("profile.private")}</p> : null}
+          {me?.is_private ? (
+            <p className="mt-1 text-sm text-ink-soft">{t("profile.private")}</p>
+          ) : null}
         </div>
       </div>
 
       <div className="mt-4 flex gap-2">
+        <Link
+          to="/you/closet"
+          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("profile.closet")}
+        </Link>
+        <Link
+          to="/you/items"
+          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("profile.myItems")}
+        </Link>
         <Link
           to="/settings"
           className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
@@ -76,11 +90,17 @@ function YourProfile() {
       </div>
 
       <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.you")}>
-        {tab === "sets" ? null : <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>}
+        {tab === "sets" ? null : (
+          <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
+        )}
 
         <EmptyState
           line={t(
-            tab === "sets" ? "profile.setsEmpty" : tab === "drafts" ? "profile.draftsEmpty" : "profile.hiddenEmpty",
+            tab === "sets"
+              ? "profile.setsEmpty"
+              : tab === "drafts"
+                ? "profile.draftsEmpty"
+                : "profile.hiddenEmpty",
           )}
         />
       </Tabs>

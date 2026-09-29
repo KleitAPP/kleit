@@ -85,3 +85,8 @@ email_sent = 2
 # instead - see supabase/functions/sweep-images/index.ts.
 [functions.sweep-images]
 verify_jwt = false
+
+# Buy links open from shared pages by people with no account, so no token is asked for. The
+# function only ever redirects to the address stored on the item (never one from the query).
+[functions.buy-redirect]
+verify_jwt = false

@@ -21,6 +21,7 @@ import { decode, GIF, Image, type Frame } from "https://deno.land/x/imagescript@
 
 // deno-lint-ignore-file no-explicit-any
 import decodeWebp from "npm:@jsquash/webp@1.5.0/decode.js";
+import { initWasm, Resvg } from "npm:@resvg/resvg-wasm@2.6.2";
 
 import { drawText, fontBytes, SITE_URL, type TextStyle } from "../_shared/text-draw.ts";
 // Catalogue id → [file, title] for the decoration library (written by scripts/build-library.mjs).
@@ -31,11 +32,34 @@ const LIB = LIBRARY as unknown as {
   backgrounds: Record<string, [string, string]>;
 };
 
-/** A library picture from the site's own /library/ folder, decoded (they are WebP, which imagescript cannot read). */
-async function libraryImage(file: string): Promise<Image | null> {
+// resvg's wasm, fetched once per isolate from a pinned CDN copy; a miss only costs the
+// structural pieces in the picture, never the picture.
+let resvgReady: Promise<boolean> | null = null;
+function resvg(): Promise<boolean> {
+  resvgReady ??= initWasm(
+    fetch("https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm"),
+  ).then(
+    () => true,
+    () => false,
+  );
+  return resvgReady;
+}
+
+/**
+ * A library picture from the site's own /library/ folder, decoded: WebP through @jsquash (imagescript
+ * cannot read it); a structural SVG rendered by resvg in the colour the owner chose.
+ */
+async function libraryImage(file: string, colour?: string): Promise<Image | null> {
   try {
     const r = await fetch(`${SITE_URL}/library/${file}`);
     if (!r.ok) return null;
+    if (file.endsWith(".svg")) {
+      if (!(await resvg())) return null;
+      const hex = /^#[0-9a-fA-F]{6}$/.test(colour ?? "") ? colour! : "#161513";
+      const svg = (await r.text()).replace(/currentColor/g, hex);
+      const png = new Resvg(svg, { fitTo: { mode: "width", value: 900 } }).render().asPng();
+      return still(await decode(png));
+    }
     const raw = (await decodeWebp(await r.arrayBuffer())) as {
       width: number;
       height: number;
@@ -85,7 +109,7 @@ type Shared = {
     canvas?: { w: number; h: number };
     order?: string[];
     texts?: Record<string, Position & { kind: "text"; text: TextStyle }>;
-    decor?: Record<string, Position & { kind: "asset"; asset: string }>;
+    decor?: Record<string, Position & { kind: "asset"; asset: string; colour?: string }>;
     backgroundAsset?: string | null;
   } | null;
   pieces: Piece[];
@@ -203,6 +227,7 @@ Deno.serve(async (request) => {
     piece: Piece | null;
     text?: Position & { kind: "text"; text: TextStyle };
     decor?: string;
+    colour?: string;
     box: { x: number; y: number; w: number; h: number };
     pos: Position | null;
   };
@@ -220,6 +245,7 @@ Deno.serve(async (request) => {
           places.push({
             piece: null,
             decor: LIB.assets[d.asset]![0],
+            ...(d.colour ? { colour: d.colour } : {}),
             box: { x: d.x / canvasW, y: d.y / canvasH, w: d.w / canvasW, h: d.h / canvasH },
             pos: d,
           });
@@ -262,7 +288,7 @@ Deno.serve(async (request) => {
     }
   }
 
-  for (const { piece, text, decor, box, pos } of places) {
+  for (const { piece, text, decor, colour, box, pos } of places) {
     let art: Image;
     if (text) {
       // Words, drawn at the canvas's own scale and then scaled with everything else.
@@ -290,7 +316,7 @@ Deno.serve(async (request) => {
     }
     if (decor) {
       // A decoration from the library: the same file the page shows.
-      const img = await libraryImage(decor);
+      const img = await libraryImage(decor, colour);
       if (!img) continue;
       art = img;
     } else {

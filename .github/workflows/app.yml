@@ -41,6 +41,8 @@ jobs:
       # tracking codes stripped, four shapes of product page read right (M2.4).
       - name: Product page reader check
         run: bun scripts/check-product-page.ts
+      - name: The Creative canvas document's rules (cap, undo, snapping, order)
+        run: bun scripts/check-canvas-doc.ts
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

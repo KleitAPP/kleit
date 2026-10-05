@@ -58,9 +58,24 @@ type SharedPoll = {
   options: PollOption[];
 };
 
+type Position = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  opacity?: number;
+  hidden?: boolean;
+  crop?: { x: number; y: number; w: number; h: number } | null;
+};
+
 type Piece = {
   id: string;
+  row?: string;
   slot: number | null;
+  position?: Position | null;
   kind: "product" | "non_product" | "own";
   title: string | null;
   price_cents: number | null;
@@ -75,7 +90,13 @@ type SharedSet = {
   id: string;
   title: string;
   caption: string;
-  layout: { background?: string; template?: string } | null;
+  layout: {
+    background?: string;
+    template?: string;
+    version?: number;
+    canvas?: { w: number; h: number };
+    order?: string[];
+  } | null;
   visibility: "public" | "link";
   published_at: string | null;
   owner: { username: string; display_name: string };
@@ -258,6 +279,36 @@ ${STYLE}${POLL_STYLE}</head>
 </body></html>`;
 }
 
+/**
+ * A Creative set (layout version 2) drawn where its owner put things: each pictured piece an
+ * absolutely placed image in percentages of the canvas, rotated, flipped and faded as saved,
+ * hidden layers skipped, in the saved order. The piece list follows for Buy and the names.
+ */
+function creativeCanvas(set: SharedSet, functions: string, background: string): string {
+  if (set.layout?.version !== 2 || !set.layout.canvas) return "";
+  const { w, h } = set.layout.canvas;
+  const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
+  const order = (set.layout.order ?? []).filter((id) => byRow.has(id));
+  for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
+  const layers = order
+    .map((id) => {
+      const p = byRow.get(id)!;
+      const pos = p.position;
+      if (!pos || pos.hidden) return "";
+      const img = p.pictured
+        ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(p.title ?? "")}" loading="lazy" style="width:100%;height:100%;object-fit:fill${
+            pos.crop
+              ? `;width:${100 / pos.crop.w}%;height:${100 / pos.crop.h}%;margin-left:${(-pos.crop.x / pos.crop.w) * 100}%;margin-top:${(-pos.crop.y / pos.crop.h) * 100}%;max-width:none`
+              : ""
+          }">`
+        : "";
+      const transform = `rotate(${pos.rotation ?? 0}deg) scale(${pos.flipX ? -1 : 1},${pos.flipY ? -1 : 1})`;
+      return `<div style="position:absolute;left:${(pos.x / w) * 100}%;top:${(pos.y / h) * 100}%;width:${(pos.w / w) * 100}%;height:${(pos.h / h) * 100}%;transform:${transform};opacity:${pos.opacity ?? 1};overflow:hidden">${img}</div>`;
+    })
+    .join("");
+  return `<section class="creative" style="background:${background};aspect-ratio:${w} / ${h}" aria-label="The set">${layers}</section>`;
+}
+
 function notAvailable(status = 404): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -355,6 +406,7 @@ ${STYLE}</head>
   <h1>${esc(title)}</h1>
   <p class="by">by ${esc(who)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
+  ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">
     <ul class="pieces">${pieces}</ul>
   </section>
@@ -462,6 +514,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-size:15px;margin:0}
 .by,.from,.disclosure,.foot{color:#5f5a52;font-size:14px}.caption{font-size:17px;margin:8px 0 12px}
 .canvas{border-radius:12px;padding:12px;margin-top:12px}
+.creative{position:relative;width:100%;border-radius:12px;overflow:hidden;margin-top:12px}
 .pieces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .piece{background:rgba(255,255,255,.7);border-radius:8px;overflow:hidden}
 .piece img,.noimg{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}

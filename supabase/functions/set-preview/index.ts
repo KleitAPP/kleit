@@ -27,10 +27,34 @@ const SIDE = 1200;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type Slot = { x: number; y: number; w: number; h: number };
-type Piece = { id: string; slot: number | null; pictured: boolean };
+type Position = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  opacity?: number;
+  hidden?: boolean;
+  crop?: { x: number; y: number; w: number; h: number } | null;
+};
+type Piece = {
+  id: string;
+  row?: string;
+  slot: number | null;
+  position?: Position | null;
+  pictured: boolean;
+};
 type Shared = {
   id: string;
-  layout: { background?: string; template?: string } | null;
+  layout: {
+    background?: string;
+    template?: string;
+    version?: number;
+    canvas?: { w: number; h: number };
+    order?: string[];
+  } | null;
   pieces: Piece[];
 };
 
@@ -105,13 +129,15 @@ Deno.serve(async (request) => {
   const set = shared as Shared | null;
   if (!set?.id) return reply(409, { problem: "not-shareable" });
 
-  const { data: template } = set.layout?.template
-    ? await server.from("templates").select("layout").eq("id", set.layout.template).maybeSingle()
-    : { data: null };
+  const creative = set.layout?.version === 2 && !!set.layout.canvas;
+  const { data: template } =
+    !creative && set.layout?.template
+      ? await server.from("templates").select("layout").eq("id", set.layout.template).maybeSingle()
+      : { data: null };
   const tpl =
     (template?.layout as { canvas?: { w: number; h: number }; slots?: Slot[] } | null) ?? null;
-  const canvasW = tpl?.canvas?.w ?? 1080;
-  const canvasH = tpl?.canvas?.h ?? 1350;
+  const canvasW = creative ? set.layout!.canvas!.w : (tpl?.canvas?.w ?? 1080);
+  const canvasH = creative ? set.layout!.canvas!.h : (tpl?.canvas?.h ?? 1350);
   const slots = tpl?.slots ?? [];
 
   // The set's canvas fitted inside a square, on the set's own background.
@@ -122,10 +148,41 @@ Deno.serve(async (request) => {
   const offY = Math.round((SIDE - drawnH) / 2);
   const picture = new Image(SIDE, SIDE).fill(colour(set.layout?.background));
 
-  for (const piece of set.pieces) {
-    if (!piece.pictured || piece.slot === null) continue;
-    const slot = slots[piece.slot];
-    if (!slot) continue;
+  // Which pieces, where: a template's slots, or a Creative set's own positions in its own order.
+  type Place = {
+    piece: Piece;
+    box: { x: number; y: number; w: number; h: number };
+    pos: Position | null;
+  };
+  const places: Place[] = [];
+  if (creative) {
+    const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
+    const order = (set.layout!.order ?? []).filter((id) => byRow.has(id));
+    for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
+    for (const id of order) {
+      const p = byRow.get(id)!;
+      if (!p.position || p.position.hidden) continue;
+      places.push({
+        piece: p,
+        box: {
+          x: p.position.x / canvasW,
+          y: p.position.y / canvasH,
+          w: p.position.w / canvasW,
+          h: p.position.h / canvasH,
+        },
+        pos: p.position,
+      });
+    }
+  } else {
+    for (const p of set.pieces) {
+      if (p.slot === null) continue;
+      const slot = slots[p.slot];
+      if (slot) places.push({ piece: p, box: slot, pos: null });
+    }
+  }
+
+  for (const { piece, box, pos } of places) {
+    if (!piece.pictured) continue;
     const { data: item } = await server
       .from("items")
       .select("image_id, image_bucket")
@@ -141,16 +198,35 @@ Deno.serve(async (request) => {
     } catch {
       continue;
     }
-    // Contain inside the slot, centred - the same as object-contain on the page.
-    const boxW = Math.max(1, Math.round(slot.w * drawnW));
-    const boxH = Math.max(1, Math.round(slot.h * drawnH));
-    const fit = Math.min(boxW / art.width, boxH / art.height);
-    const w = Math.max(1, Math.round(art.width * fit));
-    const h = Math.max(1, Math.round(art.height * fit));
-    art.resize(w, h);
-    const x = offX + Math.round(slot.x * drawnW + (boxW - w) / 2);
-    const y = offY + Math.round(slot.y * drawnH + (boxH - h) / 2);
-    picture.composite(art, x, y);
+    const boxW = Math.max(1, Math.round(box.w * drawnW));
+    const boxH = Math.max(1, Math.round(box.h * drawnH));
+    if (pos) {
+      // A Creative piece fills its box (and may be cropped, flipped, faded, rotated).
+      if (pos.crop) {
+        const cx = Math.round(pos.crop.x * art.width);
+        const cy = Math.round(pos.crop.y * art.height);
+        const cw = Math.max(1, Math.round(pos.crop.w * art.width));
+        const ch = Math.max(1, Math.round(pos.crop.h * art.height));
+        art.crop(cx, cy, cw, ch);
+      }
+      art.resize(boxW, boxH);
+      if (pos.flipX) art.flip("horizontal");
+      if (pos.flipY) art.flip("vertical");
+      if (pos.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity, true);
+      const cx = offX + Math.round(box.x * drawnW + boxW / 2);
+      const cy = offY + Math.round(box.y * drawnH + boxH / 2);
+      if (pos.rotation) art.rotate(pos.rotation, true);
+      picture.composite(art, cx - Math.round(art.width / 2), cy - Math.round(art.height / 2));
+    } else {
+      // Contain inside the slot, centred - the same as object-contain on the page.
+      const fit = Math.min(boxW / art.width, boxH / art.height);
+      const w = Math.max(1, Math.round(art.width * fit));
+      const h = Math.max(1, Math.round(art.height * fit));
+      art.resize(w, h);
+      const x = offX + Math.round(box.x * drawnW + (boxW - w) / 2);
+      const y = offY + Math.round(box.y * drawnH + (boxH - h) / 2);
+      picture.composite(art, x, y);
+    }
   }
 
   const jpeg = await picture.encodeJPEG(85);

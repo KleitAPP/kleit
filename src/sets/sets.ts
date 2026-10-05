@@ -40,6 +40,8 @@ export type SetSummary = {
   share_code: string;
   layout: QuickLayout;
   updated_at: string;
+  /** True for a Creative-mode set (layout version 2); its pieces sit at positions, not slots. */
+  creative?: boolean;
 };
 
 export type Placement = { slot: number; item: ItemSummary };
@@ -93,21 +95,27 @@ export async function loadSet(
     .from("set_items")
     .select(`position, item:items(${ITEM_FIELDS})`)
     .eq("set_id", id);
+  const raw = set.layout as Partial<QuickLayout> | null;
+  const creative = (set.layout as { version?: number } | null)?.version === 2;
   const placements: Placement[] = [];
+  let next = 0;
   for (const row of rows ?? []) {
     const position = row.position as { slot?: number } | null;
-    if (row.item && typeof position?.slot === "number") {
+    if (!row.item) continue;
+    if (typeof position?.slot === "number") {
       placements.push({ slot: position.slot, item: row.item as unknown as ItemSummary });
+    } else if (creative) {
+      // A Creative set's pieces have positions, not slots; numbered in order for the lists.
+      placements.push({ slot: next++, item: row.item as unknown as ItemSummary });
     }
   }
-  const raw = set.layout as Partial<QuickLayout> | null;
   const layout: QuickLayout = {
     version: 1,
     template: raw?.template ?? "",
     background: raw?.background ?? DEFAULT_BACKGROUND,
     caption: raw?.caption ?? "",
   };
-  return { set: { ...(set as unknown as SetSummary), layout }, placements };
+  return { set: { ...(set as unknown as SetSummary), layout, creative }, placements };
 }
 
 /** Autosave: the server writes the set and a version together, and trims (migration 017). */

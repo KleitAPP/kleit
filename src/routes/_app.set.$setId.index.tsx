@@ -14,6 +14,7 @@ import {
   refreshPreview,
 } from "@/sets/sets";
 import { inkFor } from "@/sets/swatches";
+import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
 
@@ -175,46 +176,52 @@ function SetPage() {
         ) : null}
       </div>
 
-      <div
-        className="relative mt-4 w-full overflow-hidden rounded-md border border-line"
-        style={{
-          aspectRatio: `${template?.layout.canvas.w ?? 4} / ${template?.layout.canvas.h ?? 5}`,
-          backgroundColor: set.layout.background,
-        }}
-        aria-label={t("builder.canvas")}
-      >
-        {(template?.layout.slots ?? []).map((slot, i) => {
-          const placed = placements.find((p) => p.slot === i);
-          if (!placed) return null;
-          const url = images[placed.item.id];
-          const tag = placed.item.kind === "own" ? t("item.own") : priceLabel(placed.item);
-          return (
-            <Link
-              key={i}
-              to="/item/$itemId"
-              params={{ itemId: placed.item.id }}
-              className="absolute"
-              style={{
-                left: `${slot.x * 100}%`,
-                top: `${slot.y * 100}%`,
-                width: `${slot.w * 100}%`,
-                height: `${slot.h * 100}%`,
-              }}
-              aria-label={placed.item.title ?? t("item.untitled")}
-            >
-              {url ? <img src={url} alt="" className="size-full object-contain" /> : null}
-              {tag ? (
-                <span
-                  className="absolute bottom-1 left-1 rounded-pill px-2 py-0.5 text-xs font-medium"
-                  style={{ backgroundColor: ink, color: set.layout.background }}
-                >
-                  {tag}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
+      {set.creative ? (
+        <div className="mt-4">
+          <CreativeView setId={setId} />
+        </div>
+      ) : (
+        <div
+          className="relative mt-4 w-full overflow-hidden rounded-md border border-line"
+          style={{
+            aspectRatio: `${template?.layout.canvas.w ?? 4} / ${template?.layout.canvas.h ?? 5}`,
+            backgroundColor: set.layout.background,
+          }}
+          aria-label={t("builder.canvas")}
+        >
+          {(template?.layout.slots ?? []).map((slot, i) => {
+            const placed = placements.find((p) => p.slot === i);
+            if (!placed) return null;
+            const url = images[placed.item.id];
+            const tag = placed.item.kind === "own" ? t("item.own") : priceLabel(placed.item);
+            return (
+              <Link
+                key={i}
+                to="/item/$itemId"
+                params={{ itemId: placed.item.id }}
+                className="absolute"
+                style={{
+                  left: `${slot.x * 100}%`,
+                  top: `${slot.y * 100}%`,
+                  width: `${slot.w * 100}%`,
+                  height: `${slot.h * 100}%`,
+                }}
+                aria-label={placed.item.title ?? t("item.untitled")}
+              >
+                {url ? <img src={url} alt="" className="size-full object-contain" /> : null}
+                {tag ? (
+                  <span
+                    className="absolute bottom-1 left-1 rounded-pill px-2 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: ink, color: set.layout.background }}
+                  >
+                    {tag}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {notice ? (
         <p
@@ -287,7 +294,7 @@ function SetPage() {
         <ul className="flex flex-col divide-y divide-line">
           <li>
             <Link
-              to="/set/$setId/edit"
+              to={set.creative ? "/set/$setId/canvas" : "/set/$setId/edit"}
               params={{ setId }}
               className="flex min-h-12 items-center text-base text-ink"
             >

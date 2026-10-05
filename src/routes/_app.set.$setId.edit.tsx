@@ -323,6 +323,13 @@ function QuickBuilder() {
         >
           {t("builder.send")}
         </PrimaryButton>
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/set/$setId/canvas", params: { setId } })}
+          className="mt-3 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("canvas.openInCreative")}
+        </button>
         <p className="mt-2 text-sm text-ink-soft">
           {autoTitle(placements) || t("builder.titleHint")}
         </p>

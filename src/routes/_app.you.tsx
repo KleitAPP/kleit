@@ -176,7 +176,11 @@ function YourProfile() {
             {drafts.map((d) => (
               <li key={d.id}>
                 <Link
-                  to="/set/$setId/edit"
+                  to={
+                    (d.layout as { version?: number }).version === 2
+                      ? "/set/$setId/canvas"
+                      : "/set/$setId/edit"
+                  }
                   params={{ setId: d.id }}
                   className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
                 >

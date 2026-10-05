@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { whereDoIBelong } from "@/auth/session";
 import { Sheet, TabBar, type TabId } from "@/components/kleit";
 import { createQuickDraft } from "@/sets/sets";
+import { createCreativeDraft } from "@/canvas/persist";
 import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 
@@ -92,7 +93,16 @@ function AppShell() {
               });
             }}
           />
-          <CreateChoice title={t("create.creative")} why={t("create.creativeWhy")} />
+          <CreateChoice
+            title={t("create.creative")}
+            why={t("create.creativeWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void createCreativeDraft().then((id) => {
+                if (id) void navigate({ to: "/set/$setId/canvas", params: { setId: id } });
+              });
+            }}
+          />
           <CreateChoice
             title={t("create.clip")}
             why={t("create.clipWhy")}

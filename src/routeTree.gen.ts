@@ -43,6 +43,7 @@ import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
 import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
 import { Route as AppPollPollIdEditRouteImport } from './routes/_app.poll.$pollId.edit'
 import { Route as AppSetSetIdIndexRouteImport } from './routes/_app.set.$setId.index'
+import { Route as AppSetSetIdCanvasRouteImport } from './routes/_app.set.$setId.canvas'
 import { Route as AppSetSetIdEditRouteImport } from './routes/_app.set.$setId.edit'
 import { Route as AppSetSetIdHistoryRouteImport } from './routes/_app.set.$setId.history'
 import { Route as AppSetSetIdSendRouteImport } from './routes/_app.set.$setId.send'
@@ -217,6 +218,11 @@ const AppSetSetIdIndexRoute = AppSetSetIdIndexRouteImport.update({
   path: '/set/$setId/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSetSetIdCanvasRoute = AppSetSetIdCanvasRouteImport.update({
+  id: '/set/$setId/canvas',
+  path: '/set/$setId/canvas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSetSetIdEditRoute = AppSetSetIdEditRouteImport.update({
   id: '/set/$setId/edit',
   path: '/set/$setId/edit',
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
+  '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
+  '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/items': typeof AppYouItemsRoute
   '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
+  '/_app/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/_app/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/_app/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/_app/set/$setId/send': typeof AppSetSetIdSendRoute
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/you/drawer'
     | '/you/items'
     | '/poll/$pollId/edit'
+    | '/set/$setId/canvas'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
@@ -421,6 +431,7 @@ export interface FileRouteTypes {
     | '/you/drawer'
     | '/you/items'
     | '/poll/$pollId/edit'
+    | '/set/$setId/canvas'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '/_app/you_/drawer'
     | '/_app/you_/items'
     | '/_app/poll/$pollId/edit'
+    | '/_app/set/$setId/canvas'
     | '/_app/set/$setId/edit'
     | '/_app/set/$setId/history'
     | '/_app/set/$setId/send'
@@ -721,6 +733,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSetSetIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/set/$setId/canvas': {
+      id: '/_app/set/$setId/canvas'
+      path: '/set/$setId/canvas'
+      fullPath: '/set/$setId/canvas'
+      preLoaderRoute: typeof AppSetSetIdCanvasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/set/$setId/edit': {
       id: '/_app/set/$setId/edit'
       path: '/set/$setId/edit'
@@ -782,6 +801,7 @@ interface AppRouteChildren {
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
   AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
+  AppSetSetIdCanvasRoute: typeof AppSetSetIdCanvasRoute
   AppSetSetIdEditRoute: typeof AppSetSetIdEditRoute
   AppSetSetIdHistoryRoute: typeof AppSetSetIdHistoryRoute
   AppSetSetIdSendRoute: typeof AppSetSetIdSendRoute
@@ -806,6 +826,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouItemsRoute: AppYouItemsRoute,
   AppPollPollIdEditRoute: AppPollPollIdEditRoute,
+  AppSetSetIdCanvasRoute: AppSetSetIdCanvasRoute,
   AppSetSetIdEditRoute: AppSetSetIdEditRoute,
   AppSetSetIdHistoryRoute: AppSetSetIdHistoryRoute,
   AppSetSetIdSendRoute: AppSetSetIdSendRoute,

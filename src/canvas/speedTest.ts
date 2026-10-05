@@ -19,9 +19,22 @@ export type SpeedResult = {
   dragMedianMs: number;
   dragP95Ms: number;
   dragFrames: number;
+  /**
+   * The same drag with the moving node lifted onto the UI layer for the length of the drag, so
+   * the other nodes are not redrawn every frame - what the editor will do (Konva's own advice).
+   */
+  liftedMedianMs: number;
+  liftedP95Ms: number;
   heapMb: number | null;
   drawerFirstPaintMs: number;
-  passes: { drag: boolean; firstRender: boolean; heap: boolean | null; drawer: boolean };
+  /** `drag` is judged on the lifted drag, the one the editor performs; `dragFlat` is the naive one. */
+  passes: {
+    drag: boolean;
+    dragFlat: boolean;
+    firstRender: boolean;
+    heap: boolean | null;
+    drawer: boolean;
+  };
 };
 
 /** The test canvas's own colours: a set's background and ink, fixed like any artwork (L14). */

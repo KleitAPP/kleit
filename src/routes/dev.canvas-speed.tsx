@@ -108,15 +108,30 @@ function CanvasSpeed() {
     const mover = movingRef.current!;
     const startX = mover.x();
     const startY = mover.y();
+    const path = (t: number) => ({
+      x: startX + Math.sin(t * Math.PI * 2) * 300,
+      y: startY + Math.cos(t * Math.PI * 2) * 200,
+    });
+    // Naive: the whole layer redraws every frame.
     const drag = await measureDrag((t) => {
-      mover.position({
-        x: startX + Math.sin(t * Math.PI * 2) * 300,
-        y: startY + Math.cos(t * Math.PI * 2) * 200,
-      });
+      mover.position(path(t));
       canvasLayer.batchDraw();
     });
     mover.position({ x: startX, y: startY });
     canvasLayer.batchDraw();
+    // Lifted: the moving node goes to the UI layer for the drag, so only it redraws.
+    const uiLayer = stage.getLayers()[2]!;
+    mover.moveTo(uiLayer);
+    canvasLayer.batchDraw();
+    const lifted = await measureDrag((t) => {
+      mover.position(path(t));
+      uiLayer.batchDraw();
+    });
+    mover.position({ x: startX, y: startY });
+    mover.moveTo(canvasLayer);
+    mover.moveToTop();
+    canvasLayer.batchDraw();
+    uiLayer.batchDraw();
     const drawerMs = drawerRef.current ? await measureDrawer(drawerRef.current, thumbs) : 0;
     const heap = heapMb();
     const fr = firstRender.current ?? 0;
@@ -128,10 +143,13 @@ function CanvasSpeed() {
       dragMedianMs: Math.round(drag.median * 10) / 10,
       dragP95Ms: Math.round(drag.p95 * 10) / 10,
       dragFrames: drag.frames,
+      liftedMedianMs: Math.round(lifted.median * 10) / 10,
+      liftedP95Ms: Math.round(lifted.p95 * 10) / 10,
       heapMb: heap,
       drawerFirstPaintMs: Math.round(drawerMs),
       passes: {
-        drag: drag.p95 <= TARGETS.dragMs,
+        drag: lifted.p95 <= TARGETS.dragMs,
+        dragFlat: drag.p95 <= TARGETS.dragMs,
         firstRender: fr <= TARGETS.firstRenderMs,
         heap: heap === null ? null : heap <= TARGETS.heapMb,
         drawer: drawerMs <= TARGETS.drawerMs,
@@ -208,9 +226,13 @@ function CanvasSpeed() {
           aria-live="polite"
           data-testid="result"
         >
-          <dt>Drag, median / p95</dt>
+          <dt>Drag (lifted), median / p95</dt>
           <dd>
-            {result.dragMedianMs} / {result.dragP95Ms} ms {result.passes.drag ? "✓" : "✗"}
+            {result.liftedMedianMs} / {result.liftedP95Ms} ms {result.passes.drag ? "✓" : "✗"}
+          </dd>
+          <dt>Drag (whole layer), median / p95</dt>
+          <dd>
+            {result.dragMedianMs} / {result.dragP95Ms} ms {result.passes.dragFlat ? "✓" : "✗"}
           </dd>
           <dt>First render</dt>
           <dd>

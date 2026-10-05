@@ -29,7 +29,8 @@ select is((select count(*)::int from ask_posts), 1, 'answerer: sees the open que
 select throws_ok($$ insert into ask_answers (ask_id, author_id, set_id) values ('84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000002') $$, '42501', null, 'answerer: cannot answer with an only-me set');
 select throws_ok($$ insert into ask_answers (ask_id, author_id, set_id, chosen) values ('84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000001', true) $$, '42501', null, 'answerer: cannot arrive already chosen');
 select lives_ok($$ insert into ask_answers (id, ask_id, author_id, set_id, body) values ('83838383-0000-4000-8000-000000000001', '84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000001', 'a boxy shirt') $$, 'answerer: answers with a public set');
-select throws_ok($$ update ask_answers set chosen = true where id = '83838383-0000-4000-8000-000000000001' $$, '42501', null, 'answerer: cannot choose their own answer');
+update ask_answers set chosen = true where id = '83838383-0000-4000-8000-000000000001';
+select is((select chosen from ask_answers where id = '83838383-0000-4000-8000-000000000001'), false, 'answerer: cannot choose their own answer (the update touched no row)');
 
 select pg_temp.act_as('afafafaf-0000-4000-8000-000000000001');
 select is((select count(*)::int from ask_answers where ask_id = '84848484-0000-4000-8000-000000000001'), 1, 'asker: sees the answer');

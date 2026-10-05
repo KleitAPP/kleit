@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
@@ -15,7 +15,9 @@ import { t } from "@/i18n/en";
  * on their first line and a person deserves to know before they rely on one.
  */
 export const Route = createFileRoute("/_app/settings/legal")({
-  head: () => ({ meta: [{ title: "Help and legal" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Help and legal" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: HelpAndLegal,
 });
 
@@ -47,6 +49,13 @@ function HelpAndLegal() {
           </li>
         ))}
       </ul>
+
+      <Link
+        to="/settings/library"
+        className="mt-4 flex min-h-12 items-center rounded-md border border-line bg-surface px-4 text-base text-ink"
+      >
+        {t("legal.library")}
+      </Link>
 
       <LegalSheet doc={open} onClose={() => setOpen(null)} />
     </div>

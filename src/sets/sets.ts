@@ -122,7 +122,26 @@ export async function saveLayout(setId: string, layout: QuickLayout): Promise<bo
  * a public picture at all (published, public or link) and takes an old one down if not.
  */
 export function refreshPreview(setId: string): void {
-  void supabase.functions.invoke("set-preview", { body: { set_id: setId } }).catch(() => undefined);
+  void (async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+    const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
+    if (!token || !url || !key) return;
+    // A plain fetch with keepalive, not the client's invoke: the person often leaves the screen
+    // the moment they have published, and a request the browser would cancel on navigation is
+    // a picture that never gets drawn (the core-loop test found exactly that).
+    await fetch(`${url}/functions/v1/set-preview`, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ set_id: setId }),
+    });
+  })().catch(() => undefined);
 }
 
 /** Put a piece in a slot, replacing whatever was there. */

@@ -150,15 +150,13 @@ export async function join(groupId: string): Promise<boolean> {
 export async function invite(groupId: string, userId: string): Promise<boolean> {
   const my = await me();
   if (!my) return false;
-  const { error } = await supabase
-    .from("group_members")
-    .insert({
-      group_id: groupId,
-      user_id: userId,
-      role: "member",
-      state: "invited",
-      invited_by: my,
-    });
+  const { error } = await supabase.from("group_members").insert({
+    group_id: groupId,
+    user_id: userId,
+    role: "member",
+    state: "invited",
+    invited_by: my,
+  });
   return !error || error.code === "23505";
 }
 

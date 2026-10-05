@@ -25,7 +25,7 @@ insert into ask_posts (id, author_id, question) values ('84848484-0000-4000-8000
 select throws_ok($$ insert into ask_posts (author_id, question) values ('afafafaf-0000-4000-8000-000000000002', 'forged?') $$, '42501', null, 'asker: cannot ask in someone else''s name');
 
 select pg_temp.act_as('afafafaf-0000-4000-8000-000000000002');
-select is((select count(*)::int from ask_posts), 1, 'answerer: sees the open question');
+select is((select count(*)::int from ask_posts where id = '84848484-0000-4000-8000-000000000001'), 1, 'answerer: sees the open question');
 select throws_ok($$ insert into ask_answers (ask_id, author_id, set_id) values ('84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000002') $$, '42501', null, 'answerer: cannot answer with an only-me set');
 select throws_ok($$ insert into ask_answers (ask_id, author_id, set_id, chosen) values ('84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000001', true) $$, '42501', null, 'answerer: cannot arrive already chosen');
 select lives_ok($$ insert into ask_answers (id, ask_id, author_id, set_id, body) values ('83838383-0000-4000-8000-000000000001', '84848484-0000-4000-8000-000000000001', 'afafafaf-0000-4000-8000-000000000002', '85858585-0000-4000-8000-000000000001', 'a boxy shirt') $$, 'answerer: answers with a public set');

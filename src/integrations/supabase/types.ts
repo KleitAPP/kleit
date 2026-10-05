@@ -353,19 +353,15 @@ export type Database = {
           id?: string
           set_id?: string
         }
-        Relationships: []
-      }
-      likes: {
-        Row: { created_at: string; set_id: string; user_id: string }
-        Insert: { created_at?: string; set_id: string; user_id: string }
-        Update: { created_at?: string; set_id?: string; user_id?: string }
-        Relationships: []
-      }
-      reactions: {
-        Row: { created_at: string; emoji: string; set_id: string; user_id: string }
-        Insert: { created_at?: string; emoji: string; set_id: string; user_id: string }
-        Update: { created_at?: string; emoji?: string; set_id?: string; user_id?: string }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "comments_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -578,6 +574,32 @@ export type Database = {
         }
         Relationships: []
       }
+      likes: {
+        Row: {
+          created_at: string
+          set_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          set_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          set_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -744,11 +766,11 @@ export type Database = {
           age_confirmed_at: string
           avatar_url: string | null
           bio: string
+          comments_default: string
           created_at: string
           deactivated_at: string | null
           display_name: string
           dm_setting: string
-          comments_default: string
           findable_by_email: boolean
           findable_by_phone: boolean
           is_private: boolean
@@ -763,11 +785,11 @@ export type Database = {
           age_confirmed_at: string
           avatar_url?: string | null
           bio?: string
+          comments_default?: string
           created_at?: string
           deactivated_at?: string | null
           display_name?: string
           dm_setting?: string
-          comments_default?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -782,11 +804,11 @@ export type Database = {
           age_confirmed_at?: string
           avatar_url?: string | null
           bio?: string
+          comments_default?: string
           created_at?: string
           deactivated_at?: string | null
           display_name?: string
           dm_setting?: string
-          comments_default?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -798,6 +820,35 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          set_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          set_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          set_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reactions_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       removed_image_fingerprints: {
         Row: {
@@ -928,6 +979,7 @@ export type Database = {
           alt_text: string | null
           caption: string
           comments_mode: Database["public"]["Enums"]["comments_mode"]
+          comments_setting: string
           created_at: string
           deleted_at: string | null
           description: string
@@ -941,7 +993,6 @@ export type Database = {
           remixed_from_label: string | null
           remixed_from_set_id: string | null
           share_code: string
-          comments_setting: string
           song_artist: string | null
           song_cover_url: string | null
           song_title: string | null
@@ -957,6 +1008,7 @@ export type Database = {
           alt_text?: string | null
           caption?: string
           comments_mode?: Database["public"]["Enums"]["comments_mode"]
+          comments_setting?: string
           created_at?: string
           deleted_at?: string | null
           description?: string
@@ -970,7 +1022,6 @@ export type Database = {
           remixed_from_label?: string | null
           remixed_from_set_id?: string | null
           share_code?: string
-          comments_setting?: string
           song_artist?: string | null
           song_cover_url?: string | null
           song_title?: string | null
@@ -986,6 +1037,7 @@ export type Database = {
           alt_text?: string | null
           caption?: string
           comments_mode?: Database["public"]["Enums"]["comments_mode"]
+          comments_setting?: string
           created_at?: string
           deleted_at?: string | null
           description?: string
@@ -999,7 +1051,6 @@ export type Database = {
           remixed_from_label?: string | null
           remixed_from_set_id?: string | null
           share_code?: string
-          comments_setting?: string
           song_artist?: string | null
           song_cover_url?: string | null
           song_title?: string | null
@@ -1255,6 +1306,7 @@ export type Database = {
           age_confirmed_at: string
           avatar_url: string | null
           bio: string
+          comments_default: string
           created_at: string
           deactivated_at: string | null
           display_name: string
@@ -1317,22 +1369,13 @@ export type Database = {
         Returns: number
       }
       send_message: { Args: { p_body: string; p_to: string }; Returns: string }
-      set_social: {
-        Args: { p_set: string }
-        Returns: {
-          likes: number
-          comments: number
-          reactions: Json
-          my_like: boolean
-          my_reaction: string | null
-        }[]
-      }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {
           alt_text: string | null
           caption: string
           comments_mode: Database["public"]["Enums"]["comments_mode"]
+          comments_setting: string
           created_at: string
           deleted_at: string | null
           description: string
@@ -1363,6 +1406,16 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      set_social: {
+        Args: { p_set: string }
+        Returns: {
+          comments: number
+          likes: number
+          my_like: boolean
+          my_reaction: string
+          reactions: Json
+        }[]
       }
       shared_poll: { Args: { p_code: string }; Returns: Json }
       shared_set: { Args: { p_code: string }; Returns: Json }

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 560" role="img" aria-label="Wrap cardigan"><title>Wrap cardigan</title><defs><filter id="a12516_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a12516_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a12516_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a12516_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a12516_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a12516_kn" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9e7f74"/><stop offset="16%" stop-color="#d6bcb0"/><stop offset="36%" stop-color="#f6e6dd"/><stop offset="54%" stop-color="#e5cdc1"/><stop offset="78%" stop-color="#b9998c"/><stop offset="100%" stop-color="#d2b6a9"/></linearGradient><linearGradient id="a12516_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a45e6d"/><stop offset="20%" stop-color="#f3d3db"/><stop offset="40%" stop-color="#fdf1f4"/><stop offset="62%" stop-color="#d290a0"/><stop offset="84%" stop-color="#9d5766"/><stop offset="100%" stop-color="#e0aeba"/></linearGradient><filter id="a12516_w" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="35" result="t"/>
+  <feDisplacementMap in="SourceGraphic" in2="t" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feGaussianBlur in="d" stdDeviation="1.4"/>
+</filter><filter id="a12516_m" x="-28%" y="-28%" width="156%" height="156%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="2.6" specularConstant="0.5" specularExponent="4.5"
+      lighting-color="#fff6fb" result="s"><feDistantLight azimuth="228" elevation="46"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="ab"/><feOffset in="ab" dy="4" result="ao"/>
+  <feComposite in="ao" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#2b1b24" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over" result="sh"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="4" seed="3" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr"><feFuncA type="linear" slope="0.085" intercept="-0.0425"/></feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="gi"/>
+  <feBlend in="gi" in2="sh" mode="overlay"/>
+</filter><filter id="a12516_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a12516_c)"><g filter="url(#a12516_w)">
+  <path d="M212,96 L408,96 Q470,110 490,166 L536,318 L470,348 L440,262 L452,452
+           Q456,486 420,488 L200,488 Q164,486 168,452 L180,262 L150,348 L84,318
+           L130,166 Q150,110 212,96 Z" fill="url(#a12516_kn)"/>
+</g>
+  <path d="M212,96 Q262,212 258,486" fill="none" stroke="#8d6f64" stroke-width="5" opacity=".55"/>
+  <path d="M408,96 Q358,212 362,486" fill="none" stroke="#8d6f64" stroke-width="5" opacity=".55"/>
+  <path d="M212,96 Q262,212 258,486 L200,488 Q164,486 168,452 L180,262 Z" fill="#ffffff" opacity=".22"/>
+  <g opacity=".38"><path d="M186,130 Q188,320 190,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M204,130 Q206,320 208,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M222,130 Q224,320 226,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M240,130 Q242,320 244,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M258,130 Q260,320 262,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M276,130 Q278,320 280,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M294,130 Q296,320 298,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M312,130 Q314,320 316,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M330,130 Q332,320 334,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M348,130 Q350,320 352,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M366,130 Q368,320 370,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M384,130 Q386,320 388,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M402,130 Q404,320 406,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/><path d="M420,130 Q422,320 424,480" fill="none" stroke="#8d6f64" stroke-width="2.2"/></g>
+  <path d="M96,330 Q300,398 528,330" fill="none" stroke="url(#a12516_rb)" stroke-width="22"/>
+  <path d="M100,326 Q300,392 524,326" fill="none" stroke="#ffffff" stroke-width="5" opacity=".45"/>
+  <g filter="url(#a12516_m)"><path d="M301,373.2 C288,416.4 266,438.0 278,459.6 L304,450.6 C298,427.2 306,409.2 308,384.0 Z" fill="url(#a12516_rb)"/><path d="M323,373.2 C336,416.4 358,438.0 346,459.6 L320,450.6 C326,427.2 318,409.2 316,384.0 Z" fill="url(#a12516_rb)"/><path d="M306,362 C279.0,312.0 237.0,346.2 249.0,375.0 C256.8,396.6 291.6,388.32 304,373.92 Z" fill="url(#a12516_rb)"/><path d="M318,362 C345.0,312.0 387.0,346.2 375.0,375.0 C367.2,396.6 332.4,388.32 320,373.92 Z" fill="url(#a12516_rb)"/><path d="M304,373.92 C291.6,388.32 282.0,376.8 286.8,362.4 Z" fill="#000000" opacity=".16"/><path d="M320,373.92 C332.4,388.32 342.0,376.8 337.2,362.4 Z" fill="#000000" opacity=".16"/><path d="M295,359 Q312,352 329,359 Q334,373 328,384 Q312,390 296,384 Q290,373 295,359 Z" fill="url(#a12516_rb)"/><path d="M298,368 Q312,374 326,368" fill="none" stroke="#000000" stroke-width="3" opacity=".18"/></g>
+</g></svg>

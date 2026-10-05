@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 470" role="img" aria-label="Bakelite bangle stack"><title>Bakelite bangle stack</title><defs><filter id="a53948_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a53948_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a53948_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a53948_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a53948_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a53948_bk" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f4e4b4"/><stop offset="20%" stop-color="#d9b96f"/><stop offset="46%" stop-color="#a87f3a"/><stop offset="56%" stop-color="#8c6529"/><stop offset="78%" stop-color="#cfa95d"/><stop offset="100%" stop-color="#e8d19a"/></linearGradient><linearGradient id="a53948_bkr" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f0b9a6"/><stop offset="22%" stop-color="#cf7358"/><stop offset="50%" stop-color="#9c4530"/><stop offset="60%" stop-color="#7d3423"/><stop offset="80%" stop-color="#c26a4f"/><stop offset="100%" stop-color="#e5a992"/></linearGradient><linearGradient id="a53948_jd" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#d8efe0"/><stop offset="24%" stop-color="#8dc0a4"/><stop offset="52%" stop-color="#4b8467"/><stop offset="62%" stop-color="#356249"/><stop offset="82%" stop-color="#7fb598"/><stop offset="100%" stop-color="#cbe8d7"/></linearGradient><linearGradient id="a53948_lq" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#3b3530"/><stop offset="26%" stop-color="#1d1a18"/><stop offset="58%" stop-color="#0c0b0b"/><stop offset="82%" stop-color="#191614"/><stop offset="100%" stop-color="#2e2a26"/></linearGradient><filter id="a53948_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="0.95"
+      specularExponent="18" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.58" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.4" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.36" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.05" intercept="-0.0250"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a53948_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a53948_c)"><g filter="url(#a53948_m)">
+  <ellipse cx="280" cy="126" rx="168" ry="52" fill="none" stroke="url(#a53948_bk)" stroke-width="34"/>
+  <ellipse cx="280" cy="206" rx="168" ry="52" fill="none" stroke="url(#a53948_bkr)" stroke-width="30"/>
+  <ellipse cx="280" cy="280" rx="168" ry="52" fill="none" stroke="url(#a53948_lq)" stroke-width="28"/>
+  <ellipse cx="280" cy="350" rx="168" ry="52" fill="none" stroke="url(#a53948_jd)" stroke-width="32"/>
+</g>
+  <path d="M132,110 A168,52 0 0 1 240,80" fill="none" stroke="#ffffff" stroke-width="7" opacity=".45"/>
+  <path d="M132,190 A168,52 0 0 1 240,160" fill="none" stroke="#ffffff" stroke-width="6" opacity=".40"/>
+  <path d="M132,334 A168,52 0 0 1 240,304" fill="none" stroke="#ffffff" stroke-width="6" opacity=".40"/>
+</g></svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 620" role="img" aria-label="Coffin charm"><title>Coffin charm</title><defs><filter id="a63264_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a63264_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a63264_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a63264_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a63264_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a63264_st" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0%" stop-color="#fdfdfe"/><stop offset="14%" stop-color="#d6dce3"/><stop offset="32%" stop-color="#98a3b0"/><stop offset="47%" stop-color="#4b5560"/><stop offset="52%" stop-color="#2f3740"/><stop offset="60%" stop-color="#727d89"/><stop offset="78%" stop-color="#ced6de"/><stop offset="92%" stop-color="#f2f5f8"/><stop offset="100%" stop-color="#8f9aa6"/></linearGradient><filter id="a63264_m4" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.3"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.38" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="82" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.045" intercept="-0.0225"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a63264_c4" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="13" flood-color="#241c26" flood-opacity="0.34"/></filter></defs>
+<g filter="url(#a63264_c4)">
+  <g filter="url(#a63264_m4)">
+    <circle cx="230" cy="70" r="28" fill="none" stroke="url(#a63264_st)" stroke-width="12"/>
+    <path d="M230,118 L336,206 L306,520 Q304,548 230,548 Q156,548 154,520 L124,206 Z" fill="url(#a63264_st)"/>
+  </g>
+  <path d="M230,118 L336,206 L306,520 Q304,548 230,548 Q156,548 154,520 L124,206 Z"
+        fill="none" stroke="#252c34" stroke-width="2.5" opacity=".7"/>
+  <path d="M230,152 L300,214 L276,500 Q274,518 230,518 Q186,518 184,500 L160,214 Z"
+        fill="none" stroke="#ffffff" stroke-width="3" opacity=".4"/>
+  <path d="M230,152 L230,518" stroke="#ffffff" stroke-width="2.4" opacity=".28"/>
+</g></svg>

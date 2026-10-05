@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 560" role="img" aria-label="Flip phone, closed"><title>Flip phone, closed</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter>
+ <linearGradient id="fpbody" x1=".15" y1="0" x2=".85" y2="1">
+  <stop offset="0%" stop-color="#f7dfe8"/><stop offset="22%" stop-color="#e9bccd"/>
+  <stop offset="54%" stop-color="#d79cb4"/><stop offset="80%" stop-color="#c2849e"/>
+  <stop offset="100%" stop-color="#a86b86"/></linearGradient>
+ <linearGradient id="fplow" x1=".15" y1="0" x2=".85" y2="1">
+  <stop offset="0%" stop-color="#eec8d6"/><stop offset="30%" stop-color="#dca9bf"/>
+  <stop offset="70%" stop-color="#c6899f"/><stop offset="100%" stop-color="#9e6076"/></linearGradient>
+ <linearGradient id="fpscr" x1="0" y1="0" x2=".4" y2="1">
+  <stop offset="0%" stop-color="#4a5560"/><stop offset="45%" stop-color="#22282f"/>
+  <stop offset="100%" stop-color="#151a20"/></linearGradient>
+ <linearGradient id="ch" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbfcfd"/><stop offset="13%" stop-color="#dfe5ec"/><stop offset="30%" stop-color="#a7b2c0"/><stop offset="44%" stop-color="#5c6875"/><stop offset="49%" stop-color="#39434f"/><stop offset="53%" stop-color="#6d7885"/><stop offset="66%" stop-color="#c3ccd6"/><stop offset="82%" stop-color="#f4f7fa"/><stop offset="93%" stop-color="#cdd5de"/><stop offset="100%" stop-color="#9aa4b0"/></linearGradient>
+ <filter id="plP" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="5" specularConstant="0.62"
+      specularExponent="16" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.2" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.3" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="9" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.055" intercept="-0.0275"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <filter id="c3" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="20" stdDeviation="16" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#c3)" transform="rotate(-7 300 300)">
+  <g filter="url(#plP)">
+    <rect x="186" y="96" width="228" height="212" rx="42" fill="url(#fpbody)"/>
+    <rect x="186" y="302" width="228" height="200" rx="42" fill="url(#fplow)"/>
+  </g>
+  <rect x="186" y="296" width="228" height="12" rx="6" fill="#8d5a70" opacity=".5"/>
+  <rect x="178" y="292" width="24" height="22" rx="10" fill="url(#ch)" opacity=".9"/>
+  <rect x="398" y="292" width="24" height="22" rx="10" fill="url(#ch)" opacity=".9"/>
+  <rect x="226" y="140" width="148" height="104" rx="15" fill="url(#fpscr)"/>
+  <rect x="226" y="140" width="148" height="104" rx="15" fill="none" stroke="#a56f88" stroke-width="2"/>
+  <rect x="232" y="146" width="136" height="42" rx="12" fill="#ffffff" opacity=".11"/>
+  <circle cx="300" cy="270" r="13" fill="#3c454e"/>
+  <circle cx="300" cy="270" r="8" fill="#1d3a55"/>
+  <circle cx="296" cy="266" r="3" fill="#a9d4f2" opacity=".9"/>
+  <rect x="268" y="112" width="64" height="7" rx="3.5" fill="#8d5a70" opacity=".45"/>
+  <circle cx="396" cy="120" r="9" fill="#c2849e" opacity=".8"/>
+  <path d="M404,108 q26,-8 34,10" fill="none" stroke="#b07b93" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="228" cy="200" rx="26" ry="118" fill="#ffffff" opacity=".22" filter="url(#blurS22)"/>
+  <ellipse cx="236" cy="150" rx="44" ry="26" fill="#ffffff" opacity=".42" transform="rotate(-30 236 150)" filter="url(#blurS14)"/>
+  <ellipse cx="380" cy="430" rx="22" ry="52" fill="#ffffff" opacity=".14" filter="url(#blurS22)"/>
+</g></svg>

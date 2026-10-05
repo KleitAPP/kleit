@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 620" role="img" aria-label="Coupe cocktail glass"><title>Coupe cocktail glass</title><defs><filter id="a56537_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a56537_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a56537_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a56537_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a56537_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a56537_ch" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a56537_chv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a56537_gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff" stop-opacity=".62"/><stop offset="18%" stop-color="#dfe9ef" stop-opacity=".30"/><stop offset="50%" stop-color="#b9ccd6" stop-opacity=".16"/><stop offset="82%" stop-color="#e6eef3" stop-opacity=".34"/><stop offset="100%" stop-color="#ffffff" stop-opacity=".66"/></linearGradient><linearGradient id="a56537_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><filter id="a56537_m5" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="10" specularConstant="1.45"
+      specularExponent="34" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.1" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.36" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="75" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a56537_c5" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a56537_c5)">
+  <path d="M86,164 Q220,140 354,164 Q346,300 220,336 Q94,300 86,164 Z" fill="url(#a56537_gl)"/>
+  <path d="M86,164 Q220,140 354,164 Q346,300 220,336 Q94,300 86,164 Z" fill="#7d99a8" opacity=".14"/>
+  <path d="M96,168 Q220,148 344,168 Q338,292 220,326 Q102,292 96,168 Z"
+        fill="none" stroke="#ffffff" stroke-width="2" opacity=".5"/>
+  <path d="M86,164 Q220,140 354,164 Q346,300 220,336 Q94,300 86,164 Z"
+        fill="none" stroke="#dbe6ec" stroke-width="3.5" opacity=".9"/>
+  <path d="M100,176 Q124,268 196,316" stroke="#ffffff" stroke-width="10" opacity=".62" fill="none" stroke-linecap="round"/>
+  <path d="M332,178 Q318,258 262,310" stroke="#ffffff" stroke-width="5" opacity=".34" fill="none" stroke-linecap="round"/>
+  <ellipse cx="220" cy="164" rx="134" ry="19" fill="none" stroke="#eef5f8" stroke-width="4" opacity=".9"/>
+  <g filter="url(#a56537_m5)">
+    <path d="M208,332 L232,332 L236,520 L204,520 Z" fill="url(#a56537_chv)"/>
+    <path d="M204,520 Q220,528 236,520 L300,556 Q220,572 140,556 Z" fill="url(#a56537_chv)"/>
+    <ellipse cx="220" cy="556" rx="84" ry="15" fill="url(#a56537_chv)"/>
+    <circle cx="220" cy="416" r="25" fill="url(#a56537_gd)"/>
+  </g>
+  <ellipse cx="220" cy="552" rx="84" ry="13" fill="none" stroke="#e8eef3" stroke-width="3" opacity=".75"/>
+  <path d="M212,344 L210,512" stroke="#ffffff" stroke-width="5" opacity=".6"/>
+</g></svg>

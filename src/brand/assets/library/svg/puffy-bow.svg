@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 440" role="img" aria-label="Inflated bow"><title>Inflated bow</title><defs><filter id="a50290_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a50290_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a50290_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a50290_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a50290_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a50290_pk" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#ff8cc4"/><stop offset="26%" stop-color="#fb3f94"/><stop offset="62%" stop-color="#d4126e"/><stop offset="100%" stop-color="#8d0847"/></linearGradient><linearGradient id="a50290_pk2" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#ffa8d4"/><stop offset="30%" stop-color="#ff5da8"/><stop offset="70%" stop-color="#e01b7c"/><stop offset="100%" stop-color="#9c0c52"/></linearGradient><radialGradient id="a50290_pkgloss" cx="34%" cy="24%" r="58%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".8"/><stop offset="40%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient><filter id="a50290_i6" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="15" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="7" specularConstant="0.6"
+     specularExponent="11" lighting-color="#ffffff" result="s">
+     <feDistantLight azimuth="232" elevation="52"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.45" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="12" result="ab"/>
+  <feOffset in="ab" dy="8" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#4a0f2c" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over"/>
+</filter><filter id="a50290_c6" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#241c26" flood-opacity="0.28"/></filter></defs>
+<g filter="url(#a50290_c6)"><g filter="url(#a50290_i6)">
+ <path d="M272,206 C208,124 84,118 72,190 C60,262 190,290 272,246 Z" fill="url(#a50290_pk2)"/>
+ <path d="M328,206 C392,124 516,118 528,190 C540,262 410,290 328,246 Z" fill="url(#a50290_pk2)"/>
+ <path d="M276,244 C244,298 214,344 226,386 L300,330 L374,386 C386,344 356,298 324,244 Z" fill="url(#a50290_pk)"/>
+ <ellipse cx="300" cy="226" rx="46" ry="52" fill="url(#a50290_pk)"/>
+</g>
+ <ellipse cx="300" cy="226" rx="46" ry="52" fill="none" stroke="#a81158" stroke-width="4" opacity=".4"/>
+ <ellipse cx="164" cy="170" rx="50" ry="24" fill="url(#a50290_pkgloss)" transform="rotate(-22 164 170)"/>
+ <ellipse cx="416" cy="170" rx="42" ry="20" fill="#ffffff" opacity=".45" transform="rotate(20 416 170)" filter="url(#a50290_blurS8)"/>
+</g></svg>

@@ -1,0 +1,102 @@
+{
+ "y2k-chrome": {
+  "pack": "y2k",
+  "title": "Chrome wash"
+ },
+ "y2k-holofilm": {
+  "pack": "y2k",
+  "title": "Holographic film"
+ },
+ "y2k-frost": {
+  "pack": "y2k",
+  "title": "Frosted plastic"
+ },
+ "y2k-bubbles": {
+  "pack": "y2k",
+  "title": "Bubble field"
+ },
+ "y2k-starfield": {
+  "pack": "y2k",
+  "title": "Star gradient"
+ },
+ "goth-leather": {
+  "pack": "goth_modern",
+  "title": "Black leather"
+ },
+ "goth-mesh": {
+  "pack": "goth_modern",
+  "title": "Fishnet mesh"
+ },
+ "goth-concrete": {
+  "pack": "goth_modern",
+  "title": "Distressed concrete"
+ },
+ "goth-velvet": {
+  "pack": "goth_modern",
+  "title": "Oxblood velvet"
+ },
+ "goth-chain": {
+  "pack": "goth_modern",
+  "title": "Chainmail field"
+ },
+ "pink-gloss": {
+  "pack": "hot_pink",
+  "title": "Pink gloss"
+ },
+ "pink-quilt": {
+  "pack": "hot_pink",
+  "title": "Inflated quilt"
+ },
+ "pink-sparkle": {
+  "pack": "hot_pink",
+  "title": "Sparkle field"
+ },
+ "pink-check": {
+  "pack": "hot_pink",
+  "title": "Pink checkerboard"
+ },
+ "pink-zebra": {
+  "pack": "hot_pink",
+  "title": "Pink zebra"
+ },
+ "holo-wash": {
+  "pack": "holo",
+  "title": "Iridescent wash"
+ },
+ "holo-oilslick": {
+  "pack": "holo",
+  "title": "Oil slick"
+ },
+ "holo-prism": {
+  "pack": "holo",
+  "title": "Prism sweep"
+ },
+ "holo-aurora": {
+  "pack": "holo",
+  "title": "Aurora"
+ },
+ "holo-chromefield": {
+  "pack": "holo",
+  "title": "Liquid chrome field"
+ },
+ "kawaii-pastel": {
+  "pack": "soft_kawaii",
+  "title": "Pastel sky"
+ },
+ "kawaii-clouds": {
+  "pack": "soft_kawaii",
+  "title": "Cloud pattern"
+ },
+ "kawaii-stars": {
+  "pack": "soft_kawaii",
+  "title": "Star confetti"
+ },
+ "kawaii-gingham": {
+  "pack": "soft_kawaii",
+  "title": "Gingham"
+ },
+ "kawaii-hearts": {
+  "pack": "soft_kawaii",
+  "title": "Tiny hearts"
+ }
+}

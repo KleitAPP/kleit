@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 420" role="img" aria-label="Pearl drop earrings"><title>Pearl drop earrings</title><defs><filter id="a37079_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a37079_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a37079_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a37079_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a37079_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><radialGradient id="a37079_pr" cx=".34" cy=".28" r=".85"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#fbf3ee"/><stop offset="62%" stop-color="#e0cdc4"/><stop offset="88%" stop-color="#b59d93"/><stop offset="100%" stop-color="#8d746a"/></radialGradient><linearGradient id="a37079_sv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="18%" stop-color="#e6ecf1"/><stop offset="40%" stop-color="#a9b6c2"/><stop offset="50%" stop-color="#5e6a76"/><stop offset="62%" stop-color="#b2bec9"/><stop offset="84%" stop-color="#f1f5f8"/><stop offset="100%" stop-color="#9aa6b2"/></linearGradient><filter id="a37079_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.35"
+      specularExponent="30" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.1" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a37079_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="13" stdDeviation="12" flood-color="#241c26" flood-opacity="0.24"/></filter></defs><g filter="url(#a37079_c)"><g filter="url(#a37079_m)"><circle cx="140" cy="92" r="20" fill="url(#a37079_sv)"/><circle cx="140" cy="92" r="9" fill="url(#a37079_pr)"/><path d="M134,100 L146,100 L146,182 L134,182 Z" fill="url(#a37079_sv)"/><circle cx="140" cy="200" r="17" fill="url(#a37079_pr)"/><path d="M135,212 L145,212 L145,244 L135,244 Z" fill="url(#a37079_sv)"/><ellipse cx="140" cy="300" rx="42" ry="56" fill="url(#a37079_pr)"/><ellipse cx="126" cy="272" rx="13" ry="9" fill="#ffffff" opacity=".85" transform="rotate(-32 126 272)"/><ellipse cx="156" cy="332" rx="15" ry="10" fill="#8d746a" opacity=".3" transform="rotate(-28 156 332)"/><circle cx="300" cy="92" r="20" fill="url(#a37079_sv)"/><circle cx="300" cy="92" r="9" fill="url(#a37079_pr)"/><path d="M294,100 L306,100 L306,182 L294,182 Z" fill="url(#a37079_sv)"/><circle cx="300" cy="200" r="17" fill="url(#a37079_pr)"/><path d="M295,212 L305,212 L305,244 L295,244 Z" fill="url(#a37079_sv)"/><ellipse cx="300" cy="300" rx="42" ry="56" fill="url(#a37079_pr)"/><ellipse cx="286" cy="272" rx="13" ry="9" fill="#ffffff" opacity=".85" transform="rotate(-32 286 272)"/><ellipse cx="316" cy="332" rx="15" ry="10" fill="#8d746a" opacity=".3" transform="rotate(-28 316 332)"/></g></g></svg>

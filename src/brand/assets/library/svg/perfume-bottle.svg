@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 620" role="img" aria-label="Faceted perfume bottle"><title>Faceted perfume bottle</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter>
+ <linearGradient id="gl" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/>
+  <stop offset="9%" stop-color="#f2d3e2" stop-opacity=".8"/>
+  <stop offset="30%" stop-color="#e8a9c6" stop-opacity=".72"/>
+  <stop offset="52%" stop-color="#d98bb0" stop-opacity=".8"/>
+  <stop offset="74%" stop-color="#eeb9d1" stop-opacity=".72"/>
+  <stop offset="92%" stop-color="#ffffff" stop-opacity=".9"/>
+  <stop offset="100%" stop-color="#c98fae" stop-opacity=".95"/></linearGradient>
+ <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#f2a9c8" stop-opacity=".55"/>
+  <stop offset="100%" stop-color="#cf6f9c" stop-opacity=".85"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#fffbe9"/><stop offset="24%" stop-color="#f0d492"/>
+  <stop offset="48%" stop-color="#9c7a2e"/><stop offset="55%" stop-color="#c9a961"/>
+  <stop offset="78%" stop-color="#f7e3ae"/><stop offset="100%" stop-color="#b3913f"/></linearGradient>
+ <filter id="glassF" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="3" specularConstant="0.8"
+      specularExponent="30" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.4" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.16" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="74" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <filter id="goldF" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="1.2"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="aob"/>
+  <feOffset in="aob" dx="0" dy="1.7" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.3" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="46" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <filter id="c4" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#241c26" flood-opacity="0.28"/></filter></defs>
+<g filter="url(#c4)">
+  <g filter="url(#glassF)">
+    <path d="M118,250 L142,206 L338,206 L362,250 L368,478 Q370,528 316,530 L164,530 Q110,528 112,478 Z"
+          fill="url(#gl)"/>
+  </g>
+  <path d="M132,318 L348,318 L354,474 Q356,512 312,514 L168,514 Q124,512 126,474 Z" fill="url(#liq)"/>
+  <path d="M132,318 L348,318" stroke="#ffffff" stroke-width="3" opacity=".55"/>
+  <path d="M142,206 L166,250 L314,250 L338,206" fill="none" stroke="#ffffff" stroke-width="3.2" opacity=".75"/>
+  <path d="M166,250 L158,506" stroke="#ffffff" stroke-width="15" opacity=".5" filter="url(#blurS4)"/>
+  <path d="M314,252 L322,500" stroke="#ffffff" stroke-width="7" opacity=".28" filter="url(#blurS4)"/>
+  <path d="M118,250 L112,478" stroke="#8f5c78" stroke-width="4" opacity=".35"/>
+  <g filter="url(#goldF)">
+    <rect x="182" y="146" width="116" height="66" rx="9" fill="url(#gold)"/>
+    <rect x="196" y="112" width="88" height="40" rx="10" fill="url(#gold)"/>
+  </g>
+  <ellipse cx="316" cy="104" rx="66" ry="54" fill="#e79ec2" opacity=".95"/>
+  <ellipse cx="316" cy="104" rx="66" ry="54" fill="none" stroke="#b96b93" stroke-width="2.5"/>
+  <ellipse cx="296" cy="84" rx="24" ry="16" fill="#ffffff" opacity=".6" filter="url(#blurS8)"/>
+  <path d="M284,140 C268,158 254,166 240,160" fill="none" stroke="#c07c9e" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="228" cy="182" rx="34" ry="90" fill="#ffffff" opacity=".2" filter="url(#blurS22)"/>
+</g></svg>

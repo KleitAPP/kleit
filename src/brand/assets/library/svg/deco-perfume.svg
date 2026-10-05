@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 600" role="img" aria-label="Stepped perfume bottle"><title>Stepped perfume bottle</title><defs><filter id="a68784_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a68784_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a68784_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a68784_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a68784_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a68784_gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff" stop-opacity=".62"/><stop offset="18%" stop-color="#dfe9ef" stop-opacity=".30"/><stop offset="50%" stop-color="#b9ccd6" stop-opacity=".16"/><stop offset="82%" stop-color="#e6eef3" stop-opacity=".34"/><stop offset="100%" stop-color="#ffffff" stop-opacity=".66"/></linearGradient><linearGradient id="a68784_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><linearGradient id="a68784_chv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><filter id="a68784_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="8" specularConstant="1.15"
+      specularExponent="26" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.72" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a68784_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a68784_c)">
+  <path d="M110,252 L310,252 L310,506 Q310,536 280,536 L140,536 Q110,536 110,506 Z" fill="url(#a68784_gl)"/>
+  <path d="M110,252 L310,252 L310,506 Q310,536 280,536 L140,536 Q110,536 110,506 Z"
+        fill="#8aa6b6" opacity=".30"/>
+  <path d="M148,268 L148,516 L272,516 L272,268 Z" fill="#ffffff" opacity=".14"/>
+  <path d="M110,252 L146,268 L146,518 L112,506 Z" fill="#ffffff" opacity=".30"/>
+  <path d="M310,252 L274,268 L274,518 L308,506 Z" fill="#5d7c8e" opacity=".26"/>
+  <path d="M110,252 L310,252 L310,506 Q310,536 280,536 L140,536 Q110,536 110,506 Z"
+        fill="none" stroke="#eef6fa" stroke-width="5"/>
+  <path d="M132,270 L132,512" stroke="#ffffff" stroke-width="12" opacity=".6"/>
+  <path d="M288,278 L288,500" stroke="#ffffff" stroke-width="6" opacity=".32"/>
+  <path d="M110,380 L310,380" stroke="#dbe9f0" stroke-width="3" opacity=".8"/>
+  <path d="M110,318 L310,318" stroke="#dbe9f0" stroke-width="2.5" opacity=".55"/>
+  <path d="M110,444 L310,444" stroke="#dbe9f0" stroke-width="2.5" opacity=".55"/>
+  <ellipse cx="210" cy="516" rx="96" ry="14" fill="#9fbccb" opacity=".35"/>
+  <path d="M158,252 L158,214 L262,214 L262,252" fill="url(#a68784_gl)" stroke="#dfeaf0" stroke-width="3"/>
+  <g filter="url(#a68784_m)">
+    <path d="M148,214 L272,214 L262,182 L158,182 Z" fill="url(#a68784_gd)"/>
+    <path d="M166,182 L254,182 L246,152 L174,152 Z" fill="url(#a68784_gd)"/>
+    <path d="M184,152 L236,152 L228,120 L192,120 Z" fill="url(#a68784_gd)"/>
+  </g>
+  <path d="M170,190 L250,190" stroke="#8a6320" stroke-width="3" opacity=".7"/>
+  <path d="M188,160 L232,160" stroke="#8a6320" stroke-width="3" opacity=".7"/>
+</g></svg>

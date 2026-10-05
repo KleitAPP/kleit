@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 470" role="img" aria-label="Sunburst clip brooch"><title>Sunburst clip brooch</title><defs><filter id="a25866_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a25866_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a25866_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a25866_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a25866_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a25866_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><radialGradient id="a25866_ox" cx=".36" cy=".3" r=".8"><stop offset="0%" stop-color="#4a5f74"/><stop offset="45%" stop-color="#1d2a38"/><stop offset="100%" stop-color="#080d13"/></radialGradient><filter id="a25866_m3" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="8" specularConstant="1.15"
+      specularExponent="26" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.72" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="59" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a25866_c3" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a25866_c3)">
+  <g filter="url(#a25866_m3)"><path d="M295.2,194.3 L300.0,80.0 L304.8,194.3 Z" fill="url(#a25866_gd)"/><path d="M306.6,194.6 L327.4,129.6 L313.0,196.3 Z" fill="url(#a25866_gd)"/><path d="M314.7,197.0 L376.0,100.4 L323.0,201.7 Z" fill="url(#a25866_gd)"/><path d="M324.4,202.9 L375.0,157.0 L329.1,207.6 Z" fill="url(#a25866_gd)"/><path d="M330.3,209.0 L431.6,156.0 L335.0,217.3 Z" fill="url(#a25866_gd)"/><path d="M335.7,219.0 L402.4,204.6 L337.4,225.4 Z" fill="url(#a25866_gd)"/><path d="M337.7,227.2 L452.0,232.0 L337.7,236.8 Z" fill="url(#a25866_gd)"/><path d="M337.4,238.6 L402.4,259.4 L335.7,245.0 Z" fill="url(#a25866_gd)"/><path d="M335.0,246.7 L431.6,308.0 L330.3,255.0 Z" fill="url(#a25866_gd)"/><path d="M329.1,256.4 L375.0,307.0 L324.4,261.1 Z" fill="url(#a25866_gd)"/><path d="M323.0,262.3 L376.0,363.6 L314.7,267.0 Z" fill="url(#a25866_gd)"/><path d="M313.0,267.7 L327.4,334.4 L306.6,269.4 Z" fill="url(#a25866_gd)"/><path d="M304.8,269.7 L300.0,384.0 L295.2,269.7 Z" fill="url(#a25866_gd)"/><path d="M293.4,269.4 L272.6,334.4 L287.0,267.7 Z" fill="url(#a25866_gd)"/><path d="M285.3,267.0 L224.0,363.6 L277.0,262.3 Z" fill="url(#a25866_gd)"/><path d="M275.6,261.1 L225.0,307.0 L270.9,256.4 Z" fill="url(#a25866_gd)"/><path d="M269.7,255.0 L168.4,308.0 L265.0,246.7 Z" fill="url(#a25866_gd)"/><path d="M264.3,245.0 L197.6,259.4 L262.6,238.6 Z" fill="url(#a25866_gd)"/><path d="M262.3,236.8 L148.0,232.0 L262.3,227.2 Z" fill="url(#a25866_gd)"/><path d="M262.6,225.4 L197.6,204.6 L264.3,219.0 Z" fill="url(#a25866_gd)"/><path d="M265.0,217.3 L168.4,156.0 L269.7,209.0 Z" fill="url(#a25866_gd)"/><path d="M270.9,207.6 L225.0,157.0 L275.6,202.9 Z" fill="url(#a25866_gd)"/><path d="M277.0,201.7 L224.0,100.4 L285.3,197.0 Z" fill="url(#a25866_gd)"/><path d="M287.0,196.3 L272.6,129.6 L293.4,194.6 Z" fill="url(#a25866_gd)"/>
+    <circle cx="300" cy="232" r="40" fill="url(#a25866_gd)"/>
+  </g>
+  <circle cx="300" cy="232" r="30" fill="url(#a25866_ox)"/>
+  <ellipse cx="290" cy="220" rx="12" ry="8" fill="#ffffff" opacity=".42" transform="rotate(-32 290 220)"/>
+  <circle cx="300" cy="232" r="30" fill="none" stroke="url(#a25866_gd)" stroke-width="4"/>
+  <path d="M262,196 Q300,180 338,196" stroke="#fff6d8" stroke-width="3" opacity=".55" fill="none"/>
+</g></svg>

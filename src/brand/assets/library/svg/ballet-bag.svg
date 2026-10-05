@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 440" role="img" aria-label="Ballet duffel"><title>Ballet duffel</title><defs><filter id="a79180_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a79180_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a79180_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a79180_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a79180_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a79180_sa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8e4d5c"/><stop offset="12%" stop-color="#c07d8c"/><stop offset="30%" stop-color="#f7dce3"/><stop offset="40%" stop-color="#fffafb"/><stop offset="52%" stop-color="#f0cbd5"/><stop offset="70%" stop-color="#c8818f"/><stop offset="86%" stop-color="#8f4e5d"/><stop offset="100%" stop-color="#b9737f"/></linearGradient><linearGradient id="a79180_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a45e6d"/><stop offset="20%" stop-color="#f3d3db"/><stop offset="40%" stop-color="#fdf1f4"/><stop offset="62%" stop-color="#d290a0"/><stop offset="84%" stop-color="#9d5766"/><stop offset="100%" stop-color="#e0aeba"/></linearGradient><linearGradient id="a79180_sv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="18%" stop-color="#e6ecf1"/><stop offset="40%" stop-color="#a9b6c2"/><stop offset="50%" stop-color="#5e6a76"/><stop offset="62%" stop-color="#b2bec9"/><stop offset="84%" stop-color="#f1f5f8"/><stop offset="100%" stop-color="#9aa6b2"/></linearGradient><filter id="a79180_m" x="-28%" y="-28%" width="156%" height="156%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="2.6" specularConstant="0.5" specularExponent="4.5"
+      lighting-color="#fff6fb" result="s"><feDistantLight azimuth="228" elevation="46"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="ab"/><feOffset in="ab" dy="4" result="ao"/>
+  <feComposite in="ao" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#2b1b24" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over" result="sh"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="4" seed="3" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr"><feFuncA type="linear" slope="0.085" intercept="-0.0425"/></feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="gi"/>
+  <feBlend in="gi" in2="sh" mode="overlay"/>
+</filter><filter id="a79180_t" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.35"
+      specularExponent="30" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.1" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="6" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a79180_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a79180_c)">
+  <path d="M232,150 Q262,84 330,84 Q398,84 428,150" fill="none" stroke="url(#a79180_rb)" stroke-width="17"/>
+  <g filter="url(#a79180_m)">
+    <path d="M96,176 L564,176 Q596,176 594,214 L578,346 Q574,384 536,384 L124,384 Q86,384 82,346 L66,214 Q64,176 96,176 Z" fill="url(#a79180_sa)"/>
+  </g>
+  <path d="M82,196 Q330,168 578,196" fill="none" stroke="#8e4d5c" stroke-width="6" opacity=".55"/>
+  <path d="M96,210 Q104,300 122,370" fill="none" stroke="#ffffff" stroke-width="17" opacity=".45"/>
+  <path d="M548,214 Q540,304 526,370" fill="none" stroke="#8e4d5c" stroke-width="9" opacity=".32"/>
+  <path d="M212,182 Q214,290 224,380 M448,182 Q446,290 438,380" fill="none" stroke="#c8818f" stroke-width="3.5" opacity=".45"/>
+  <g filter="url(#a79180_t)"><rect x="288" y="242" width="84" height="56" rx="9" fill="url(#a79180_sv)"/></g>
+  <rect x="300" y="256" width="60" height="7" rx="3" fill="#8e4d5c" opacity=".5"/>
+  <g filter="url(#a79180_m)"><path d="M324,328 C305.8,293.0 275.0,317.7 283.8,338.5 C289.52,354.1 315.04,348.12 322,337.72 Z" fill="url(#a79180_rb)"/><path d="M336,328 C354.2,293.0 385.0,317.7 376.2,338.5 C370.48,354.1 344.96,348.12 338,337.72 Z" fill="url(#a79180_rb)"/><path d="M322,337.72 C315.04,348.12 308.0,339.8 311.52,329.4 Z" fill="#000000" opacity=".16"/><path d="M338,337.72 C344.96,348.12 352.0,339.8 348.48,329.4 Z" fill="#000000" opacity=".16"/><path d="M313,325 Q330,318 347,325 Q352,339 346,350 Q330,356 314,350 Q308,339 313,325 Z" fill="url(#a79180_rb)"/><path d="M316,334 Q330,340 344,334" fill="none" stroke="#000000" stroke-width="3" opacity=".18"/></g>
+</g></svg>

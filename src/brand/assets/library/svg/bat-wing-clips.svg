@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="Bat-wing hair clips"><title>Bat-wing hair clips</title><defs><filter id="a36604_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a36604_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a36604_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a36604_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a36604_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a36604_st" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0%" stop-color="#fdfdfe"/><stop offset="14%" stop-color="#d6dce3"/><stop offset="32%" stop-color="#98a3b0"/><stop offset="47%" stop-color="#4b5560"/><stop offset="52%" stop-color="#2f3740"/><stop offset="60%" stop-color="#727d89"/><stop offset="78%" stop-color="#ced6de"/><stop offset="92%" stop-color="#f2f5f8"/><stop offset="100%" stop-color="#8f9aa6"/></linearGradient><filter id="a36604_m7" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.3"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.38" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="93" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.045" intercept="-0.0225"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a36604_c7" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#241c26" flood-opacity="0.3"/></filter><filter id="a36604_m7b" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="6" specularConstant="0.32"
+      specularExponent="10" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.24" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.8" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.42" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="41" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.07" intercept="-0.0350"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><linearGradient id="a36604_bw" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#2a2b32"/><stop offset="46%" stop-color="#141519"/><stop offset="100%" stop-color="#050608"/></linearGradient></defs>
+<g filter="url(#a36604_c7)">
+ <g filter="url(#a36604_m7)"><rect x="196" y="296" width="208" height="30" rx="8" fill="url(#a36604_st)"/></g>
+ <g filter="url(#a36604_m7b)"><path d="M300,182 C258,112 176,74 112,88 C52,102 48,168 92,208 L64,226 L106,242 L74,268 L120,276 L96,308 L148,300 L140,334 L186,308 L196,344 L232,304 L258,330 L270,280 Z" fill="url(#a36604_bw)"/><g transform="translate(600,0) scale(-1,1)"><path d="M300,182 C258,112 176,74 112,88 C52,102 48,168 92,208 L64,226 L106,242 L74,268 L120,276 L96,308 L148,300 L140,334 L186,308 L196,344 L232,304 L258,330 L270,280 Z" fill="url(#a36604_bw)"/></g></g>
+ <path d="M300,182 L300,300" stroke="#3a3b44" stroke-width="9"/><path d="M300,196 C286,176 268,166 252,162" fill="none" stroke="#2c2d35" stroke-width="5"/><path d="M300,196 C314,176 332,166 348,162" fill="none" stroke="#2c2d35" stroke-width="5"/>
+ <path d="M160,140 C196,168 232,200 268,244" fill="none" stroke="#4d4e58" stroke-width="4" opacity=".7"/>
+ <path d="M440,140 C404,168 368,200 332,244" fill="none" stroke="#4d4e58" stroke-width="4" opacity=".7"/>
+</g></svg>

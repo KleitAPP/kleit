@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 620" role="img" aria-label="Thorned black rose"><title>Thorned black rose</title><defs><filter id="a41549_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a41549_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a41549_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a41549_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a41549_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="a41549_c5" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter><filter id="a41549_m5" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="6" specularConstant="0.5"
+      specularExponent="12" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.8" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.38" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="82" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.07" intercept="-0.0350"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><radialGradient id="a41549_ro" cx="40%" cy="34%" r="70%"><stop offset="0%" stop-color="#5a2030"/><stop offset="48%" stop-color="#31111c"/><stop offset="100%" stop-color="#120609"/></radialGradient></defs>
+<g filter="url(#a41549_c5)">
+ <path d="M220,168 C218,300 214,420 210,560" fill="none" stroke="#2c4a2e" stroke-width="13" stroke-linecap="round"/>
+ <path d="M300,176 l-18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M315,220 l18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M311,264 l-18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M293,308 l18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M284,352 l-18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M296,396 l18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M313,440 l-18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/><path d="M314,484 l18,-14" stroke="#2c4a2e" stroke-width="9" stroke-linecap="round"/>
+ <path d="M216,330 C160,300 116,318 104,356 C156,382 200,368 216,330 Z" fill="#2f5233"/>
+ <path d="M222,412 C278,382 322,400 334,438 C282,464 238,450 222,412 Z" fill="#2f5233"/>
+ <g filter="url(#a41549_m5)">
+  <circle cx="220" cy="150" r="112" fill="url(#a41549_ro)"/>
+  <path d="M220,150 C178,118 136,140 132,186 C128,236 172,262 220,254 C268,262 312,236 308,186
+           C304,140 262,118 220,150 Z" fill="#43172440"/>
+  <path d="M220,62 C268,78 296,116 292,156 C288,196 256,220 220,216 C184,220 152,196 148,156
+           C144,116 172,78 220,62 Z" fill="#521c2a"/>
+  <path d="M220,92 C252,104 270,130 266,158 C262,186 242,202 220,200 C198,202 178,186 174,158
+           C170,130 188,104 220,92 Z" fill="#6b2638"/>
+  <path d="M220,80 C148,94 154,190 220,208 C286,190 292,94 220,80 Z" fill="none" stroke="#1b0a10" stroke-width="3.2" opacity=".62"/><path d="M220,93 C159,105 164,183 220,199 C276,183 281,105 220,93 Z" fill="none" stroke="#1b0a10" stroke-width="3.2" opacity=".62"/><path d="M220,106 C170,116 174,176 220,190 C266,176 270,116 220,106 Z" fill="none" stroke="#1b0a10" stroke-width="3.2" opacity=".62"/><path d="M220,119 C181,127 184,169 220,181 C256,169 259,127 220,119 Z" fill="none" stroke="#1b0a10" stroke-width="3.2" opacity=".62"/><path d="M220,132 C192,138 194,162 220,172 C246,162 248,138 220,132 Z" fill="none" stroke="#1b0a10" stroke-width="3.2" opacity=".62"/>
+  <path d="M188,138 C204,116 236,116 252,140 C240,164 200,164 188,138 Z" fill="#7a2c40"/>
+  <path d="M198,148 C208,134 232,134 242,150 C234,166 206,166 198,148 Z" fill="#94374f"/>
+ </g>
+ <path d="M158,96 C186,70 232,66 262,86" fill="none" stroke="#8a3a4e" stroke-width="6" opacity=".45"/>
+</g></svg>

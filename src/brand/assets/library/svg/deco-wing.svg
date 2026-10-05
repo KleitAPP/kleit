@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 360" role="img" aria-label="Streamline speed wing"><title>Streamline speed wing</title><defs><filter id="a39830_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a39830_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a39830_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a39830_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a39830_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a39830_ch" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a39830_chv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a39830_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><filter id="a39830_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="10" specularConstant="1.45"
+      specularExponent="34" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.1" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.36" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a39830_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a39830_c)"><g filter="url(#a39830_m)">
+  <path d="M330,96 Q400,88 470,120 L606,196 Q622,206 604,214 L436,214 Q368,214 340,180 Z" fill="url(#a39830_ch)"/>
+  <path d="M330,96 Q260,88 190,120 L54,196 Q38,206 56,214 L224,214 Q292,214 320,180 Z" fill="url(#a39830_ch)"/>
+  <path d="M312,74 L348,74 Q360,74 358,92 L344,268 Q342,286 330,286 Q318,286 316,268 L302,92 Q300,74 312,74 Z" fill="url(#a39830_chv)"/>
+</g>
+  <g opacity=".85">
+    <path d="M372,140 L560,196" stroke="#8f9ba8" stroke-width="5"/>
+    <path d="M366,168 L524,208" stroke="#8f9ba8" stroke-width="4"/>
+    <path d="M288,140 L100,196" stroke="#8f9ba8" stroke-width="5"/>
+    <path d="M294,168 L136,208" stroke="#8f9ba8" stroke-width="4"/>
+  </g>
+  <rect x="308" y="228" width="44" height="9" rx="3" fill="url(#a39830_gd)"/>
+  <rect x="312" y="250" width="36" height="7" rx="3" fill="url(#a39830_gd)"/>
+  <path d="M322,88 L316,262" stroke="#ffffff" stroke-width="7" opacity=".5"/>
+  <path d="M344,110 Q404,104 462,132" stroke="#ffffff" stroke-width="6" opacity=".4" fill="none"/>
+</g></svg>

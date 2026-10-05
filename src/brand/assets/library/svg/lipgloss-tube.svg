@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 600" role="img" aria-label="Clear lip gloss tube"><title>Clear lip gloss tube</title><defs><linearGradient id="lgtube" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/><stop offset="30%" stop-color="#ffffff" stop-opacity=".15"/><stop offset="70%" stop-color="#e9c8db" stop-opacity=".35"/><stop offset="100%" stop-color="#ffffff" stop-opacity=".5"/></linearGradient><linearGradient id="lggloss" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff9ed2"/><stop offset="45%" stop-color="#ef4f9e"/><stop offset="100%" stop-color="#b52e79"/></linearGradient><linearGradient id="lgcap" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="16%" stop-color="#e3eaf2"/><stop offset="32%" stop-color="#aab6c4"/><stop offset="47%" stop-color="#48535f"/><stop offset="52%" stop-color="#39434e"/><stop offset="60%" stop-color="#8f9ba9"/><stop offset="74%" stop-color="#e9eff5"/><stop offset="88%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c6d0da"/></linearGradient></defs>
+<rect x="140" y="150" width="140" height="382" rx="34" fill="#ffe8f4" opacity=".5" stroke="#e7a9cb" stroke-width="3"/>
+<rect x="152" y="238" width="116" height="284" rx="26" fill="url(#lggloss)"/>
+<rect x="140" y="150" width="140" height="382" rx="34" fill="url(#lgtube)"/>
+<rect x="164" y="262" width="26" height="228" rx="13" fill="#ffffff" opacity=".55"/>
+<rect x="238" y="290" width="12" height="170" rx="6" fill="#ffffff" opacity=".28"/>
+<rect x="150" y="60" width="120" height="112" rx="26" fill="url(#lgcap)" stroke="#78838f" stroke-width="2.5"/>
+<rect x="150" y="60" width="120" height="16" rx="8" fill="#ffffff" opacity=".9"/>
+<rect x="168" y="36" width="84" height="34" rx="16" fill="#ffd9ec" stroke="#c9548e" stroke-width="2.5"/>
+<ellipse cx="210" cy="152" rx="70" ry="13" fill="#f0c7dd" opacity=".7"/></svg>

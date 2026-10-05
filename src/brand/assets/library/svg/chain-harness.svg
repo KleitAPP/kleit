@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480" role="img" aria-label="Chain harness"><title>Chain harness</title><defs><filter id="a97167_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a97167_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a97167_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a97167_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a97167_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a97167_st" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0%" stop-color="#fdfdfe"/><stop offset="14%" stop-color="#d6dce3"/><stop offset="32%" stop-color="#98a3b0"/><stop offset="47%" stop-color="#4b5560"/><stop offset="52%" stop-color="#2f3740"/><stop offset="60%" stop-color="#727d89"/><stop offset="78%" stop-color="#ced6de"/><stop offset="92%" stop-color="#f2f5f8"/><stop offset="100%" stop-color="#8f9aa6"/></linearGradient><filter id="a97167_m8" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.3"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.38" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="30" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.045" intercept="-0.0225"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a97167_c8" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#241c26" flood-opacity="0.32"/></filter></defs>
+<g filter="url(#a97167_c8)"><g filter="url(#a97167_m8)"><ellipse cx="110" cy="200" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="148" cy="214" rx="24" ry="16" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="186" cy="218" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="224" cy="208" rx="24" ry="16" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="262" cy="208" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="300" cy="218" rx="24" ry="16" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="338" cy="214" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="376" cy="200" rx="24" ry="16" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="414" cy="214" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="452" cy="217" rx="24" ry="16" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="490" cy="207" rx="16" ry="24" fill="none" stroke="url(#a97167_st)" stroke-width="9"/><ellipse cx="186" cy="322" rx="14" ry="20" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="230" cy="315" rx="20" ry="14" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="274" cy="301" rx="14" ry="20" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="318" cy="316" rx="20" ry="14" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="362" cy="322" rx="14" ry="20" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="406" cy="314" rx="20" ry="14" fill="none" stroke="url(#a97167_st)" stroke-width="8"/><ellipse cx="450" cy="302" rx="14" ry="20" fill="none" stroke="url(#a97167_st)" stroke-width="8"/>
+ <circle cx="300" cy="392" r="30" fill="none" stroke="url(#a97167_st)" stroke-width="13"/>
+ <path d="M300,330 L300,362" stroke="url(#a97167_st)" stroke-width="10"/>
+</g></g></svg>

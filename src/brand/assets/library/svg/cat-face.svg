@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 520" role="img" aria-label="Cat face"><title>Cat face</title><defs><filter id="a73882_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a73882_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a73882_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a73882_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a73882_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="a73882_ol" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feMorphology in="SourceAlpha" operator="dilate" radius="13" result="f"/><feFlood flood-color="#ffffff" result="w"/><feComposite in="w" in2="f" operator="in" result="cut"/><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#6d5a76" flood-opacity=".3" in="cut" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="a73882_ct" x1="0" y1="0" x2=".3" y2="1"><stop offset="0%" stop-color="#ffe4c4"/><stop offset="100%" stop-color="#f0b880"/></linearGradient></defs>
+<g filter="url(#a73882_ol)">
+ <path d="M126,196 L118,74 L228,140 Z" fill="url(#a73882_ct)" stroke="#d09a5e" stroke-width="4"/>
+ <path d="M434,196 L442,74 L332,140 Z" fill="url(#a73882_ct)" stroke="#d09a5e" stroke-width="4"/>
+ <ellipse cx="280" cy="290" rx="188" ry="164" fill="url(#a73882_ct)" stroke="#d09a5e" stroke-width="4"/>
+ <path d="M150,96 L208,132 L146,168 Z" fill="#ffb6c8"/>
+ <path d="M410,96 L352,132 L414,168 Z" fill="#ffb6c8"/>
+ <path d="M280,300 l-15,-18 h30 Z" fill="#e0708c"/>
+ <g stroke="#b9854f" stroke-width="4" stroke-linecap="round">
+  <path d="M96,268 L36,250"/><path d="M96,296 L34,300"/><path d="M96,322 L40,346"/>
+  <path d="M464,268 L524,250"/><path d="M464,296 L526,300"/><path d="M464,322 L520,346"/></g>
+ <ellipse cx="222" cy="264" rx="15" ry="19" fill="#4a3320"/>
+ <ellipse cx="338" cy="264" rx="15" ry="19" fill="#4a3320"/>
+ <path d="M258,320 q11,11 22,0 q11,11 22,0" fill="none" stroke="#4a3320" stroke-width="5" stroke-linecap="round"/>
+ <ellipse cx="166" cy="316" rx="20" ry="12" fill="#ff9dc0" opacity=".75"/>
+ <ellipse cx="394" cy="316" rx="20" ry="12" fill="#ff9dc0" opacity=".75"/></g></svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 620" role="img" aria-label="Jelly flip-flop"><title>Jelly flip-flop</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="cJ" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="13" flood-color="#241c26" flood-opacity="0.26"/></filter><filter id="jlF" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="5" specularConstant="0.8"
+      specularExponent="20" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.4" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.26" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="73" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.045" intercept="-0.0225"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <linearGradient id="jsole" x1=".2" y1="0" x2=".8" y2="1">
+  <stop offset="0%" stop-color="#e2fff5"/><stop offset="38%" stop-color="#9ceed0"/>
+  <stop offset="72%" stop-color="#4cc9a2"/><stop offset="100%" stop-color="#1c8f70"/></linearGradient>
+ <linearGradient id="jstrap" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#ffd7ec" stop-opacity=".95"/>
+  <stop offset="50%" stop-color="#ff86c4" stop-opacity=".92"/>
+  <stop offset="100%" stop-color="#d2478f" stop-opacity=".95"/></linearGradient></defs>
+<g filter="url(#cJ)" transform="rotate(-7 230 310)">
+  <g filter="url(#jlF)">
+    <path d="M230,66 C314,66 356,124 356,206 C356,286 336,352 334,420
+             C332,500 306,556 230,556 C154,556 128,500 126,420
+             C124,352 104,286 104,206 C104,124 146,66 230,66 Z" fill="url(#jsole)"/>
+  </g>
+  <path d="M230,86 C302,86 338,136 338,208 C338,282 318,350 316,418
+           C314,488 292,536 230,536 C168,536 146,488 144,418
+           C142,350 122,282 122,208 C122,136 158,86 230,86 Z"
+        fill="none" stroke="#ffffff" stroke-width="5" opacity=".5"/>
+  <g filter="url(#jlF)">
+    <path d="M230,214 L230,168" stroke="url(#jstrap)" stroke-width="30" stroke-linecap="round"/>
+    <path d="M230,214 Q160,238 120,196" fill="none" stroke="url(#jstrap)" stroke-width="30" stroke-linecap="round"/>
+    <path d="M230,214 Q300,238 340,196" fill="none" stroke="url(#jstrap)" stroke-width="30" stroke-linecap="round"/>
+  </g>
+  <circle cx="230" cy="216" r="19" fill="#ffd7ec" stroke="#c9418a" stroke-width="2.5"/>
+  <circle cx="224" cy="210" r="6" fill="#ffffff" opacity=".8"/>
+  <ellipse cx="174" cy="330" rx="34" ry="120" fill="#ffffff" opacity=".28" filter="url(#blurS22)"/>
+  <ellipse cx="300" cy="150" rx="40" ry="24" fill="#ffffff" opacity=".4" transform="rotate(-30 300 150)" filter="url(#blurS14)"/>
+</g></svg>

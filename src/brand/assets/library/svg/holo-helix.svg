@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 620" role="img" aria-label="Holographic helix"><title>Holographic helix</title><defs><filter id="a83395_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a83395_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a83395_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a83395_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a83395_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a83395_gh917" x1="0" y1="0" x2="0.94" y2="0.342"><stop offset="0%" stop-color="#35d9f0"/><stop offset="13%" stop-color="#2f7fe0"/><stop offset="27%" stop-color="#6b3ce0"/><stop offset="41%" stop-color="#b83ce0"/><stop offset="55%" stop-color="#ef4b9e"/><stop offset="68%" stop-color="#f0a33c"/><stop offset="80%" stop-color="#2fd98f"/><stop offset="90%" stop-color="#2f9fe0"/><stop offset="100%" stop-color="#7a4be0"/></linearGradient><filter id="a83395_h917" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="13" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="0.62"
+      specularExponent="16" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.5" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="11" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.6" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.26" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="38" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a83395_ch917" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="19" stdDeviation="16" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a83395_ch917)"><g filter="url(#a83395_h917)"><ellipse cx="220" cy="92" rx="100" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="0"/><ellipse cx="220" cy="154" rx="108" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="46"/><ellipse cx="220" cy="216" rx="116" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="92"/><ellipse cx="220" cy="278" rx="124" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="138"/><ellipse cx="220" cy="340" rx="132" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="184"/><ellipse cx="220" cy="402" rx="124" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="230"/><ellipse cx="220" cy="464" rx="116" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="276"/><ellipse cx="220" cy="526" rx="108" ry="30" fill="none" stroke="url(#a83395_gh917)" stroke-width="30" stroke-dasharray="330 240" stroke-dashoffset="322"/>
+</g></g></svg>

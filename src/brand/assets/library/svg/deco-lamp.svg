@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 640" role="img" aria-label="Stepped table lamp"><title>Stepped table lamp</title><defs><filter id="a18623_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a18623_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a18623_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a18623_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a18623_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a18623_ch" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a18623_chv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="11%" stop-color="#e8eef4"/><stop offset="27%" stop-color="#a9b5c2"/><stop offset="44%" stop-color="#5d6773"/><stop offset="49%" stop-color="#252c34"/><stop offset="54%" stop-color="#6e7985"/><stop offset="70%" stop-color="#c9d2db"/><stop offset="86%" stop-color="#f4f7fa"/><stop offset="100%" stop-color="#93a0ad"/></linearGradient><linearGradient id="a18623_lq" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#3b3530"/><stop offset="26%" stop-color="#1d1a18"/><stop offset="58%" stop-color="#0c0b0b"/><stop offset="82%" stop-color="#191614"/><stop offset="100%" stop-color="#2e2a26"/></linearGradient><linearGradient id="a18623_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><filter id="a18623_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="10" specularConstant="1.45"
+      specularExponent="34" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.1" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.36" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a18623_l" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="0.85"
+      specularExponent="42" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.26" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.9" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.44" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="96" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.05" intercept="-0.0250"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a18623_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#241c26" flood-opacity="0.34"/></filter></defs>
+<g filter="url(#a18623_c)">
+  <g filter="url(#a18623_l)"><ellipse cx="260" cy="566" rx="132" ry="30" fill="url(#a18623_lq)"/></g>
+  <ellipse cx="260" cy="552" rx="132" ry="28" fill="url(#a18623_gd)"/>
+  <g filter="url(#a18623_m)">
+    <rect x="240" y="322" width="40" height="232" fill="url(#a18623_chv)"/>
+    <path d="M118,318 L402,318 L356,124 L164,124 Z" fill="url(#a18623_chv)"/>
+    <rect x="185.0" y="108.0" width="150.0" height="17.0" fill="url(#a18623_chv)"/><rect x="185.0" y="108.0" width="150.0" height="3.5" fill="url(#a18623_gd)"/><rect x="204.5" y="92.0" width="111.0" height="17.0" fill="url(#a18623_chv)"/><rect x="204.5" y="92.0" width="111.0" height="3.5" fill="url(#a18623_gd)"/><rect x="224.0" y="76.0" width="72.0" height="17.0" fill="url(#a18623_chv)"/><rect x="224.0" y="76.0" width="72.0" height="3.5" fill="url(#a18623_gd)"/>
+  </g>
+  <path d="M118,318 L402,318" stroke="#39424c" stroke-width="5" opacity=".5"/>
+  <g opacity=".9">
+    <path d="M150,290 L378,290" stroke="url(#a18623_gd)" stroke-width="8"/>
+    <path d="M164,238 L364,238" stroke="url(#a18623_gd)" stroke-width="6"/>
+    <path d="M176,190 L350,190" stroke="url(#a18623_gd)" stroke-width="5"/>
+  </g>
+  <path d="M150,300 L172,138" stroke="#ffffff" stroke-width="11" opacity=".45"/>
+  <path d="M372,300 L350,138" stroke="#101519" stroke-width="7" opacity=".38"/>
+  <rect x="246" y="340" width="10" height="200" fill="#ffffff" opacity=".4"/>
+</g></svg>

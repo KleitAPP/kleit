@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Holographic star"><title>Holographic star</title><defs><filter id="a53836_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a53836_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a53836_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a53836_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a53836_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a53836_gh3604" x1="0" y1="0" x2="0.643" y2="0.766"><stop offset="0%" stop-color="#35d9f0"/><stop offset="13%" stop-color="#2f7fe0"/><stop offset="27%" stop-color="#6b3ce0"/><stop offset="41%" stop-color="#b83ce0"/><stop offset="55%" stop-color="#ef4b9e"/><stop offset="68%" stop-color="#f0a33c"/><stop offset="80%" stop-color="#2fd98f"/><stop offset="90%" stop-color="#2f9fe0"/><stop offset="100%" stop-color="#7a4be0"/></linearGradient><filter id="a53836_h3604" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="13" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="0.62"
+      specularExponent="16" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.5" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="11" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.6" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.26" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="18" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a53836_ch3604" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="19" stdDeviation="16" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a53836_ch3604)"><g filter="url(#a53836_h3604)">
+ <path d="M291.26,86.19 Q300.00,66.00 308.74,86.19 L354.74,192.44 Q363.48,212.63 385.38,214.70 L500.65,225.62 Q522.55,227.69 506.05,242.24 L419.21,318.82 Q402.71,333.37 407.51,354.84 L432.75,467.84 Q437.54,489.31 418.60,478.11 L318.94,419.20 Q300.00,408.00 281.06,419.20 L181.40,478.11 Q162.46,489.31 167.25,467.84 L192.49,354.84 Q197.29,333.37 180.79,318.82 L93.95,242.24 Q77.45,227.69 99.35,225.62 L214.62,214.70 Q236.52,212.63 245.26,192.44 Z" fill="url(#a53836_gh3604)"/>
+</g>
+ <path d="M294.35,162.81 Q300.00,150.00 305.65,162.81 L335.50,230.56 Q341.14,243.37 355.07,244.78 L428.73,252.24 Q442.66,253.65 432.22,262.98 L377.01,312.30 Q366.57,321.63 369.54,335.31 L385.20,407.67 Q388.17,421.35 376.07,414.31 L312.10,377.05 Q300.00,370.00 287.90,377.05 L223.93,414.31 Q211.83,421.35 214.80,407.67 L230.46,335.31 Q233.43,321.63 222.99,312.30 L167.78,262.98 Q157.34,253.65 171.27,252.24 L244.93,244.78 Q258.86,243.37 264.50,230.56 Z" fill="#ffffff" opacity=".16"/>
+</g></svg>

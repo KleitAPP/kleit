@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 620" role="img" aria-label="Nail polish bottle"><title>Nail polish bottle</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="ch" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbfcfd"/><stop offset="13%" stop-color="#dfe5ec"/><stop offset="30%" stop-color="#a7b2c0"/><stop offset="44%" stop-color="#5c6875"/><stop offset="49%" stop-color="#39434f"/><stop offset="53%" stop-color="#6d7885"/><stop offset="66%" stop-color="#c3ccd6"/><stop offset="82%" stop-color="#f4f7fa"/><stop offset="93%" stop-color="#cdd5de"/><stop offset="100%" stop-color="#9aa4b0"/></linearGradient><filter id="cN" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="17" stdDeviation="14" flood-color="#241c26" flood-opacity="0.28"/></filter><filter id="glN" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="3" specularConstant="0.9"
+      specularExponent="30" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.9" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.18" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="50" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="capN" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="1.0"
+      specularExponent="20" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.3" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="24" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.05" intercept="-0.0250"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <linearGradient id="npg" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/>
+  <stop offset="12%" stop-color="#ffd2e6" stop-opacity=".62"/>
+  <stop offset="50%" stop-color="#ffb0d2" stop-opacity=".5"/>
+  <stop offset="88%" stop-color="#ffffff" stop-opacity=".72"/>
+  <stop offset="100%" stop-color="#d896b3" stop-opacity=".9"/></linearGradient>
+ <linearGradient id="npl" x1="0" y1="0" x2=".3" y2="1">
+  <stop offset="0%" stop-color="#ff5fa8"/><stop offset="52%" stop-color="#e21d78"/>
+  <stop offset="100%" stop-color="#96054a"/></linearGradient>
+ <linearGradient id="npcap" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#3a2b33"/><stop offset="20%" stop-color="#6d5a64"/>
+  <stop offset="46%" stop-color="#241a1f"/><stop offset="72%" stop-color="#5a4a53"/>
+  <stop offset="100%" stop-color="#1c1418"/></linearGradient></defs>
+<g filter="url(#cN)">
+  <g filter="url(#glN)">
+    <path d="M104,308 Q100,282 120,272 L300,272 Q320,282 316,308 L318,524
+             Q318,556 286,558 L134,558 Q102,556 102,524 Z" fill="url(#npg)"/>
+  </g>
+  <path d="M120,330 L300,330 L302,516 Q302,542 278,544 L142,544 Q118,542 118,516 Z" fill="url(#npl)"/>
+  <path d="M120,330 L300,330" stroke="#ffffff" stroke-width="3" opacity=".5"/>
+  <path d="M138,342 L134,528" stroke="#ffffff" stroke-width="13" opacity=".42" filter="url(#blurS4)"/>
+  <path d="M286,346 L292,510" stroke="#ffffff" stroke-width="6" opacity=".22" filter="url(#blurS4)"/>
+  <rect x="176" y="232" width="68" height="48" rx="6" fill="url(#npg)"/>
+  <g filter="url(#capN)"><rect x="150" y="56" width="120" height="188" rx="16" fill="url(#npcap)"/></g>
+  <rect x="150" y="56" width="120" height="16" rx="8" fill="#ffffff" opacity=".22"/>
+  <rect x="170" y="70" width="18" height="156" rx="9" fill="#ffffff" opacity=".18" filter="url(#blurS8)"/>
+  <ellipse cx="210" cy="250" rx="40" ry="8" fill="#241a1f" opacity=".3"/>
+</g></svg>

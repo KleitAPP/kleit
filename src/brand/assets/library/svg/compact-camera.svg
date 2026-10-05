@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 440" role="img" aria-label="Pink compact camera"><title>Pink compact camera</title><defs><linearGradient id="cam" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#ffd2e8"/><stop offset="38%" stop-color="#ff8fc6"/><stop offset="100%" stop-color="#c7407f"/></linearGradient><linearGradient id="camr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="16%" stop-color="#e3eaf2"/><stop offset="32%" stop-color="#aab6c4"/><stop offset="47%" stop-color="#48535f"/><stop offset="52%" stop-color="#39434e"/><stop offset="60%" stop-color="#8f9ba9"/><stop offset="74%" stop-color="#e9eff5"/><stop offset="88%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c6d0da"/></linearGradient><linearGradient id="camsh" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".92"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>
+<rect x="60" y="96" width="480" height="264" rx="34" fill="url(#cam)" stroke="#b83a76" stroke-width="3"/>
+<rect x="60" y="96" width="480" height="120" rx="34" fill="#ffffff" opacity=".28"/>
+<circle cx="300" cy="234" r="104" fill="url(#camr)"/>
+<circle cx="300" cy="234" r="84" fill="#2c3440"/>
+<circle cx="300" cy="234" r="62" fill="#1a2028"/>
+<circle cx="300" cy="234" r="40" fill="#25405c"/>
+<circle cx="278" cy="212" r="15" fill="#bfe4ff" opacity=".85"/>
+<rect x="96" y="128" width="92" height="46" rx="12" fill="#fff6c9" stroke="#b83a76" stroke-width="2.5"/>
+<rect x="104" y="136" width="76" height="16" rx="8" fill="#ffffff" opacity=".8"/>
+<circle cx="474" cy="146" r="20" fill="#ffe2f0" stroke="#b83a76" stroke-width="3"/>
+<circle cx="474" cy="146" r="9" fill="#e0559a"/>
+<rect x="440" y="300" width="70" height="20" rx="10" fill="#ffffff" opacity=".5"/></svg>

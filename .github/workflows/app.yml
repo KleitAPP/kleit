@@ -45,6 +45,10 @@ jobs:
         run: bun scripts/check-canvas-doc.ts
       - name: Every shipped font has its licence recorded
         run: node scripts/check-fonts.mjs
+      # Every picture in the decoration library has a licence row, and the catalogue the drawer
+      # reads matches the records (artwork pack gap A9).
+      - name: Every decoration has its licence recorded
+        run: node scripts/build-library.mjs --check
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

@@ -1,0 +1,212 @@
+[
+ {
+  "id": "coquette",
+  "name": "Coquette",
+  "tier": "free",
+  "for": "Ribbon-and-lace romance. The softest door in the drawer, and the one most people open first.",
+  "holds": "Bows, ribbons, lace, hearts, pearls, roses, scent bottles, fans, hair ornaments",
+  "palette": [
+   "#FFF6F2",
+   "#F7E3E6",
+   "#E9B7C2",
+   "#C97B8E",
+   "#8C4A5E",
+   "#4A2A33"
+  ]
+ },
+ {
+  "id": "cottagecore",
+  "name": "Cottagecore",
+  "tier": "free",
+  "for": "A kitchen garden in sticker form. Warm, edible, unhurried.",
+  "holds": "Botanical plates, mushrooms, baskets, hens, wheat, fruit, jugs, bees, herbs",
+  "palette": [
+   "#F4F0E2",
+   "#EDE7D3",
+   "#C6CBA4",
+   "#8FA06A",
+   "#5C6B3C",
+   "#3E3A28"
+  ]
+ },
+ {
+  "id": "fairycore",
+  "name": "Fairycore",
+  "tier": "free",
+  "for": "The woodland floor at dusk. Serves Pinterest's Wilderkind straight out of the box.",
+  "holds": "Butterflies, moths, dragonflies, ferns, mushrooms, moons, beetles, nests, feathers",
+  "palette": [
+   "#F0F4EE",
+   "#E7EDE3",
+   "#BFD1BE",
+   "#8AA48C",
+   "#A992C4",
+   "#2F3A33"
+  ]
+ },
+ {
+  "id": "dark_academia",
+  "name": "Dark Academia",
+  "tier": "free",
+  "for": "The library at 2am. Serves Poetcore. The only free pack with a live class-9 trademark on its name.",
+  "holds": "Bookplates, pens, keys, inkwells, spectacles, globes, moths, laurel, ornament initials",
+  "palette": [
+   "#EDE6D6",
+   "#C9B48B",
+   "#8A6A3F",
+   "#6E1F26",
+   "#5C3A2E",
+   "#2A2622"
+  ]
+ },
+ {
+  "id": "victorian_scrap",
+  "name": "Victorian Scrap",
+  "tier": "free",
+  "for": "The actual Polyvore ancestor: die-cut scrap out of a real scrapbook. Serves Pen Pals and Brooched.",
+  "holds": "Die-cut scrap, cherubs, hands, fans, silhouettes, trade cards, stamps, wreaths, doves",
+  "palette": [
+   "#F8F2E7",
+   "#F3EADB",
+   "#D9C08A",
+   "#C2564F",
+   "#7A2E3A",
+   "#2B241C"
+  ]
+ },
+ {
+  "id": "goth_romantic",
+  "name": "Romantic Goth",
+  "tier": "free",
+  "for": "Mourning jewellery and ironwork. The half of goth that museums actually hold.",
+  "holds": "Ravens, skulls, moths, ironwork, mourning jewellery, bats, serpents, urns, thorns",
+  "palette": [
+   "#E6E3DE",
+   "#A9A39A",
+   "#5A5751",
+   "#6E1116",
+   "#2A2724",
+   "#121110"
+  ]
+ },
+ {
+  "id": "art_deco",
+  "name": "Art Deco",
+  "tier": "free",
+  "for": "1925 geometry. Serves Neo Deco, and it is the one pack that is mostly line rather than object.",
+  "holds": "Chevrons, sunbursts, cigarette and vanity cases, deco jewellery, stepped ornament, enamel",
+  "palette": [
+   "#F7F3EA",
+   "#F2EDE2",
+   "#D4AF52",
+   "#1E6F63",
+   "#23262B",
+   "#0E0F12"
+  ]
+ },
+ {
+  "id": "balletcore",
+  "name": "Balletcore",
+  "tier": "free",
+  "for": "Ribbon, rosin and stage light. The thinnest of the free eight and the one most helped by a Rijksmuseum key.",
+  "holds": "Slippers, ribbons, tulle, roses, opera glasses, garlands, programme ephemera, drapery",
+  "palette": [
+   "#FBF7F4",
+   "#F6EFE9",
+   "#EBD5CC",
+   "#D2A08F",
+   "#A3616A",
+   "#2E2A2C"
+  ]
+ },
+ {
+  "id": "y2k",
+  "name": "Y2K",
+  "tier": "paid",
+  "for": "2003 plastic and chrome. The riskiest pack we will ever ship, which is why it is the proving batch.",
+  "holds": "Butterfly clips, flip phones, chrome hearts, stars, glitter gel, holographic film",
+  "palette": [
+   "#EAF7FF",
+   "#C9F3FF",
+   "#7FD7F2",
+   "#FF6EC7",
+   "#C0C6D6",
+   "#1B1B2A"
+  ]
+ },
+ {
+  "id": "soft_kawaii",
+  "name": "Soft Kawaii",
+  "tier": "paid",
+  "for": "Pastel cartoon sweetness, drawn well away from anything Sanrio owns.",
+  "holds": "Cute faces, stars, clouds, bows, bubble lettering, pastel blobs",
+  "palette": [
+   "#FFF8FB",
+   "#FFF1F6",
+   "#FFD1E3",
+   "#C7E7FF",
+   "#FFE9A8",
+   "#4A3A48"
+  ]
+ },
+ {
+  "id": "goth_modern",
+  "name": "Modern Goth",
+  "tier": "paid",
+  "for": "The hardware half of goth. Where Romantic Goth is mourning jewellery, this is chain and spike.",
+  "holds": "Spikes, chains, barbed wire, crosses, smudge and scratch marks",
+  "palette": [
+   "#E4E4E4",
+   "#D8D8D8",
+   "#8A8A8A",
+   "#3A3A3A",
+   "#7A0C12",
+   "#000000"
+  ]
+ },
+ {
+  "id": "grunge",
+  "name": "Grunge",
+  "tier": "paid",
+  "for": "Flash-photo edges and torn flyers. Museum newsprint sits underneath it for free.",
+  "holds": "Tape, film burn, flash edges, torn flyers, scribble, halftone",
+  "palette": [
+   "#EFEAE0",
+   "#E8E2D6",
+   "#B9AE99",
+   "#7A6F5E",
+   "#8C2F1F",
+   "#1A1714"
+  ]
+ },
+ {
+  "id": "hot_pink",
+  "name": "Hot Pink",
+  "tier": "paid",
+  "for": "Glossy plastic maximalism. Named Hot Pink on purpose: the obvious name is Mattel's.",
+  "holds": "Glossy plastic shapes, bubble type, sparkle bursts, heart sunglasses",
+  "palette": [
+   "#FFFFFF",
+   "#FFD6E8",
+   "#FF8FC0",
+   "#FF3D8B",
+   "#B0186A",
+   "#2B0A18"
+  ]
+ },
+ {
+  "id": "holo",
+  "name": "Holo",
+  "tier": "paid",
+  "for": "Holographic and opalescent. Serves Extra Celestial and Cool Blue.",
+  "holds": "Holographic gradients, opal shimmer, moons, stars, prisms",
+  "palette": [
+   "#EAF0FF",
+   "#C9B6FF",
+   "#8FE3E0",
+   "#7B6CD9",
+   "#2B3A8C",
+   "#0B1030"
+  ]
+ }
+]

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" role="img" aria-label="Coffee ring stain"><title>Coffee ring stain</title><defs><filter id="a74266_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a74266_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a74266_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a74266_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a74266_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="a74266_cw" x="-25%" y="-25%" width="150%" height="150%"><feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="4" seed="8" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="26" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="1.6"/></filter></defs>
+<g filter="url(#a74266_cw)">
+ <circle cx="260" cy="260" r="180" fill="none" stroke="#8a5a2e" stroke-width="26" opacity=".55"/>
+ <circle cx="260" cy="260" r="180" fill="none" stroke="#6b3f18" stroke-width="10" opacity=".45"/>
+ <circle cx="260" cy="260" r="166" fill="#a5743f" opacity=".14"/>
+ <circle cx="260" cy="260" r="196" fill="none" stroke="#8a5a2e" stroke-width="6" opacity=".25"/>
+</g></svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 460" role="img" aria-label="Photocopier dust frame"><title>Photocopier dust frame</title><defs><filter id="a257_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a257_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a257_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a257_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a257_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="a257_dfw" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="27" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="22" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="2.4"/></filter></defs>
+<g filter="url(#a257_dfw)">
+ <path d="M40,30 L560,30 L560,430 L40,430 Z M92,78 L508,78 L508,382 L92,382 Z"
+       fill="#1d1a17" fill-rule="evenodd" opacity=".82"/>
+ <path d="M92,78 L508,78 L508,382 L92,382 Z" fill="none" stroke="#1d1a17" stroke-width="15" opacity=".35"/>
+</g></svg>

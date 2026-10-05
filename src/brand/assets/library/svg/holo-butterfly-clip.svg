@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 470" role="img" aria-label="Iridescent butterfly hair clip"><title>Iridescent butterfly hair clip</title><defs><linearGradient id="hb" x1="0" y1="0" x2="0.53" y2="0.848"><stop offset="0%" stop-color="#b8f2ff"/><stop offset="14%" stop-color="#c9c4ff"/><stop offset="28%" stop-color="#ffc2ef"/><stop offset="42%" stop-color="#ffe6b0"/><stop offset="56%" stop-color="#c6ffd9"/><stop offset="70%" stop-color="#a8e8ff"/><stop offset="84%" stop-color="#d8c0ff"/><stop offset="100%" stop-color="#ffd4f2"/></linearGradient><linearGradient id="hbbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="16%" stop-color="#e3eaf2"/><stop offset="32%" stop-color="#aab6c4"/><stop offset="47%" stop-color="#48535f"/><stop offset="52%" stop-color="#39434e"/><stop offset="60%" stop-color="#8f9ba9"/><stop offset="74%" stop-color="#e9eff5"/><stop offset="88%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c6d0da"/></linearGradient><linearGradient id="hbs" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".92"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>
+<rect x="150" y="404" width="300" height="50" rx="10" fill="url(#hbbar)" stroke="#8d97a3" stroke-width="1.5"/>
+<rect x="150" y="404" width="300" height="8" rx="4" fill="#ffffff" opacity=".85"/>
+<g>
+  <g transform="translate(600,0) scale(-1,1)">
+    <path d="M300,272 C318,164 400,98 466,116 C526,132 514,236 416,286 C378,306 328,304 300,272 Z" fill="url(#hb)" stroke="#bb93d2" stroke-width="2"/>
+    <path d="M300,296 C344,300 404,322 424,368 C442,410 398,450 352,430 C314,414 298,354 300,296 Z" fill="url(#hb)" stroke="#bb93d2" stroke-width="2"/>
+  </g>
+  <path d="M300,272 C318,164 400,98 466,116 C526,132 514,236 416,286 C378,306 328,304 300,272 Z" fill="url(#hb)" stroke="#bb93d2" stroke-width="2"/>
+  <path d="M300,296 C344,300 404,322 424,368 C442,410 398,450 352,430 C314,414 298,354 300,296 Z" fill="url(#hb)" stroke="#bb93d2" stroke-width="2"/>
+  <g transform="translate(600,0) scale(-1,1)"><path d="M300,272 C318,164 400,98 466,116 C526,132 514,236 416,286 C378,306 328,304 300,272 Z" fill="url(#hbs)" opacity=".55"/></g>
+  <path d="M300,272 C318,164 400,98 466,116 C526,132 514,236 416,286 C378,306 328,304 300,272 Z" fill="url(#hbs)" opacity=".35"/>
+</g>
+<ellipse cx="300" cy="300" rx="16" ry="86" fill="#efe0f9" stroke="#b795cf" stroke-width="2"/>
+<circle cx="300" cy="222" r="19" fill="#e7d3f5" stroke="#b795cf" stroke-width="2"/>
+<path d="M292,208 C272,168 250,148 232,142" fill="none" stroke="#b795cf" stroke-width="6" stroke-linecap="round"/>
+<path d="M308,208 C328,168 350,148 368,142" fill="none" stroke="#b795cf" stroke-width="6" stroke-linecap="round"/>
+<circle cx="230" cy="139" r="9" fill="#d9bff0"/><circle cx="370" cy="139" r="9" fill="#d9bff0"/></svg>

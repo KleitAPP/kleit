@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 560" role="img" aria-label="Spider"><title>Spider</title><defs><filter id="a82_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a82_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a82_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a82_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a82_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="a82_m3" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="6" specularConstant="0.3"
+      specularExponent="8" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.22" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.2" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.45" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="61" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.08" intercept="-0.0400"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a82_c3" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#241c26" flood-opacity="0.3"/></filter><radialGradient id="a82_sp" cx="38%" cy="30%" r="72%"><stop offset="0%" stop-color="#32343c"/><stop offset="48%" stop-color="#17181d"/><stop offset="100%" stop-color="#050507"/></radialGradient></defs>
+<g filter="url(#a82_c3)"><path d="M300,278 Q196,260 110,186 Q62,140 53,94" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q187,275 94,264 Q42,257 32,250" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q203,292 124,348 Q80,383 71,418" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q235,304 182,410 Q152,476 147,542" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q404,260 490,186 Q538,140 547,94" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q413,275 506,264 Q558,257 568,250" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q397,292 476,348 Q520,383 529,418" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/><path d="M300,278 Q365,304 418,410 Q448,476 453,542" fill="none" stroke="#15161a" stroke-width="12" stroke-linecap="round"/>
+ <g filter="url(#a82_m3)">
+  <ellipse cx="300" cy="352" rx="98" ry="118" fill="url(#a82_sp)"/>
+  <ellipse cx="300" cy="256" rx="58" ry="50" fill="url(#a82_sp)"/>
+ </g>
+ <ellipse cx="272" cy="240" rx="13" ry="16" fill="#b8121c"/>
+ <ellipse cx="328" cy="240" rx="13" ry="16" fill="#b8121c"/>
+ <ellipse cx="268" cy="234" rx="4" ry="5" fill="#ff9aa0"/>
+ <ellipse cx="266" cy="306" rx="24" ry="13" fill="#ffffff" opacity=".07" transform="rotate(-28 270 312)"/>
+</g></svg>

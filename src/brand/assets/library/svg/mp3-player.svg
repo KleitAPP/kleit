@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 620" role="img" aria-label="Frosted MP3 player"><title>Frosted MP3 player</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="ch" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbfcfd"/><stop offset="13%" stop-color="#dfe5ec"/><stop offset="30%" stop-color="#a7b2c0"/><stop offset="44%" stop-color="#5c6875"/><stop offset="49%" stop-color="#39434f"/><stop offset="53%" stop-color="#6d7885"/><stop offset="66%" stop-color="#c3ccd6"/><stop offset="82%" stop-color="#f4f7fa"/><stop offset="93%" stop-color="#cdd5de"/><stop offset="100%" stop-color="#9aa4b0"/></linearGradient><filter id="cM" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="17" stdDeviation="14" flood-color="#241c26" flood-opacity="0.28"/></filter><filter id="plM" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="5" specularConstant="0.6"
+      specularExponent="16" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.2" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.3" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="42" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.055" intercept="-0.0275"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <linearGradient id="mp" x1=".15" y1="0" x2=".85" y2="1">
+  <stop offset="0%" stop-color="#eef4fa"/><stop offset="28%" stop-color="#cfdbe8"/>
+  <stop offset="62%" stop-color="#aebdd0" stop-opacity="1"/>
+  <stop offset="100%" stop-color="#8496ad"/></linearGradient>
+ <linearGradient id="mscr" x1="0" y1="0" x2=".4" y2="1">
+  <stop offset="0%" stop-color="#7fd4c0"/><stop offset="50%" stop-color="#3f9e88"/>
+  <stop offset="100%" stop-color="#226b5c"/></linearGradient></defs>
+<g filter="url(#cM)" transform="rotate(-5 200 300)">
+  <g filter="url(#plM)"><rect x="70" y="60" width="260" height="500" rx="38" fill="url(#mp)"/></g>
+  <rect x="100" y="104" width="200" height="146" rx="14" fill="#2a3640"/>
+  <rect x="106" y="110" width="188" height="134" rx="10" fill="url(#mscr)"/>
+  <rect x="120" y="126" width="120" height="12" rx="6" fill="#0f3a30" opacity=".55"/>
+  <rect x="120" y="150" width="90" height="10" rx="5" fill="#0f3a30" opacity=".4"/>
+  <rect x="120" y="200" width="160" height="16" rx="8" fill="#0f3a30" opacity=".3"/>
+  <rect x="120" y="200" width="96" height="16" rx="8" fill="#e8fff6" opacity=".75"/>
+  <rect x="106" y="110" width="188" height="44" rx="10" fill="#ffffff" opacity=".14"/>
+  <rect x="112" y="300" width="176" height="176" rx="26" fill="#dfe8f2" opacity=".55"/>
+  <circle cx="200" cy="388" r="40" fill="#f4f8fc"/>
+  <circle cx="200" cy="388" r="40" fill="none" stroke="#98a8bc" stroke-width="2"/>
+  <path d="M200,322 l-11,15 h22 Z" fill="#7d8fa6"/><path d="M200,454 l-11,-15 h22 Z" fill="#7d8fa6"/>
+  <path d="M134,388 l15,-11 v22 Z" fill="#7d8fa6"/><path d="M266,388 l-15,-11 v22 Z" fill="#7d8fa6"/>
+  <rect x="86" y="96" width="22" height="400" rx="11" fill="#ffffff" opacity=".28" filter="url(#blurS14)"/>
+  <rect x="150" y="512" width="100" height="10" rx="5" fill="#8496ad" opacity=".5"/>
+</g></svg>

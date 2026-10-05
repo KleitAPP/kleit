@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 560" role="img" aria-label="Neon jelly tote bag"><title>Neon jelly tote bag</title><defs><linearGradient id="jt" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#c9ffe9"/><stop offset="38%" stop-color="#5ce0a8"/><stop offset="100%" stop-color="#17a96f"/></linearGradient><linearGradient id="jts" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".92"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient><linearGradient id="rope" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fdfaf2"/><stop offset="50%" stop-color="#e6ddc8"/><stop offset="100%" stop-color="#c8bda2"/></linearGradient></defs>
+<path d="M176,164 C176,92 424,92 424,164" fill="none" stroke="url(#rope)" stroke-width="20" stroke-linecap="round"/>
+<path d="M176,164 C176,102 424,102 424,164" fill="none" stroke="#bdb197" stroke-width="5" opacity=".55" stroke-linecap="round"/>
+<path d="M118,196 L482,196 L452,486 Q450,504 432,504 L168,504 Q150,504 148,486 Z"
+      fill="url(#jt)" stroke="none"/>
+<path d="M118,196 L482,196 L452,486 Q450,504 432,504 L168,504 Q150,504 148,486 Z"
+      fill="none" stroke="#0f9c66" stroke-width="3" opacity=".65"/>
+<path d="M118,196 L482,196 L452,486 Q450,504 432,504 L168,504 Q150,504 148,486 Z"
+      fill="url(#jts)" opacity=".55"/>
+<path d="M160,214 L196,214 L176,492 L152,470 Z" fill="#ffffff" opacity=".45"/>
+<path d="M404,214 L432,214 L414,492 L392,492 Z" fill="#ffffff" opacity=".22"/>
+<rect x="118" y="196" width="364" height="16" rx="7" fill="#ffffff" opacity=".55"/>
+<circle cx="180" cy="186" r="12" fill="none" stroke="#cfd6d2" stroke-width="6"/>
+<circle cx="420" cy="186" r="12" fill="none" stroke="#cfd6d2" stroke-width="6"/></svg>

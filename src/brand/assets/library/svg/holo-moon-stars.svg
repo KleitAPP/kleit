@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 560" role="img" aria-label="Holographic moon and stars"><title>Holographic moon and stars</title><defs><filter id="a14583_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a14583_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a14583_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a14583_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a14583_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a14583_g8" x1="0" y1="0" x2="0.899" y2="0.438"><stop offset="0%" stop-color="#35d9f0"/><stop offset="13%" stop-color="#2f7fe0"/><stop offset="27%" stop-color="#6b3ce0"/><stop offset="41%" stop-color="#b83ce0"/><stop offset="55%" stop-color="#ef4b9e"/><stop offset="68%" stop-color="#f0a33c"/><stop offset="80%" stop-color="#2fd98f"/><stop offset="90%" stop-color="#2f9fe0"/><stop offset="100%" stop-color="#7a4be0"/></linearGradient><filter id="a14583_f8" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="13" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="7" specularConstant="0.62"
+      specularExponent="16" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.5" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="11" result="aob"/>
+  <feOffset in="aob" dx="0" dy="4.6" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.26" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="2" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.035" intercept="-0.0175"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a14583_c8" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a14583_c8)"><g filter="url(#a14583_f8)">
+ <path d="M296,72 C196,72 112,158 112,272 C112,386 196,472 296,472
+          C252,436 216,360 216,272 C216,184 252,108 296,72 Z" fill="url(#a14583_g8)"/>
+ <path d="M450.18,120.87 Q452.00,116.00 453.82,120.87 L463.02,145.46 Q464.84,150.33 470.03,150.56 L496.26,151.70 Q501.45,151.93 497.39,155.17 L476.84,171.51 Q472.77,174.75 474.16,179.76 L481.18,205.06 Q482.56,210.07 478.23,207.20 L456.34,192.71 Q452.00,189.84 447.66,192.71 L425.77,207.20 Q421.44,210.07 422.82,205.06 L429.84,179.76 Q431.23,174.75 427.16,171.51 L406.61,155.17 Q402.55,151.93 407.74,151.70 L433.97,150.56 Q439.16,150.33 440.98,145.46 Z" fill="url(#a14583_g8)"/><path d="M144.67,375.56 Q146.00,372.00 147.33,375.56 L154.05,393.53 Q155.38,397.09 159.18,397.25 L178.34,398.09 Q182.14,398.26 179.17,400.62 L164.15,412.57 Q161.18,414.93 162.19,418.59 L167.32,437.08 Q168.34,440.74 165.17,438.65 L149.17,428.06 Q146.00,425.96 142.83,428.06 L126.83,438.65 Q123.66,440.74 124.68,437.08 L129.81,418.59 Q130.82,414.93 127.85,412.57 L112.83,400.62 Q109.86,398.26 113.66,398.09 L132.82,397.25 Q136.62,397.09 137.95,393.53 Z" fill="url(#a14583_g8)"/><path d="M487.02,356.62 Q488.00,354.00 488.98,356.62 L493.93,369.86 Q494.91,372.49 497.71,372.61 L511.83,373.23 Q514.63,373.35 512.44,375.09 L501.38,383.89 Q499.18,385.63 499.93,388.33 L503.71,401.95 Q504.46,404.65 502.12,403.11 L490.33,395.31 Q488.00,393.76 485.67,395.31 L473.88,403.11 Q471.54,404.65 472.29,401.95 L476.07,388.33 Q476.82,385.63 474.62,383.89 L463.56,375.09 Q461.37,373.35 464.17,373.23 L478.29,372.61 Q481.09,372.49 482.07,369.86 Z" fill="url(#a14583_g8)"/><path d="M205.16,120.25 Q206.00,118.00 206.84,120.25 L211.08,131.60 Q211.92,133.85 214.32,133.95 L226.43,134.48 Q228.83,134.58 226.95,136.08 L217.46,143.62 Q215.59,145.11 216.23,147.43 L219.47,159.10 Q220.11,161.42 218.11,160.09 L208.00,153.40 Q206.00,152.08 204.00,153.40 L193.89,160.09 Q191.89,161.42 192.53,159.10 L195.77,147.43 Q196.41,145.11 194.54,143.62 L185.05,136.08 Q183.17,134.58 185.57,134.48 L197.68,133.95 Q200.08,133.85 200.92,131.60 Z" fill="url(#a14583_g8)"/>
+</g>
+ <path d="M258,128 C214,176 196,232 198,292" fill="none" stroke="#ffffff" stroke-width="9" opacity=".45" filter="url(#a14583_blurS8)"/>
+</g></svg>

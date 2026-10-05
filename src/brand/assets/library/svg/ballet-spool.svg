@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 460" role="img" aria-label="Ribbon spool"><title>Ribbon spool</title><defs><filter id="a18991_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a18991_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a18991_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a18991_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a18991_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a18991_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a45e6d"/><stop offset="20%" stop-color="#f3d3db"/><stop offset="40%" stop-color="#fdf1f4"/><stop offset="62%" stop-color="#d290a0"/><stop offset="84%" stop-color="#9d5766"/><stop offset="100%" stop-color="#e0aeba"/></linearGradient><linearGradient id="a18991_sa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8e4d5c"/><stop offset="12%" stop-color="#c07d8c"/><stop offset="30%" stop-color="#f7dce3"/><stop offset="40%" stop-color="#fffafb"/><stop offset="52%" stop-color="#f0cbd5"/><stop offset="70%" stop-color="#c8818f"/><stop offset="86%" stop-color="#8f4e5d"/><stop offset="100%" stop-color="#b9737f"/></linearGradient><linearGradient id="a18991_cd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fdf6ea"/><stop offset="60%" stop-color="#f2e5cf"/><stop offset="100%" stop-color="#ddc9ab"/></linearGradient><filter id="a18991_m" x="-28%" y="-28%" width="156%" height="156%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="2.6" specularConstant="0.5" specularExponent="4.5"
+      lighting-color="#fff6fb" result="s"><feDistantLight azimuth="228" elevation="46"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="ab"/><feOffset in="ab" dy="4" result="ao"/>
+  <feComposite in="ao" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#2b1b24" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over" result="sh"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="4" seed="3" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr"><feFuncA type="linear" slope="0.085" intercept="-0.0425"/></feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="gi"/>
+  <feBlend in="gi" in2="sh" mode="overlay"/>
+</filter><filter id="a18991_p" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="3" specularConstant="0.42"
+      specularExponent="9" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.4" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="aob"/>
+  <feOffset in="aob" dx="0" dy="3.8" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.3" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="63" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.11" intercept="-0.0550"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a18991_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#241c26" flood-opacity="0.28"/></filter></defs>
+<g filter="url(#a18991_c)">
+  <g filter="url(#a18991_p)"><ellipse cx="216" cy="216" rx="150" ry="150" fill="url(#a18991_cd)"/></g>
+  <g filter="url(#a18991_m)">
+    <path d="M78,178 A150,150 0 0 1 354,178 L354,254 A150,150 0 0 1 78,254 Z" fill="url(#a18991_rb)"/>
+  </g>
+  <g opacity=".45"><path d="M86,185 L86,247" stroke="#9d5766" stroke-width="2.5"/><path d="M110,182 L110,250" stroke="#9d5766" stroke-width="2.5"/><path d="M134,179 L134,253" stroke="#9d5766" stroke-width="2.5"/><path d="M158,176 L158,256" stroke="#9d5766" stroke-width="2.5"/><path d="M182,173 L182,259" stroke="#9d5766" stroke-width="2.5"/><path d="M206,170 L206,262" stroke="#9d5766" stroke-width="2.5"/><path d="M230,173 L230,259" stroke="#9d5766" stroke-width="2.5"/><path d="M254,176 L254,256" stroke="#9d5766" stroke-width="2.5"/><path d="M278,179 L278,253" stroke="#9d5766" stroke-width="2.5"/><path d="M302,182 L302,250" stroke="#9d5766" stroke-width="2.5"/><path d="M326,185 L326,247" stroke="#9d5766" stroke-width="2.5"/><path d="M350,188 L350,244" stroke="#9d5766" stroke-width="2.5"/></g>
+  <ellipse cx="216" cy="216" rx="52" ry="52" fill="url(#a18991_cd)"/>
+  <ellipse cx="216" cy="216" rx="52" ry="52" fill="none" stroke="#c5ae8c" stroke-width="4"/>
+  <ellipse cx="216" cy="216" rx="24" ry="24" fill="#d9c4a2"/>
+  <path d="M354,216 Q432,232 448,300 Q460,354 418,390 L392,360 Q424,332 418,302 Q410,266 352,254 Z" fill="url(#a18991_sa)"/>
+  <path d="M356,224 Q426,242 440,300" fill="none" stroke="#ffffff" stroke-width="6" opacity=".5"/>
+  <path d="M84,176 A150,150 0 0 1 200,68" fill="none" stroke="#ffffff" stroke-width="7" opacity=".4"/>
+</g></svg>

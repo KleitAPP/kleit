@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Compact disc"><title>Compact disc</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter>
+ <radialGradient id="cdb" cx="46%" cy="40%" r="60%">
+  <stop offset="0%" stop-color="#f4f7fa"/><stop offset="42%" stop-color="#d2dae3"/>
+  <stop offset="78%" stop-color="#a7b2bf"/><stop offset="100%" stop-color="#848e9b"/></radialGradient>
+ <linearGradient id="cdiri" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#7ef0ff" stop-opacity=".55"/>
+  <stop offset="26%" stop-color="#b58bff" stop-opacity=".48"/>
+  <stop offset="50%" stop-color="#ff7fd0" stop-opacity=".42"/>
+  <stop offset="72%" stop-color="#ffe07a" stop-opacity=".5"/>
+  <stop offset="100%" stop-color="#7dffb6" stop-opacity=".5"/></linearGradient>
+ <linearGradient id="cdsw" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity=".0"/>
+  <stop offset="36%" stop-color="#ffffff" stop-opacity=".62"/>
+  <stop offset="52%" stop-color="#ffffff" stop-opacity=".18"/>
+  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+ <clipPath id="cdc"><circle cx="300" cy="300" r="248"/></clipPath>
+ <radialGradient id="cdsweepG" cx="50%" cy="50%" r="50%">
+  <stop offset="0%" stop-color="#fff" stop-opacity="1"/><stop offset="100%" stop-color="#fff" stop-opacity="1"/></radialGradient>
+ <mask id="cdsweep"><rect width="600" height="600" fill="#000"/>
+  <path d="M300,300 L52,300 A248,248 0 0,1 224,64 Z" fill="#fff" filter="url(#blurS34)"/>
+  <path d="M300,300 L548,300 A248,248 0 0,1 376,536 Z" fill="#fff" filter="url(#blurS34)"/>
+  <circle cx="300" cy="300" r="248" fill="#fff" opacity=".22"/></mask>
+ <mask id="cdring"><rect width="600" height="600" fill="#000"/>
+   <circle cx="300" cy="300" r="248" fill="#fff"/><circle cx="300" cy="300" r="56" fill="#000"/></mask>
+ <filter id="cdF" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="2" specularConstant="0.7"
+      specularExponent="34" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.2" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="82" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.05" intercept="-0.0250"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <filter id="c5" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#241c26" flood-opacity="0.28"/></filter></defs>
+<g filter="url(#c5)" transform="rotate(-16 300 300)">
+  <g mask="url(#cdring)">
+    <circle cx="300" cy="300" r="248" fill="url(#cdb)"/>
+    <g clip-path="url(#cdc)" mask="url(#cdsweep)"><circle cx="300" cy="300" r="96" fill="none" stroke="hsl(144,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="99" fill="none" stroke="hsl(171,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="102" fill="none" stroke="hsl(198,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="105" fill="none" stroke="hsl(225,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="108" fill="none" stroke="hsl(252,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="111" fill="none" stroke="hsl(279,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="114" fill="none" stroke="hsl(306,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="117" fill="none" stroke="hsl(333,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="120" fill="none" stroke="hsl(0,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="123" fill="none" stroke="hsl(27,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="126" fill="none" stroke="hsl(54,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="129" fill="none" stroke="hsl(81,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="132" fill="none" stroke="hsl(108,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="135" fill="none" stroke="hsl(135,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="138" fill="none" stroke="hsl(162,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="141" fill="none" stroke="hsl(189,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="144" fill="none" stroke="hsl(216,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="147" fill="none" stroke="hsl(243,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="150" fill="none" stroke="hsl(270,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="153" fill="none" stroke="hsl(297,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="156" fill="none" stroke="hsl(324,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="159" fill="none" stroke="hsl(351,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="162" fill="none" stroke="hsl(18,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="165" fill="none" stroke="hsl(45,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="168" fill="none" stroke="hsl(72,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="171" fill="none" stroke="hsl(99,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="174" fill="none" stroke="hsl(126,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="177" fill="none" stroke="hsl(153,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="180" fill="none" stroke="hsl(180,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="183" fill="none" stroke="hsl(207,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="186" fill="none" stroke="hsl(234,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="189" fill="none" stroke="hsl(261,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="192" fill="none" stroke="hsl(288,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="195" fill="none" stroke="hsl(315,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="198" fill="none" stroke="hsl(342,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="201" fill="none" stroke="hsl(9,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="204" fill="none" stroke="hsl(36,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="207" fill="none" stroke="hsl(63,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="210" fill="none" stroke="hsl(90,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="213" fill="none" stroke="hsl(117,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="216" fill="none" stroke="hsl(144,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="219" fill="none" stroke="hsl(171,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="222" fill="none" stroke="hsl(198,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="225" fill="none" stroke="hsl(225,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="228" fill="none" stroke="hsl(252,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="231" fill="none" stroke="hsl(279,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="234" fill="none" stroke="hsl(306,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="237" fill="none" stroke="hsl(333,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="240" fill="none" stroke="hsl(0,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="243" fill="none" stroke="hsl(27,95%,64%)" stroke-width="3" opacity=".48"/><circle cx="300" cy="300" r="246" fill="none" stroke="hsl(54,95%,64%)" stroke-width="3" opacity=".48"/></g>
+    <circle cx="300" cy="300" r="248" fill="url(#cdiri)" mask="url(#cdsweep)"/>
+    <circle cx="300" cy="300" r="248" fill="url(#cdsw)"/>
+    <ellipse cx="228" cy="196" rx="120" ry="66" fill="#ffffff" opacity=".35"
+             transform="rotate(-38 228 196)" filter="url(#blurS34)"/>
+  </g>
+  <circle cx="300" cy="300" r="248" fill="none" stroke="#6f7a87" stroke-width="2"/>
+  <circle cx="300" cy="300" r="90" fill="none" stroke="#aeb8c4" stroke-width="2" opacity=".8"/>
+  <circle cx="300" cy="300" r="78" fill="#dfe5ec" opacity=".55"/>
+  <circle cx="300" cy="300" r="56" fill="#f3f6f9" opacity=".8"/>
+  <circle cx="300" cy="300" r="56" fill="none" stroke="#9aa5b2" stroke-width="2"/>
+  <circle cx="300" cy="300" r="40" fill="#e8edf2"/>
+  <circle cx="300" cy="300" r="40" fill="none" stroke="#8b96a3" stroke-width="2.5"/>
+</g></svg>

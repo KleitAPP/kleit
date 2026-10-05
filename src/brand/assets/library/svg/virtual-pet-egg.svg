@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 600" role="img" aria-label="Virtual pet keychain"><title>Virtual pet keychain</title><defs><linearGradient id="vp" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#e6f8ff"/><stop offset="38%" stop-color="#b6e8ff"/><stop offset="100%" stop-color="#4fa8d8"/></linearGradient><linearGradient id="vpring" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="16%" stop-color="#e3eaf2"/><stop offset="32%" stop-color="#aab6c4"/><stop offset="47%" stop-color="#48535f"/><stop offset="52%" stop-color="#39434e"/><stop offset="60%" stop-color="#8f9ba9"/><stop offset="74%" stop-color="#e9eff5"/><stop offset="88%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c6d0da"/></linearGradient><linearGradient id="vpsh" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".92"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs>
+<circle cx="230" cy="52" r="26" fill="none" stroke="url(#vpring)" stroke-width="11"/>
+<path d="M230,92 C346,92 400,224 400,340 Q400,520 230,520 Q60,520 60,340 C60,224 114,92 230,92 Z"
+      fill="url(#vp)" stroke="#3f95c6" stroke-width="3"/>
+<path d="M230,92 C346,92 400,224 400,340 Q400,520 230,520 Q60,520 60,340 C60,224 114,92 230,92 Z"
+      fill="url(#vpsh)" opacity=".6"/>
+<rect x="110" y="188" width="240" height="180" rx="26" fill="#dff3d6" stroke="#3f95c6" stroke-width="3"/>
+<rect x="128" y="204" width="204" height="60" rx="16" fill="#ffffff" opacity=".55"/>
+<rect x="152" y="250" width="30" height="30" fill="#5c7a4a"/><rect x="182" y="280" width="30" height="30" fill="#5c7a4a"/>
+<rect x="212" y="250" width="30" height="30" fill="#5c7a4a"/><rect x="242" y="280" width="30" height="30" fill="#5c7a4a"/>
+<rect x="182" y="310" width="90" height="26" fill="#5c7a4a" opacity=".55"/>
+<circle cx="132" cy="430" r="30" fill="#ffd6ea" stroke="#3f95c6" stroke-width="3"/>
+<circle cx="230" cy="452" r="30" fill="#ffd6ea" stroke="#3f95c6" stroke-width="3"/>
+<circle cx="328" cy="430" r="30" fill="#ffd6ea" stroke="#3f95c6" stroke-width="3"/>
+<ellipse cx="150" cy="176" rx="46" ry="26" fill="#ffffff" opacity=".6" transform="rotate(-28 150 176)"/></svg>

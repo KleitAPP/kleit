@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" role="img" aria-label="Lava lamp"><title>Lava lamp</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffbe9"/><stop offset="22%" stop-color="#f2d894"/><stop offset="46%" stop-color="#a5801f"/><stop offset="53%" stop-color="#d4ae52"/><stop offset="78%" stop-color="#fbeab6"/><stop offset="100%" stop-color="#b3913f"/></linearGradient><filter id="cL" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#241c26" flood-opacity="0.3"/></filter><filter id="glL" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="3" specularConstant="0.85"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.9" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.2" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="60" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="glowL" x="-55%" y="-55%" width="210%" height="210%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="g"/>
+  <feComponentTransfer in="g" result="gb">
+    <feFuncR type="linear" slope="1.35"/><feFuncG type="linear" slope="1.35"/>
+    <feFuncB type="linear" slope="1.35"/><feFuncA type="linear" slope="0.85"/></feComponentTransfer>
+  <feMerge><feMergeNode in="gb"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+ <linearGradient id="lvbody" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>
+  <stop offset="16%" stop-color="#ffd9a8" stop-opacity=".45"/>
+  <stop offset="50%" stop-color="#ffb35c" stop-opacity=".42"/>
+  <stop offset="86%" stop-color="#ffffff" stop-opacity=".5"/>
+  <stop offset="100%" stop-color="#c98a45" stop-opacity=".7"/></linearGradient>
+ <linearGradient id="lv" x1="0" y1="0" x2=".3" y2="1">
+  <stop offset="0%" stop-color="#ff9a3d"/><stop offset="60%" stop-color="#f4562a"/>
+  <stop offset="100%" stop-color="#b52a1c"/></linearGradient>
+ <clipPath id="lvc"><path d="M150,150 Q134,320 118,470 L302,470 Q286,320 270,150 Z"/></clipPath></defs>
+<g filter="url(#cL)">
+  <path d="M96,506 Q90,470 128,466 L292,466 Q330,470 324,506 L332,560 Q334,586 300,588
+           L120,588 Q86,586 88,560 Z" fill="url(#gd)"/>
+  <path d="M96,506 Q210,522 324,506" fill="none" stroke="#ffffff" stroke-width="5" opacity=".45"/>
+  <g filter="url(#glowL)"><g clip-path="url(#lvc)"><ellipse cx="284" cy="430" rx="46" ry="38" fill="url(#lv)"/><ellipse cx="318" cy="356" rx="34" ry="42" fill="url(#lv)"/><ellipse cx="292" cy="286" rx="26" ry="34" fill="url(#lv)"/><ellipse cx="314" cy="224" rx="19" ry="24" fill="url(#lv)"/><ellipse cx="296" cy="178" rx="12" ry="15" fill="url(#lv)"/></g></g>
+  <g filter="url(#glL)">
+    <path d="M150,150 Q134,320 118,470 L302,470 Q286,320 270,150 Z" fill="url(#lvbody)"/>
+  </g>
+  <path d="M164,156 Q150,318 138,462" fill="none" stroke="#ffffff" stroke-width="11" opacity=".5" filter="url(#blurS4)"/>
+  <path d="M258,158 Q270,316 282,458" fill="none" stroke="#ffffff" stroke-width="5" opacity=".22" filter="url(#blurS4)"/>
+  <path d="M146,146 Q210,132 274,146 L268,108 Q210,96 152,108 Z" fill="url(#gd)"/>
+  <path d="M168,96 Q210,84 252,96 L246,62 Q210,54 174,62 Z" fill="url(#gd)"/>
+</g></svg>

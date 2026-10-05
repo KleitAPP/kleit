@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 440" role="img" aria-label="Satin hair bow"><title>Satin hair bow</title><defs><filter id="a81142_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a81142_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a81142_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a81142_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a81142_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a81142_sa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8e4d5c"/><stop offset="12%" stop-color="#c07d8c"/><stop offset="30%" stop-color="#f7dce3"/><stop offset="40%" stop-color="#fffafb"/><stop offset="52%" stop-color="#f0cbd5"/><stop offset="70%" stop-color="#c8818f"/><stop offset="86%" stop-color="#8f4e5d"/><stop offset="100%" stop-color="#b9737f"/></linearGradient><linearGradient id="a81142_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a45e6d"/><stop offset="20%" stop-color="#f3d3db"/><stop offset="40%" stop-color="#fdf1f4"/><stop offset="62%" stop-color="#d290a0"/><stop offset="84%" stop-color="#9d5766"/><stop offset="100%" stop-color="#e0aeba"/></linearGradient><filter id="a81142_m" x="-28%" y="-28%" width="156%" height="156%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="2.6" specularConstant="0.5" specularExponent="4.5"
+      lighting-color="#fff6fb" result="s"><feDistantLight azimuth="228" elevation="46"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="ab"/><feOffset in="ab" dy="4" result="ao"/>
+  <feComposite in="ao" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#2b1b24" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over" result="sh"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="4" seed="3" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr"><feFuncA type="linear" slope="0.085" intercept="-0.0425"/></feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="gi"/>
+  <feBlend in="gi" in2="sh" mode="overlay"/>
+</filter><filter id="a81142_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#241c26" flood-opacity="0.26"/></filter></defs>
+<g filter="url(#a81142_c)"><g filter="url(#a81142_m)"><path d="M269,183.2 C256,274.4 234,320.0 246,365.6 L272,346.6 C266,297.2 274,259.2 276,206.0 Z" fill="url(#a81142_sa)"/><path d="M291,183.2 C304,274.4 326,320.0 314,365.6 L288,346.6 C294,297.2 286,259.2 284,206.0 Z" fill="url(#a81142_sa)"/><path d="M274,164 C209.6,54.0 120.0,126.19999999999999 145.6,187.0 C162.24,232.6 236.48,215.12 272,184.72 Z" fill="url(#a81142_sa)"/><path d="M286,164 C350.4,54.0 440.0,126.19999999999999 414.4,187.0 C397.76,232.6 323.52,215.12 288,184.72 Z" fill="url(#a81142_sa)"/><path d="M272,184.72 C236.48,215.12 216.0,190.8 226.24,160.4 Z" fill="#000000" opacity=".16"/><path d="M288,184.72 C323.52,215.12 344.0,190.8 333.76,160.4 Z" fill="#000000" opacity=".16"/><path d="M263,161 Q280,154 297,161 Q302,175 296,186 Q280,192 264,186 Q258,175 263,161 Z" fill="url(#a81142_sa)"/><path d="M266,170 Q280,176 294,170" fill="none" stroke="#000000" stroke-width="3" opacity=".18"/></g>
+  <path d="M212,124 C168,140 160,196 200,214" fill="none" stroke="#ffffff" stroke-width="11" opacity=".55"/>
+  <path d="M348,124 C392,140 400,196 360,214" fill="none" stroke="#ffffff" stroke-width="8" opacity=".38"/>
+  <path d="M258,172 Q280,162 302,172" fill="none" stroke="#ffffff" stroke-width="6" opacity=".6"/>
+  <path d="M268,182 Q280,190 292,182" fill="none" stroke="#b8798a" stroke-width="4" opacity=".5"/>
+  <path d="M262,290 Q248,336 252,360" fill="none" stroke="#ffffff" stroke-width="6" opacity=".40"/>
+</g></svg>

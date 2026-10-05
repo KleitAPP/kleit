@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 620" role="img" aria-label="Knitted legwarmers"><title>Knitted legwarmers</title><defs><filter id="a7893_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a7893_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a7893_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a7893_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a7893_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a7893_kn" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9e7f74"/><stop offset="16%" stop-color="#d6bcb0"/><stop offset="36%" stop-color="#f6e6dd"/><stop offset="54%" stop-color="#e5cdc1"/><stop offset="78%" stop-color="#b9998c"/><stop offset="100%" stop-color="#d2b6a9"/></linearGradient><linearGradient id="a7893_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a45e6d"/><stop offset="20%" stop-color="#f3d3db"/><stop offset="40%" stop-color="#fdf1f4"/><stop offset="62%" stop-color="#d290a0"/><stop offset="84%" stop-color="#9d5766"/><stop offset="100%" stop-color="#e0aeba"/></linearGradient><filter id="a7893_w" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="35" result="t"/>
+  <feDisplacementMap in="SourceGraphic" in2="t" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feGaussianBlur in="d" stdDeviation="1.4"/>
+</filter><filter id="a7893_m" x="-28%" y="-28%" width="156%" height="156%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="h"/>
+  <feSpecularLighting in="h" surfaceScale="2.6" specularConstant="0.5" specularExponent="4.5"
+      lighting-color="#fff6fb" result="s"><feDistantLight azimuth="228" elevation="46"/></feSpecularLighting>
+  <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+  <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="l"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="ab"/><feOffset in="ab" dy="4" result="ao"/>
+  <feComposite in="ao" in2="SourceAlpha" operator="out" result="ar"/>
+  <feFlood flood-color="#2b1b24" flood-opacity="0.3" result="ac"/>
+  <feComposite in="ac" in2="ar" operator="in" result="am"/>
+  <feComposite in="am" in2="l" operator="over" result="sh"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="4" seed="3" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr"><feFuncA type="linear" slope="0.085" intercept="-0.0425"/></feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="gi"/>
+  <feBlend in="gi" in2="sh" mode="overlay"/>
+</filter><filter id="a7893_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a7893_c)"><g filter="url(#a7893_w)">
+  <path d="M96,110 Q98,84 130,80 L214,80 Q246,84 246,110 L256,476 Q258,516 214,520 L128,520 Q84,516 88,476 Z" fill="url(#a7893_kn)"/>
+  <path d="M278,150 Q280,124 312,120 L396,120 Q428,124 428,150 L438,504 Q440,544 396,548 L310,548 Q266,544 270,504 Z" fill="url(#a7893_kn)"/>
+</g>
+  <g opacity=".45"><path d="M100,92 Q102,300 104,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M115,92 Q117,300 119,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M130,92 Q132,300 134,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M145,92 Q147,300 149,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M160,92 Q162,300 164,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M175,92 Q177,300 179,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M190,92 Q192,300 194,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M205,92 Q207,300 209,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M220,92 Q222,300 224,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M235,92 Q237,300 239,508" fill="none" stroke="#8d6f64" stroke-width="2.5"/>
+   <path d="M282,132 Q284,330 286,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M297,132 Q299,330 301,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M312,132 Q314,330 316,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M327,132 Q329,330 331,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M342,132 Q344,330 346,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M357,132 Q359,330 361,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M372,132 Q374,330 376,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M387,132 Q389,330 391,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M402,132 Q404,330 406,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/><path d="M417,132 Q419,330 421,536" fill="none" stroke="#8d6f64" stroke-width="2.5"/></g>
+  <path d="M88,150 L250,150 M90,470 L254,470" stroke="#8d6f64" stroke-width="5" opacity=".5"/>
+  <path d="M270,190 L432,190 M272,498 L436,498" stroke="#8d6f64" stroke-width="5" opacity=".5"/>
+  <path d="M112,100 Q108,300 116,500" fill="none" stroke="#ffffff" stroke-width="12" opacity=".40"/>
+  <path d="M294,140 Q290,330 298,528" fill="none" stroke="#ffffff" stroke-width="10" opacity=".34"/>
+</g></svg>

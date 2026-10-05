@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Soap bubble"><title>Soap bubble</title><defs><radialGradient id="bub" cx="42%" cy="36%" r="66%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".10"/><stop offset="52%" stop-color="#bfe9ff" stop-opacity=".16"/><stop offset="86%" stop-color="#ffc9f2" stop-opacity=".34"/><stop offset="97%" stop-color="#b9f0e4" stop-opacity=".62"/><stop offset="100%" stop-color="#ffffff" stop-opacity=".9"/></radialGradient><linearGradient id="bubrim" x1="0" y1="0" x2="0.766" y2="0.643"><stop offset="0%" stop-color="#b8f2ff"/><stop offset="14%" stop-color="#c9c4ff"/><stop offset="28%" stop-color="#ffc2ef"/><stop offset="42%" stop-color="#ffe6b0"/><stop offset="56%" stop-color="#c6ffd9"/><stop offset="70%" stop-color="#a8e8ff"/><stop offset="84%" stop-color="#d8c0ff"/><stop offset="100%" stop-color="#ffd4f2"/></linearGradient><radialGradient id="bubcore" cx="50%" cy="50%" r="50%"><stop offset="70%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#ffffff" stop-opacity=".55"/></radialGradient></defs>
+<circle cx="300" cy="300" r="258" fill="none" stroke="url(#bubrim)" stroke-width="16" opacity=".75"/>
+<circle cx="300" cy="300" r="250" fill="url(#bub)"/>
+<circle cx="300" cy="300" r="250" fill="url(#bubcore)"/>
+<ellipse cx="204" cy="180" rx="74" ry="48" fill="#ffffff" opacity=".82" transform="rotate(-32 204 180)"/>
+<ellipse cx="248" cy="132" rx="26" ry="14" fill="#ffffff" opacity=".9" transform="rotate(-32 248 132)"/>
+<ellipse cx="396" cy="418" rx="42" ry="22" fill="#ffffff" opacity=".42" transform="rotate(-30 396 418)"/>
+<path d="M92,336 A210,210 0 0,0 232,502" fill="none" stroke="#ffffff" stroke-width="9" opacity=".5" stroke-linecap="round"/></svg>

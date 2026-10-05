@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 520" role="img" aria-label="Chrome hoop earrings"><title>Chrome hoop earrings</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="ch" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbfcfd"/><stop offset="13%" stop-color="#dfe5ec"/><stop offset="30%" stop-color="#a7b2c0"/><stop offset="44%" stop-color="#5c6875"/><stop offset="49%" stop-color="#39434f"/><stop offset="53%" stop-color="#6d7885"/><stop offset="66%" stop-color="#c3ccd6"/><stop offset="82%" stop-color="#f4f7fa"/><stop offset="93%" stop-color="#cdd5de"/><stop offset="100%" stop-color="#9aa4b0"/></linearGradient><filter id="mH" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="9" specularConstant="1.25"
+      specularExponent="28" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="41" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="cH" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="13" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#cH)">
+  <g filter="url(#mH)">
+    <ellipse cx="198" cy="316" rx="128" ry="132" fill="none" stroke="url(#ch)" stroke-width="27"/>
+    <ellipse cx="418" cy="282" rx="94" ry="97" fill="none" stroke="url(#ch)" stroke-width="22"/>
+  </g>
+  <ellipse cx="198" cy="316" rx="128" ry="132" fill="none" stroke="#ffffff" stroke-width="5" opacity=".5"
+           stroke-dasharray="70 300" transform="rotate(-38 198 316)"/>
+  <ellipse cx="418" cy="282" rx="94" ry="97" fill="none" stroke="#ffffff" stroke-width="4" opacity=".45"
+           stroke-dasharray="52 240" transform="rotate(-38 418 282)"/>
+  <ellipse cx="198" cy="316" rx="128" ry="132" fill="none" stroke="#2c343e" stroke-width="1.6" opacity=".45"/>
+  <ellipse cx="418" cy="282" rx="94" ry="97" fill="none" stroke="#2c343e" stroke-width="1.4" opacity=".45"/>
+  <rect x="186" y="172" width="24" height="17" rx="7" fill="url(#ch)"/>
+  <rect x="408" y="176" width="20" height="14" rx="6" fill="url(#ch)"/>
+</g></svg>

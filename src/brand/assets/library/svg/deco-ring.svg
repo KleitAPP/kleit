@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 480" role="img" aria-label="Cocktail ring"><title>Cocktail ring</title><defs><filter id="a2490_blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="a2490_blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="a2490_blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="a2490_blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="a2490_blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><linearGradient id="a2490_gd" x1="0" y1="0" x2=".85" y2="1"><stop offset="0%" stop-color="#fdf0c2"/><stop offset="22%" stop-color="#e3bf6a"/><stop offset="46%" stop-color="#b8892f"/><stop offset="58%" stop-color="#8a6320"/><stop offset="74%" stop-color="#d9b25c"/><stop offset="100%" stop-color="#f6e3a8"/></linearGradient><radialGradient id="a2490_ox" cx=".36" cy=".3" r=".8"><stop offset="0%" stop-color="#4a5f74"/><stop offset="45%" stop-color="#1d2a38"/><stop offset="100%" stop-color="#080d13"/></radialGradient><linearGradient id="a2490_jd" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#d8efe0"/><stop offset="24%" stop-color="#8dc0a4"/><stop offset="52%" stop-color="#4b8467"/><stop offset="62%" stop-color="#356249"/><stop offset="82%" stop-color="#7fb598"/><stop offset="100%" stop-color="#cbe8d7"/></linearGradient><filter id="a2490_m" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="8" specularConstant="1.15"
+      specularExponent="26" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="0.72" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.34" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="71" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.04" intercept="-0.0200"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter><filter id="a2490_c" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#241c26" flood-opacity="0.3"/></filter></defs>
+<g filter="url(#a2490_c)"><g filter="url(#a2490_m)">
+  <path d="M120,270 Q120,420 220,430 Q320,420 320,270" fill="none" stroke="url(#a2490_gd)" stroke-width="30"/>
+  <path d="M116,258 L324,258 L296,196 L144,196 Z" fill="url(#a2490_gd)"/>
+  <path d="M144,196 L296,196 L272,142 L168,142 Z" fill="url(#a2490_gd)"/>
+</g>
+  <path d="M158,190 L282,190 L262,150 L178,150 Z" fill="url(#a2490_jd)"/>
+  <path d="M170,140 L270,140 L220,86 Z" fill="url(#a2490_ox)"/>
+  <path d="M170,140 L270,140 L220,86 Z" fill="none" stroke="url(#a2490_gd)" stroke-width="5"/>
+  <path d="M196,124 L224,98" stroke="#ffffff" stroke-width="6" opacity=".4" stroke-linecap="round"/>
+  <path d="M176,182 L206,158" stroke="#ffffff" stroke-width="5" opacity=".45" stroke-linecap="round"/>
+  <path d="M134,282 Q132,386 190,414" fill="none" stroke="#fdf0c2" stroke-width="7" opacity=".5"/>
+</g></svg>

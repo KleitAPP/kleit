@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" role="img" aria-label="Fluffy gel pen"><title>Fluffy gel pen</title><defs><filter id="blurS4" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter><filter id="blurS8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter><filter id="blurS14" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="14"/></filter><filter id="blurS22" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="22"/></filter><filter id="blurS34" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="34"/></filter><filter id="cF" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="16" stdDeviation="13" flood-color="#241c26" flood-opacity="0.26"/></filter><filter id="fz" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="17" result="t"/>
+  <feDisplacementMap in="SourceGraphic" in2="t" scale="30" xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feGaussianBlur in="d" stdDeviation="1.4"/>
+</filter><filter id="plF" x="-28%" y="-28%" width="156%" height="156%"
+      color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="hmap"/>
+  <feSpecularLighting in="hmap" surfaceScale="5" specularConstant="0.85"
+      specularExponent="20" lighting-color="#ffffff" result="spec">
+    <feDistantLight azimuth="228" elevation="58"/>
+  </feSpecularLighting>
+  <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+  <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic"
+      k1="0" k2="1.0" k3="1.0" k4="0" result="lit"/>
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="aob"/>
+  <feOffset in="aob" dx="0" dy="2.5" result="aoo"/>
+  <feComposite in="aoo" in2="SourceAlpha" operator="out" result="aoRing"/>
+  <feFlood flood-color="#000000" flood-opacity="0.26" result="aoCol"/>
+  <feComposite in="aoCol" in2="aoRing" operator="in" result="aoMask"/>
+  <feComposite in="aoMask" in2="lit" operator="over" result="shaded"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="54" result="n"/>
+  <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
+  <feComponentTransfer in="ng" result="ngr">
+    <feFuncA type="linear" slope="0.05" intercept="-0.0250"/>
+  </feComponentTransfer>
+  <feComposite in="ngr" in2="SourceAlpha" operator="in" result="grainIn"/>
+  <feBlend in="grainIn" in2="shaded" mode="overlay"/>
+</filter>
+ <linearGradient id="pen" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#ffe6f4" stop-opacity=".9"/>
+  <stop offset="26%" stop-color="#ff9ed4" stop-opacity=".85"/>
+  <stop offset="58%" stop-color="#ef5fb0" stop-opacity=".9"/>
+  <stop offset="86%" stop-color="#ffffff" stop-opacity=".6"/>
+  <stop offset="100%" stop-color="#c33f88" stop-opacity=".9"/></linearGradient>
+ <radialGradient id="puff" cx="38%" cy="30%" r="72%">
+  <stop offset="0%" stop-color="#fff2f9"/><stop offset="55%" stop-color="#ffc2e2"/>
+  <stop offset="100%" stop-color="#ef8dc2"/></radialGradient></defs>
+<g filter="url(#cF)">
+  <g filter="url(#plF)">
+    <path d="M168,270 L252,270 L248,520 Q246,552 210,552 Q174,552 172,520 Z" fill="url(#pen)"/>
+    <path d="M172,520 Q210,600 248,520" fill="url(#pen)"/>
+  </g>
+  <path d="M182,284 L178,520" stroke="#ffffff" stroke-width="12" opacity=".5" filter="url(#blurS4)"/>
+  <path d="M240,286 L238,512" stroke="#ffffff" stroke-width="5" opacity=".22" filter="url(#blurS4)"/>
+  <path d="M196,556 L224,556 L214,594 L206,594 Z" fill="#4a5560"/>
+  <rect x="164" y="262" width="92" height="20" rx="8" fill="#e6ecf3" opacity=".9"/>
+  <g filter="url(#fz)">
+    <circle cx="210" cy="164" r="98" fill="url(#puff)"/>
+    <circle cx="164" cy="196" r="62" fill="url(#puff)"/>
+    <circle cx="258" cy="192" r="66" fill="url(#puff)"/>
+    <circle cx="210" cy="230" r="58" fill="url(#puff)"/>
+  </g>
+  <ellipse cx="176" cy="122" rx="40" ry="26" fill="#ffffff" opacity=".5" transform="rotate(-28 176 122)" filter="url(#blurS14)"/>
+</g></svg>

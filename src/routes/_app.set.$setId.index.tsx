@@ -17,6 +17,7 @@ import { inkFor } from "@/sets/swatches";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
+import { TemplateDressing } from "@/templates/TemplateDressing";
 
 /**
  * S48 — the set page, signed in, and S49 — its options (design pack §2.3, W13; spec 5, 7).
@@ -189,6 +190,7 @@ function SetPage() {
           }}
           aria-label={t("builder.canvas")}
         >
+          {template ? <TemplateDressing layout={template.layout} layer="under" /> : null}
           {(template?.layout.slots ?? []).map((slot, i) => {
             const placed = placements.find((p) => p.slot === i);
             if (!placed) return null;
@@ -220,6 +222,7 @@ function SetPage() {
               </Link>
             );
           })}
+          {template ? <TemplateDressing layout={template.layout} layer="over" /> : null}
         </div>
       )}
 

@@ -18,6 +18,7 @@ import {
   refreshPreview,
 } from "@/sets/sets";
 import { SWATCHES, inkFor } from "@/sets/swatches";
+import { TemplateDressing } from "@/templates/TemplateDressing";
 import { myDrawer } from "@/items/items";
 import { t } from "@/i18n/en";
 
@@ -202,6 +203,7 @@ function QuickBuilder() {
         }}
         aria-label={t("builder.canvas")}
       >
+        {template ? <TemplateDressing layout={template.layout} layer="under" /> : null}
         {slots.map((slot, i) => {
           const placed = placements.find((p) => p.slot === i);
           const url = placed ? images[placed.item.id] : null;
@@ -253,6 +255,7 @@ function QuickBuilder() {
             </button>
           );
         })}
+        {template ? <TemplateDressing layout={template.layout} layer="over" /> : null}
       </div>
 
       {/* Swatches: fixed colours, written into the set. */}

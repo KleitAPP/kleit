@@ -191,8 +191,15 @@ Deno.serve(async (request) => {
     !creative && set.layout?.template
       ? await server.from("templates").select("layout").eq("id", set.layout.template).maybeSingle()
       : { data: null };
-  const tpl =
-    (template?.layout as { canvas?: { w: number; h: number }; slots?: Slot[] } | null) ?? null;
+  type TplLayout = {
+    canvas?: { w: number; h: number };
+    slots?: Slot[];
+    backgroundAsset?: string | null;
+    order?: string[];
+    texts?: Record<string, Position & { kind: "text"; text: TextStyle }>;
+    decor?: Record<string, Position & { kind: "asset"; asset: string; colour?: string }>;
+  };
+  const tpl = (template?.layout as TplLayout | null) ?? null;
   const canvasW = creative ? set.layout!.canvas!.w : (tpl?.canvas?.w ?? 1080);
   const canvasH = creative ? set.layout!.canvas!.h : (tpl?.canvas?.h ?? 1350);
   const slots = tpl?.slots ?? [];
@@ -205,8 +212,9 @@ Deno.serve(async (request) => {
   const offY = Math.round((SIDE - drawnH) / 2);
   const picture = new Image(SIDE, SIDE).fill(colour(set.layout?.background));
   // A library background picture over the colour, covering the canvas the way the page does.
-  const bgEntry =
-    creative && set.layout?.backgroundAsset ? LIB.backgrounds[set.layout.backgroundAsset] : null;
+  // A Creative set's own background picture, or the one its template carries (M4.5).
+  const bgId = creative ? set.layout?.backgroundAsset : tpl?.backgroundAsset;
+  const bgEntry = bgId ? LIB.backgrounds[bgId] : null;
   if (bgEntry) {
     const bg = await libraryImage(bgEntry[0]);
     if (bg) {
@@ -285,6 +293,33 @@ Deno.serve(async (request) => {
       if (p.slot === null) continue;
       const slot = slots[p.slot];
       if (slot) places.push({ piece: p, box: slot, pos: null });
+    }
+    // The template's own decorations and words, over the pieces, in its saved order (M4.5).
+    const texts = tpl?.texts ?? {};
+    const decor = tpl?.decor ?? {};
+    for (const id of tpl?.order ?? []) {
+      const d = decor[id];
+      const text = texts[id];
+      if (d && !d.hidden && LIB.assets[d.asset])
+        places.push({
+          piece: null,
+          decor: LIB.assets[d.asset]![0],
+          ...(d.colour ? { colour: d.colour } : {}),
+          box: { x: d.x / canvasW, y: d.y / canvasH, w: d.w / canvasW, h: d.h / canvasH },
+          pos: d,
+        });
+      else if (text && !text.hidden)
+        places.push({
+          piece: null,
+          text,
+          box: {
+            x: text.x / canvasW,
+            y: text.y / canvasH,
+            w: text.w / canvasW,
+            h: text.h / canvasH,
+          },
+          pos: text,
+        });
     }
   }
 

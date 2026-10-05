@@ -14,6 +14,8 @@
  * be its owner's.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { TemplateLayoutV2 } from "@/canvas/doc";
+import { allTemplates } from "@/templates/templates";
 import { type ItemSummary } from "@/items/items";
 
 export type QuickLayout = {
@@ -29,7 +31,9 @@ export type Template = {
   id: string;
   name: string;
   kind: "slot" | "stacked";
-  layout: { canvas: { w: number; h: number }; slots: TemplateSlot[] };
+  /** Kleit's, yours, or another person's published one (M4.5). */
+  by: "kleit" | "me" | "other";
+  layout: Partial<TemplateLayoutV2> & { canvas: { w: number; h: number }; slots: TemplateSlot[] };
 };
 
 export type SetSummary = {
@@ -49,14 +53,18 @@ export type Placement = { slot: number; item: ItemSummary };
 const ITEM_FIELDS =
   "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
 
-/** The templates we ship, in the order the row shows them. */
+/** The templates the builder offers: Kleit's first, then yours, then published ones (M4.5). */
 export async function templates(): Promise<Template[]> {
-  const { data } = await supabase
-    .from("templates")
-    .select("id, name, kind, layout")
-    .is("owner_id", null)
-    .order("sort_order");
-  return (data ?? []) as unknown as Template[];
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id ?? null;
+  const rows = await allTemplates();
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    kind: r.kind,
+    by: r.owner_id === null ? "kleit" : r.owner_id === me ? "me" : "other",
+    layout: r.layout as Template["layout"],
+  }));
 }
 
 /** A new draft, on the 4-piece template (spec 5.1 #1). Returns its id. */

@@ -357,6 +357,24 @@ export type Database = {
           },
         ]
       }
+      follow_requests: {
+        Row: {
+          created_at: string
+          requester_id: string
+          target_id: string
+        }
+        Insert: {
+          created_at?: string
+          requester_id: string
+          target_id: string
+        }
+        Update: {
+          created_at?: string
+          requester_id?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -1147,6 +1165,11 @@ export type Database = {
           p_voter_id: string
         }
         Returns: Json
+      }
+      approve_follow_request: { Args: { p_requester: string }; Returns: boolean }
+      follow_counts: {
+        Args: { p_user: string }
+        Returns: { followers: number; following: number }[]
       }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }

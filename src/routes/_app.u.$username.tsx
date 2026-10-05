@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
+import { FollowButton } from "@/social/FollowButton";
 
 /**
  * S13 — Someone else's profile (design pack §2.1).
@@ -19,22 +20,25 @@ export const Route = createFileRoute("/_app/u/$username")({
   component: SomeonesProfile,
 });
 
-type Them = { username: string; display_name: string; is_private: boolean };
+type Them = { user_id: string; username: string; display_name: string; is_private: boolean };
 
 function SomeonesProfile() {
   const { username } = Route.useParams();
   const [them, setThem] = useState<Them | null>(null);
   const [looked, setLooked] = useState(false);
+  const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("username, display_name, is_private")
+        .select("user_id, username, display_name, is_private")
         .eq("username", username.toLowerCase())
         .maybeSingle();
+      const { data: who } = await supabase.auth.getUser();
       if (cancelled) return;
+      setMe(who.user?.id ?? null);
       setThem(data ?? null);
       setLooked(true);
     })();
@@ -67,7 +71,7 @@ function SomeonesProfile() {
         </div>
       </div>
 
-      <p className="mt-4 text-sm text-ink-soft">{t("profile.followLater")}</p>
+      <FollowButton them={them} me={me} />
 
       {them.is_private ? (
         <EmptyState line={t("profile.isPrivate", { name: them.username })} />

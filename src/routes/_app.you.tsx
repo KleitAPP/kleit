@@ -134,6 +134,12 @@ function YourProfile() {
           {t("profile.folders")}
         </Link>
         <Link
+          to="/you/people"
+          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("profile.people")}
+        </Link>
+        <Link
           to="/you/templates"
           className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
         >

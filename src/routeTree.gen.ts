@@ -42,6 +42,7 @@ import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collec
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouFontsRouteImport } from './routes/_app.you_.fonts'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
+import { Route as AppYouTemplatesRouteImport } from './routes/_app.you_.templates'
 import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
 import { Route as AppPollPollIdEditRouteImport } from './routes/_app.poll.$pollId.edit'
 import { Route as AppSetSetIdIndexRouteImport } from './routes/_app.set.$setId.index'
@@ -49,6 +50,7 @@ import { Route as AppSetSetIdCanvasRouteImport } from './routes/_app.set.$setId.
 import { Route as AppSetSetIdEditRouteImport } from './routes/_app.set.$setId.edit'
 import { Route as AppSetSetIdHistoryRouteImport } from './routes/_app.set.$setId.history'
 import { Route as AppSetSetIdSendRouteImport } from './routes/_app.set.$setId.send'
+import { Route as AppTemplateTemplateIdEditRouteImport } from './routes/_app.template.$templateId.edit'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -215,6 +217,11 @@ const AppYouItemsRoute = AppYouItemsRouteImport.update({
   path: '/you/items',
   getParentRoute: () => AppRoute,
 } as any)
+const AppYouTemplatesRoute = AppYouTemplatesRouteImport.update({
+  id: '/you_/templates',
+  path: '/you/templates',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPollPollIdIndexRoute = AppPollPollIdIndexRouteImport.update({
   id: '/poll/$pollId/',
   path: '/poll/$pollId/',
@@ -250,6 +257,12 @@ const AppSetSetIdSendRoute = AppSetSetIdSendRouteImport.update({
   path: '/set/$setId/send',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTemplateTemplateIdEditRoute =
+  AppTemplateTemplateIdEditRouteImport.update({
+    id: '/template/$templateId/edit',
+    path: '/template/$templateId/edit',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -284,11 +297,13 @@ export interface FileRoutesByFullPath {
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
+  '/you/templates': typeof AppYouTemplatesRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/template/$templateId/edit': typeof AppTemplateTemplateIdEditRoute
   '/poll/$pollId/': typeof AppPollPollIdIndexRoute
   '/set/$setId/': typeof AppSetSetIdIndexRoute
 }
@@ -325,11 +340,13 @@ export interface FileRoutesByTo {
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
+  '/you/templates': typeof AppYouTemplatesRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/template/$templateId/edit': typeof AppTemplateTemplateIdEditRoute
   '/poll/$pollId': typeof AppPollPollIdIndexRoute
   '/set/$setId': typeof AppSetSetIdIndexRoute
 }
@@ -368,11 +385,13 @@ export interface FileRoutesById {
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/fonts': typeof AppYouFontsRoute
   '/_app/you_/items': typeof AppYouItemsRoute
+  '/_app/you_/templates': typeof AppYouTemplatesRoute
   '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/_app/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
   '/_app/set/$setId/edit': typeof AppSetSetIdEditRoute
   '/_app/set/$setId/history': typeof AppSetSetIdHistoryRoute
   '/_app/set/$setId/send': typeof AppSetSetIdSendRoute
+  '/_app/template/$templateId/edit': typeof AppTemplateTemplateIdEditRoute
   '/_app/poll/$pollId/': typeof AppPollPollIdIndexRoute
   '/_app/set/$setId/': typeof AppSetSetIdIndexRoute
 }
@@ -411,11 +430,13 @@ export interface FileRouteTypes {
     | '/you/drawer'
     | '/you/fonts'
     | '/you/items'
+    | '/you/templates'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
+    | '/template/$templateId/edit'
     | '/poll/$pollId/'
     | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
@@ -452,11 +473,13 @@ export interface FileRouteTypes {
     | '/you/drawer'
     | '/you/fonts'
     | '/you/items'
+    | '/you/templates'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
     | '/set/$setId/edit'
     | '/set/$setId/history'
     | '/set/$setId/send'
+    | '/template/$templateId/edit'
     | '/poll/$pollId'
     | '/set/$setId'
   id:
@@ -494,11 +517,13 @@ export interface FileRouteTypes {
     | '/_app/you_/drawer'
     | '/_app/you_/fonts'
     | '/_app/you_/items'
+    | '/_app/you_/templates'
     | '/_app/poll/$pollId/edit'
     | '/_app/set/$setId/canvas'
     | '/_app/set/$setId/edit'
     | '/_app/set/$setId/history'
     | '/_app/set/$setId/send'
+    | '/_app/template/$templateId/edit'
     | '/_app/poll/$pollId/'
     | '/_app/set/$setId/'
   fileRoutesById: FileRoutesById
@@ -750,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouItemsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/you_/templates': {
+      id: '/_app/you_/templates'
+      path: '/you/templates'
+      fullPath: '/you/templates'
+      preLoaderRoute: typeof AppYouTemplatesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/poll/$pollId/': {
       id: '/_app/poll/$pollId/'
       path: '/poll/$pollId'
@@ -799,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSetSetIdSendRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/template/$templateId/edit': {
+      id: '/_app/template/$templateId/edit'
+      path: '/template/$templateId/edit'
+      fullPath: '/template/$templateId/edit'
+      preLoaderRoute: typeof AppTemplateTemplateIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -841,11 +880,13 @@ interface AppRouteChildren {
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouFontsRoute: typeof AppYouFontsRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
+  AppYouTemplatesRoute: typeof AppYouTemplatesRoute
   AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
   AppSetSetIdCanvasRoute: typeof AppSetSetIdCanvasRoute
   AppSetSetIdEditRoute: typeof AppSetSetIdEditRoute
   AppSetSetIdHistoryRoute: typeof AppSetSetIdHistoryRoute
   AppSetSetIdSendRoute: typeof AppSetSetIdSendRoute
+  AppTemplateTemplateIdEditRoute: typeof AppTemplateTemplateIdEditRoute
   AppPollPollIdIndexRoute: typeof AppPollPollIdIndexRoute
   AppSetSetIdIndexRoute: typeof AppSetSetIdIndexRoute
 }
@@ -867,11 +908,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouFontsRoute: AppYouFontsRoute,
   AppYouItemsRoute: AppYouItemsRoute,
+  AppYouTemplatesRoute: AppYouTemplatesRoute,
   AppPollPollIdEditRoute: AppPollPollIdEditRoute,
   AppSetSetIdCanvasRoute: AppSetSetIdCanvasRoute,
   AppSetSetIdEditRoute: AppSetSetIdEditRoute,
   AppSetSetIdHistoryRoute: AppSetSetIdHistoryRoute,
   AppSetSetIdSendRoute: AppSetSetIdSendRoute,
+  AppTemplateTemplateIdEditRoute: AppTemplateTemplateIdEditRoute,
   AppPollPollIdIndexRoute: AppPollPollIdIndexRoute,
   AppSetSetIdIndexRoute: AppSetSetIdIndexRoute,
 }

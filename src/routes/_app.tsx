@@ -5,6 +5,7 @@ import { whereDoIBelong } from "@/auth/session";
 import { Sheet, TabBar, type TabId } from "@/components/kleit";
 import { createQuickDraft } from "@/sets/sets";
 import { createCreativeDraft } from "@/canvas/persist";
+import { createTemplate } from "@/templates/templates";
 import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 
@@ -100,6 +101,17 @@ function AppShell() {
               setCreating(false);
               void createCreativeDraft().then((id) => {
                 if (id) void navigate({ to: "/set/$setId/canvas", params: { setId: id } });
+              });
+            }}
+          />
+          <CreateChoice
+            title={t("template.new")}
+            why={t("template.newWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void createTemplate(t("template.new")).then((id) => {
+                if (id)
+                  void navigate({ to: "/template/$templateId/edit", params: { templateId: id } });
               });
             }}
           />

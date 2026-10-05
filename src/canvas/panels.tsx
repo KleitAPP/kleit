@@ -43,6 +43,9 @@ export function layerName(
   index: number,
   decorNames: Record<string, string> = {},
 ): string {
+  if (layer.kind === "slot") {
+    return t("layers.name", { n: index + 1, name: t("template.slotName") });
+  }
   if (layer.kind === "asset" && layer.asset)
     return t("layers.name", { n: index + 1, name: decorNames[layer.asset] ?? t("library.title") });
   if (layer.kind === "text" && layer.text)

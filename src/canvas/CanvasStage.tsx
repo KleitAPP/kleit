@@ -1,12 +1,22 @@
 import type Konva from "konva";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { Image as KImage, Layer, Line, Rect, Stage, Text as KText, Transformer } from "react-konva";
+import {
+  Group,
+  Image as KImage,
+  Layer,
+  Line,
+  Rect,
+  Stage,
+  Text as KText,
+  Transformer,
+} from "react-konva";
 
 import { guidesFor, snap, type Doc, type Layer as DocLayer } from "@/canvas/doc";
 
 /** The stage's own marks - guides and the selection - are editor UI, fixed like the set's own colours. */
 export const GUIDE = "#d9552b";
 export const CROP_SCRIM = "rgba(0,0,0,0.45)";
+export const SLOT_FILL = "rgba(217,85,43,0.12)";
 
 export type Images = Record<string, HTMLImageElement | null>;
 
@@ -352,6 +362,45 @@ export function CanvasStage({
           onPointerDown={(e) => pointerDown(layer.id, e)}
           onTransformEnd={() => transformEnd(layer.id)}
         />
+      );
+    }
+    if (layer.kind === "slot") {
+      // A template's empty slot: a dashed box with its number - editor marks, not artwork.
+      const n = doc.order.filter((id) => doc.layers[id]?.kind === "slot").indexOf(layer.id) + 1;
+      return (
+        <Group
+          key={ghost ? `ghost-${layer.id}` : layer.id}
+          ref={
+            ghost
+              ? undefined
+              : (g) => void (nodes.current[layer.id] = g as unknown as Konva.Image | null)
+          }
+          {...common}
+          visible={ghost || drag?.id !== layer.id}
+          listening={!ghost && !layer.locked}
+          onPointerDown={(e) => pointerDown(layer.id, e)}
+          onTransformEnd={() => transformEnd(layer.id)}
+        >
+          <Rect
+            width={layer.w}
+            height={layer.h}
+            fill={SLOT_FILL}
+            stroke={GUIDE}
+            strokeWidth={4}
+            dash={[18, 12]}
+            perfectDrawEnabled={false}
+          />
+          <KText
+            text={String(n)}
+            width={layer.w}
+            height={layer.h}
+            align="center"
+            verticalAlign="middle"
+            fontSize={Math.max(48, Math.min(layer.w, layer.h) / 3)}
+            fill={GUIDE}
+            listening={false}
+          />
+        </Group>
       );
     }
     if (!img) {

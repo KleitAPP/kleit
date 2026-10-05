@@ -43,8 +43,8 @@ export type Layer = {
   id: string;
   /** Empty for a text or decoration layer. */
   itemId: string;
-  /** A clipped piece, words, or a decoration from the library (M4.4). */
-  kind: "item" | "text" | "asset";
+  /** A clipped piece, words, a decoration from the library (M4.4), or a template's empty slot (M4.5). */
+  kind: "item" | "text" | "asset" | "slot";
   text?: TextStyle;
   /** The library catalogue id of a decoration (`src/library/catalogue.json`). */
   asset?: string;
@@ -88,6 +88,58 @@ export type LayoutV2 = {
   /** Decoration layers too: they are the library's pictures, not the user's pieces. */
   decor?: Record<string, Layer>;
 };
+
+/**
+ * A template (M4.5; spec 6.4): the quick builder fills its slots in order; its background,
+ * decorations and words come along as the set's own. Slots are fractions of the canvas so the
+ * same template fits any shape the builder shows it at - the shape the quick builder and the
+ * share page already read (`layout.slots`).
+ */
+export type TemplateLayoutV2 = {
+  version: 2;
+  canvas: CanvasSize;
+  background: string;
+  backgroundAsset?: string | null;
+  slots: Array<{ x: number; y: number; w: number; h: number }>;
+  order: string[];
+  texts?: Record<string, Layer>;
+  decor?: Record<string, Layer>;
+};
+
+export function templateLayoutOf(doc: Doc): TemplateLayoutV2 {
+  const base = layoutOf(doc);
+  const slots = doc.order
+    .map((id) => doc.layers[id])
+    .filter((l): l is Layer => !!l && l.kind === "slot" && !l.hidden)
+    .map((l) => ({
+      x: round4(l.x / doc.canvas.w),
+      y: round4(l.y / doc.canvas.h),
+      w: round4(l.w / doc.canvas.w),
+      h: round4(l.h / doc.canvas.h),
+    }));
+  return {
+    version: 2,
+    canvas: base.canvas,
+    background: base.background,
+    backgroundAsset: base.backgroundAsset ?? null,
+    slots,
+    order: base.order,
+    texts: base.texts ?? {},
+    decor: base.decor ?? {},
+  };
+}
+
+function round4(n: number): number {
+  return Math.round(n * 10000) / 10000;
+}
+
+/** A slot placeholder (M4.5): an empty box, 40% of the canvas wide, for a piece to fill later. */
+export function addSlotLayer(doc: Doc, id: string): AddResult {
+  const added = addLayer(doc, id, "", { w: doc.canvas.w * 0.4, h: doc.canvas.w * 0.4 });
+  if (!added.ok) return added;
+  const layer: Layer = { ...added.doc.layers[id]!, kind: "slot" };
+  return { ...added, doc: { ...added.doc, layers: { ...added.doc.layers, [id]: layer } } };
+}
 
 export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text" | "asset" | "colour">;
 

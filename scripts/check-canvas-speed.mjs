@@ -32,7 +32,7 @@ try {
           r.passes.drag && r.passes.firstRender && r.passes.drawer && r.passes.heap !== false;
         if (!ok) failed += 1;
         console.log(
-          `${ok ? "ok" : "not ok"} - ${count} ${kind} @${pixelRatio}: drag ${r.dragMedianMs}/${r.dragP95Ms} ms, first render ${r.firstRenderMs} ms, heap ${r.heapMb ?? "?"} MB, drawer ${r.drawerFirstPaintMs} ms`,
+          `${ok ? "ok" : "not ok"} - ${count} ${kind} @${pixelRatio}: drag lifted ${r.liftedMedianMs}/${r.liftedP95Ms} ms (whole layer ${r.dragMedianMs}/${r.dragP95Ms}), first render ${r.firstRenderMs} ms, heap ${r.heapMb ?? "?"} MB, drawer ${r.drawerFirstPaintMs} ms`,
         );
       }
     }

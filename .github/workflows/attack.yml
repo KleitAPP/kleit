@@ -1,0 +1,60 @@
+# Kleit — the attacks a signed-in stranger can try, run on every deploy (WA11, L23).
+# Two throwaway accounts on kleit-test; sessions minted the way the code screen mints them.
+# Reads, writes, spoofs, votes and bursts against a victim's things; every check is an attempt
+# that must fail. See tests/e2e/attack.mjs.
+name: attack
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly as well, so a quiet week cannot hide a regression. Wednesdays, 07:23 UTC.
+    - cron: "23 7 * * 3"
+  workflow_run:
+    workflows: [app]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: attack
+  cancel-in-progress: false
+
+env:
+  SUPABASE_PROJECT_REF: zoimaafxtweeoqnmrbkh
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  KLEIT_TEST_SITE: https://kleit-test.kleitapp-team.workers.dev
+
+jobs:
+  core-loop:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The one library
+        run: npm install --no-save @supabase/supabase-js@2
+      # Workers Builds deploys a push in about a minute; give it a moment so the run drives the
+      # bundle the app workflow just checked, not the one before it.
+      - name: Wait for the deploy
+        if: ${{ github.event_name == 'workflow_run' }}
+        run: sleep 90
+      - name: Run the loop
+        run: |
+          set -o pipefail
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          ANON="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "anon") | .api_key')"
+          SUPABASE_URL="https://$SUPABASE_PROJECT_REF.supabase.co" SUPABASE_ANON_KEY="$ANON" SUPABASE_SERVICE_KEY="$KEY" \
+            node tests/e2e/attack.mjs | tee attack.txt
+          echo '### Attack' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"; cat attack.txt >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"

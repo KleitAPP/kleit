@@ -17,6 +17,7 @@ import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppYouRouteImport } from './routes/_app.you'
+import { Route as DevCanvasSpeedRouteImport } from './routes/dev.canvas-speed'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
 import { Route as JoinIndexRouteImport } from './routes/join.index'
@@ -84,6 +85,11 @@ const AppYouRoute = AppYouRouteImport.update({
   id: '/you',
   path: '/you',
   getParentRoute: () => AppRoute,
+} as any)
+const DevCanvasSpeedRoute = DevCanvasSpeedRouteImport.update({
+  id: '/dev/canvas-speed',
+  path: '/dev/canvas-speed',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DevComponentsRoute = DevComponentsRouteImport.update({
   id: '/dev/components',
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
+  '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
@@ -271,6 +278,7 @@ export interface FileRoutesByTo {
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
+  '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/you': typeof AppYouRoute
+  '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/join/code': typeof JoinCodeRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/you'
+    | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/you'
+    | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/_app/search'
     | '/_app/settings'
     | '/_app/you'
+    | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
     | '/join/code'
@@ -459,6 +471,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
+  DevCanvasSpeedRoute: typeof DevCanvasSpeedRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DevScreensRoute: typeof DevScreensRoute
   JoinCodeRoute: typeof JoinCodeRoute
@@ -525,6 +538,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/you'
       preLoaderRoute: typeof AppYouRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/dev/canvas-speed': {
+      id: '/dev/canvas-speed'
+      path: '/dev/canvas-speed'
+      fullPath: '/dev/canvas-speed'
+      preLoaderRoute: typeof DevCanvasSpeedRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dev/components': {
       id: '/dev/components'
@@ -799,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,
+  DevCanvasSpeedRoute: DevCanvasSpeedRoute,
   DevComponentsRoute: DevComponentsRoute,
   DevScreensRoute: DevScreensRoute,
   JoinCodeRoute: JoinCodeRoute,

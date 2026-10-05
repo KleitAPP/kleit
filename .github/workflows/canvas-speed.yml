@@ -1,0 +1,43 @@
+# Kleit — the M4.1 canvas speed test, driven on a desktop as the baseline (artwork pack §7.6).
+# The gate is the same page on the older Android, by hand; this run keeps the page working
+# and shows whether a change made the canvas slower where it is easiest to measure.
+name: canvas-speed
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/canvas/**"
+      - "src/routes/dev.canvas-speed.tsx"
+      - "scripts/check-canvas-speed.mjs"
+      - ".github/workflows/canvas-speed.yml"
+
+permissions:
+  contents: read
+
+env:
+  KLEIT_TEST_SITE: https://kleit-test.kleitapp-team.workers.dev
+
+jobs:
+  speed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Browser
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Wait for the deploy
+        if: ${{ github.event_name == 'push' }}
+        run: sleep 120
+      - name: Measure
+        run: |
+          set -o pipefail
+          node scripts/check-canvas-speed.mjs | tee speed.txt
+          echo '### Canvas speed (desktop baseline)' >> "$GITHUB_STEP_SUMMARY"
+          grep '^|' speed.txt >> "$GITHUB_STEP_SUMMARY"

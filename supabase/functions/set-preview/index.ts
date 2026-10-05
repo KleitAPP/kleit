@@ -19,7 +19,35 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, Image, type Frame } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
-import { drawText, fontBytes, type TextStyle } from "../_shared/text-draw.ts";
+// deno-lint-ignore-file no-explicit-any
+import decodeWebp from "npm:@jsquash/webp@1.5.0/decode.js";
+
+import { drawText, fontBytes, SITE_URL, type TextStyle } from "../_shared/text-draw.ts";
+// Catalogue id → [file, title] for the decoration library (written by scripts/build-library.mjs).
+import LIBRARY from "../_shared/library-files.json" with { type: "json" };
+
+const LIB = LIBRARY as unknown as {
+  assets: Record<string, [string, string]>;
+  backgrounds: Record<string, [string, string]>;
+};
+
+/** A library picture from the site's own /library/ folder, decoded (they are WebP, which imagescript cannot read). */
+async function libraryImage(file: string): Promise<Image | null> {
+  try {
+    const r = await fetch(`${SITE_URL}/library/${file}`);
+    if (!r.ok) return null;
+    const raw = (await decodeWebp(await r.arrayBuffer())) as {
+      width: number;
+      height: number;
+      data: Uint8ClampedArray;
+    };
+    const img = new Image(raw.width, raw.height);
+    img.bitmap.set(raw.data);
+    return img;
+  } catch {
+    return null;
+  }
+}
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +85,8 @@ type Shared = {
     canvas?: { w: number; h: number };
     order?: string[];
     texts?: Record<string, Position & { kind: "text"; text: TextStyle }>;
+    decor?: Record<string, Position & { kind: "asset"; asset: string }>;
+    backgroundAsset?: string | null;
   } | null;
   pieces: Piece[];
 };
@@ -150,11 +180,29 @@ Deno.serve(async (request) => {
   const offX = Math.round((SIDE - drawnW) / 2);
   const offY = Math.round((SIDE - drawnH) / 2);
   const picture = new Image(SIDE, SIDE).fill(colour(set.layout?.background));
+  // A library background picture over the colour, covering the canvas the way the page does.
+  const bgEntry =
+    creative && set.layout?.backgroundAsset ? LIB.backgrounds[set.layout.backgroundAsset] : null;
+  if (bgEntry) {
+    const bg = await libraryImage(bgEntry[0]);
+    if (bg) {
+      const k = Math.max(drawnW / bg.width, drawnH / bg.height);
+      bg.resize(Math.max(1, Math.round(bg.width * k)), Math.max(1, Math.round(bg.height * k)));
+      bg.crop(
+        Math.round((bg.width - drawnW) / 2),
+        Math.round((bg.height - drawnH) / 2),
+        drawnW,
+        drawnH,
+      );
+      picture.composite(bg, offX, offY);
+    }
+  }
 
   // Which pieces, where: a template's slots, or a Creative set's own positions in its own order.
   type Place = {
     piece: Piece | null;
     text?: Position & { kind: "text"; text: TextStyle };
+    decor?: string;
     box: { x: number; y: number; w: number; h: number };
     pos: Position | null;
   };
@@ -162,9 +210,21 @@ Deno.serve(async (request) => {
   if (creative) {
     const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
     const texts = set.layout!.texts ?? {};
-    const order = (set.layout!.order ?? []).filter((id) => byRow.has(id) || texts[id]);
+    const decor = set.layout!.decor ?? {};
+    const order = (set.layout!.order ?? []).filter((id) => byRow.has(id) || texts[id] || decor[id]);
     for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
     for (const id of order) {
+      const d = decor[id];
+      if (d) {
+        if (!d.hidden && LIB.assets[d.asset])
+          places.push({
+            piece: null,
+            decor: LIB.assets[d.asset]![0],
+            box: { x: d.x / canvasW, y: d.y / canvasH, w: d.w / canvasW, h: d.h / canvasH },
+            pos: d,
+          });
+        continue;
+      }
       const text = texts[id];
       if (text) {
         if (!text.hidden)
@@ -202,7 +262,7 @@ Deno.serve(async (request) => {
     }
   }
 
-  for (const { piece, text, box, pos } of places) {
+  for (const { piece, text, decor, box, pos } of places) {
     let art: Image;
     if (text) {
       // Words, drawn at the canvas's own scale and then scaled with everything else.
@@ -221,27 +281,34 @@ Deno.serve(async (request) => {
       art.resize(drawnBoxW, Math.max(1, Math.round(art.height * scale)));
       if (pos?.flipX) art.flip("horizontal");
       if (pos?.flipY) art.flip("vertical");
-      if (pos?.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity, true);
+      if (pos?.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity);
       const cx = offX + Math.round(box.x * drawnW + drawnBoxW / 2);
       const cy = offY + Math.round(box.y * drawnH + art.height / 2);
       if (pos?.rotation) art.rotate(pos.rotation, true);
       picture.composite(art, cx - Math.round(art.width / 2), cy - Math.round(art.height / 2));
       continue;
     }
-    if (!piece || !piece.pictured) continue;
-    const { data: item } = await server
-      .from("items")
-      .select("image_id, image_bucket")
-      .eq("id", piece.id)
-      .maybeSingle();
-    if (!item?.image_id) continue;
-    const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
-    const { data: file } = await server.storage.from(bucket).download(item.image_id);
-    if (!file) continue;
-    try {
-      art = still(await decode(new Uint8Array(await file.arrayBuffer())));
-    } catch {
-      continue;
+    if (decor) {
+      // A decoration from the library: the same file the page shows.
+      const img = await libraryImage(decor);
+      if (!img) continue;
+      art = img;
+    } else {
+      if (!piece || !piece.pictured) continue;
+      const { data: item } = await server
+        .from("items")
+        .select("image_id, image_bucket")
+        .eq("id", piece.id)
+        .maybeSingle();
+      if (!item?.image_id) continue;
+      const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
+      const { data: file } = await server.storage.from(bucket).download(item.image_id);
+      if (!file) continue;
+      try {
+        art = still(await decode(new Uint8Array(await file.arrayBuffer())));
+      } catch {
+        continue;
+      }
     }
     const boxW = Math.max(1, Math.round(box.w * drawnW));
     const boxH = Math.max(1, Math.round(box.h * drawnH));
@@ -257,7 +324,7 @@ Deno.serve(async (request) => {
       art.resize(boxW, boxH);
       if (pos.flipX) art.flip("horizontal");
       if (pos.flipY) art.flip("vertical");
-      if (pos.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity, true);
+      if (pos.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity);
       const cx = offX + Math.round(box.x * drawnW + boxW / 2);
       const cy = offY + Math.round(box.y * drawnH + boxH / 2);
       if (pos.rotation) art.rotate(pos.rotation, true);

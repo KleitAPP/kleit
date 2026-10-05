@@ -22,6 +22,12 @@ const ROOT = new URL("..", import.meta.url).pathname;
 const PUB = join(ROOT, "public/library");
 const REC = join(ROOT, "src/brand/assets/library");
 const OUT = join(ROOT, "src/library/catalogue.json");
+// A small id → [file, title] index for the share Worker and the chat-picture function, which
+// only need to find a picture, not describe a pack.
+const LITE = join(ROOT, "src/library/files.json");
+// The same index again where the Supabase function bundler can see it (it only follows imports
+// under supabase/functions/).
+const LITE_FN = join(ROOT, "supabase/functions/_shared/library-files.json");
 const check = process.argv.includes("--check");
 
 function csv(path) {
@@ -193,15 +199,28 @@ if (problems.length) {
   process.exit(1);
 }
 const json = JSON.stringify(catalogue, null, 1) + "\n";
+const lite =
+  JSON.stringify({
+    assets: Object.fromEntries(Object.entries(assets).map(([id, a]) => [id, [a.file, a.title]])),
+    backgrounds: Object.fromEntries(
+      Object.entries(backgrounds).map(([id, a]) => [id, [a.file, a.title]]),
+    ),
+  }) + "\n";
 if (check) {
   const current = existsSync(OUT) ? readFileSync(OUT, "utf8") : "";
-  if (current !== json) {
+  const currentLite = existsSync(LITE) ? readFileSync(LITE, "utf8") : "";
+  const currentFn = existsSync(LITE_FN) ? readFileSync(LITE_FN, "utf8") : "";
+  if (current !== json || currentLite !== lite || currentFn !== lite) {
     console.error(
-      "library check FAILED: src/library/catalogue.json is stale - run node scripts/build-library.mjs",
+      "library check FAILED: src/library/*.json is stale - run node scripts/build-library.mjs",
     );
     process.exit(1);
   }
-} else writeFileSync(OUT, json);
+} else {
+  writeFileSync(OUT, json);
+  writeFileSync(LITE, lite);
+  writeFileSync(LITE_FN, lite);
+}
 const n = Object.keys(assets).length;
 const cut = Object.values(assets).filter((a) => a.kind === "cutout").length;
 console.log(

@@ -19,6 +19,9 @@
 // sign-up card (decision 88). The vote itself goes to the `cast-vote` function, never to the
 // database; this page only draws.
 
+// The library index: catalogue id → [file, title], written by scripts/build-library.mjs.
+import LIBRARY from "../src/library/files.json";
+
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   SUPABASE_URL: string;
@@ -82,6 +85,13 @@ type TextLayer = Position & {
   };
 };
 
+type DecorLayer = Position & { kind: "asset"; asset: string };
+
+const LIB = LIBRARY as unknown as {
+  assets: Record<string, [string, string]>;
+  backgrounds: Record<string, [string, string]>;
+};
+
 type Piece = {
   id: string;
   row?: string;
@@ -108,6 +118,8 @@ type SharedSet = {
     canvas?: { w: number; h: number };
     order?: string[];
     texts?: Record<string, TextLayer>;
+    decor?: Record<string, DecorLayer>;
+    backgroundAsset?: string | null;
   } | null;
   visibility: "public" | "link";
   published_at: string | null;
@@ -301,11 +313,29 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
   const { w, h } = set.layout.canvas;
   const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
   const texts = set.layout.texts ?? {};
-  const order = (set.layout.order ?? []).filter((id) => byRow.has(id) || texts[id]);
+  const decor = set.layout.decor ?? {};
+  const order = (set.layout.order ?? []).filter((id) => byRow.has(id) || texts[id] || decor[id]);
   for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
   const fontsUsed = new Set<string>();
+  const bgEntry = set.layout.backgroundAsset ? LIB.backgrounds[set.layout.backgroundAsset] : null;
+  const bgPicture = bgEntry
+    ? `<img src="/library/${bgEntry[0]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`
+    : "";
   const layers = order
     .map((id) => {
+      const d = decor[id];
+      if (d) {
+        // A decoration from the library (M4.4): the same picture the app drew, from this site's
+        // own /library/ folder, with the museum's title as its alt text.
+        if (d.hidden) return "";
+        const entry = LIB.assets[d.asset];
+        if (!entry) return "";
+        const transform = `rotate(${d.rotation ?? 0}deg) scale(${d.flipX ? -1 : 1},${d.flipY ? -1 : 1})`;
+        const crop = d.crop
+          ? `;width:${100 / d.crop.w}%;height:${100 / d.crop.h}%;margin-left:${(-d.crop.x / d.crop.w) * 100}%;margin-top:${(-d.crop.y / d.crop.h) * 100}%;max-width:none`
+          : "";
+        return `<div style="position:absolute;left:${(d.x / w) * 100}%;top:${(d.y / h) * 100}%;width:${(d.w / w) * 100}%;height:${(d.h / h) * 100}%;transform:${transform};opacity:${d.opacity ?? 1};overflow:hidden"><img src="/library/${entry[0]}" alt="${esc(entry[1])}" loading="lazy" style="width:100%;height:100%;object-fit:fill${crop}"></div>`;
+      }
       const text = texts[id];
       if (text) {
         if (text.hidden) return "";
@@ -338,7 +368,7 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
     .filter((f) => /^[a-z0-9]+$/.test(f))
     .map((f) => `@font-face{font-family:kleit-${f};src:url(/fonts/${f}.ttf);font-display:swap}`)
     .join("");
-  return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${layers}</section>`;
+  return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${bgPicture}${layers}</section>`;
 }
 
 function notAvailable(status = 404): Response {

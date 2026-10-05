@@ -6,3 +6,6 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+src/library/catalogue.json
+src/library/files.json
+supabase/functions/_shared/library-files.json

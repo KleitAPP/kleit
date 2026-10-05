@@ -6,13 +6,22 @@ import type { Person } from "@/social/follows";
  * happened to you. Read, mark read, clear. Push arrives with the phone apps.
  */
 export type NotificationKind =
-  "vote" | "comment" | "like" | "follow" | "follow_request" | "message_request" | "message";
+  | "vote"
+  | "comment"
+  | "like"
+  | "follow"
+  | "follow_request"
+  | "message_request"
+  | "message"
+  | "group_invite"
+  | "ask_answer"
+  | "ask_chosen";
 
 export type Notification = {
   id: string;
   kind: NotificationKind;
   actor: Person | null;
-  ref_type: "set" | "poll" | "conversation" | "profile" | "group" | null;
+  ref_type: "set" | "poll" | "conversation" | "profile" | "group" | "ask" | null;
   ref_id: string | null;
   bundled_count: number;
   updated_at: string;

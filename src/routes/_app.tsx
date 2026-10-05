@@ -132,6 +132,14 @@ function AppShell() {
             }}
           />
           <CreateChoice
+            title={t("create.ask")}
+            why={t("create.askWhy")}
+            onChoose={() => {
+              setCreating(false);
+              void navigate({ to: "/asks" });
+            }}
+          />
+          <CreateChoice
             title={t("create.poll")}
             why={t("create.pollWhy")}
             onChoose={() => {

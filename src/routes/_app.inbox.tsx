@@ -115,6 +115,10 @@ function noteWords(n: Notification): string {
       return n.bundled_count > 1
         ? t("notify.likeMore", { name, count: n.bundled_count - 1 })
         : t("notify.like", { name });
+    case "ask_answer":
+      return n.bundled_count > 1
+        ? t("notify.ask_answerMore", { count: n.bundled_count })
+        : t("notify.ask_answer", { name });
     case "message":
       return n.bundled_count > 1
         ? t("notify.messageMore", { name, count: n.bundled_count })
@@ -152,6 +156,12 @@ function NoteRow({ n }: { n: Notification }) {
   else if (n.ref_type === "conversation" && n.ref_id)
     link = (
       <Link to="/inbox/$conversationId" params={{ conversationId: n.ref_id }} className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.ref_type === "ask" && n.ref_id)
+    link = (
+      <Link to="/asks/$askId" params={{ askId: n.ref_id }} className={cls}>
         {inner}
       </Link>
     );

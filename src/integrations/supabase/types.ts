@@ -722,6 +722,63 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_posts: {
+        Row: {
+          author_id: string
+          closed_at: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          question: string
+        }
+        Insert: {
+          author_id: string
+          closed_at?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          question: string
+        }
+        Update: {
+          author_id?: string
+          closed_at?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          question?: string
+        }
+        Relationships: []
+      }
+      ask_answers: {
+        Row: {
+          ask_id: string
+          author_id: string
+          body: string
+          chosen: boolean
+          created_at: string
+          id: string
+          set_id: string
+        }
+        Insert: {
+          ask_id: string
+          author_id: string
+          body?: string
+          chosen?: boolean
+          created_at?: string
+          id?: string
+          set_id: string
+        }
+        Update: {
+          ask_id?: string
+          author_id?: string
+          body?: string
+          chosen?: boolean
+          created_at?: string
+          id?: string
+          set_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null

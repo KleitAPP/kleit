@@ -33,7 +33,7 @@ select throws_ok($$ insert into comments (set_id, author_id, body) values ('9292
 select lives_ok($$ insert into likes (user_id, set_id) values ('acacacac-0000-4000-8000-000000000002', '92929292-0000-4000-8000-000000000001') $$, 'commenter: can like it');
 select throws_ok($$ insert into likes (user_id, set_id) values ('acacacac-0000-4000-8000-000000000002', '92929292-0000-4000-8000-000000000002') $$, '42501', null, 'commenter: cannot like what they cannot see');
 select lives_ok($$ insert into reactions (user_id, set_id, emoji) values ('acacacac-0000-4000-8000-000000000002', '92929292-0000-4000-8000-000000000001', '🔥') $$, 'commenter: can react');
-select throws_ok($$ insert into reactions (user_id, set_id, emoji) values ('acacacac-0000-4000-8000-000000000003', '92929292-0000-4000-8000-000000000001', '💩') $$, '23514', null, 'an unknown emoji is refused by the table itself');
+select throws_ok($$ insert into reactions (user_id, set_id, emoji) values ('acacacac-0000-4000-8000-000000000002', '92929292-0000-4000-8000-000000000002', '💩') $$, '23514', null, 'an unknown emoji is refused by the table itself (before any policy)');
 
 -- Editing: the author, inside 15 minutes; the words change and edited_at is stamped.
 update comments set body = 'love this (edited)' where id = '91919191-0000-4000-8000-000000000001';

@@ -174,7 +174,8 @@ function CanvasScreen() {
       if (!h) return h;
       const added = addLayer(h.present, rowId, item.id, size);
       if (!added.ok) return h;
-      // The row is already on the server; the saved baseline carries it so the diff does not write it twice.
+      // The row is already on the server, so the saved baseline carries its position (not its place in
+      // the order: that is the layout's, and the layout still has to be written).
       lastSaved.current = lastSaved.current
         ? {
             ...lastSaved.current,

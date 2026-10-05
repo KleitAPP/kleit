@@ -78,9 +78,9 @@ select ok(not pg_temp.sees('followers'), 'stranger · followers: no');
 select ok(not pg_temp.sees('friends'), 'stranger · friends: no');
 select ok(not pg_temp.sees('only_me'), 'stranger · only_me: no');
 select ok(not pg_temp.sees('draft'), 'stranger · draft: no');
-select is((select count(*) from set_by_share_code('codelink00000002')), 1::bigint, 'stranger · set_by_share_code opens a link set');
-select is((select count(*) from set_by_share_code('codeonlyme000005')), 0::bigint, 'stranger · set_by_share_code never opens an only_me set, code or not');
-select is((select count(*) from set_by_share_code('codedraft0000006')), 0::bigint, 'stranger · set_by_share_code never opens a draft');
+select is((shared_set('codelink00000002') is not null), true, 'stranger · set_by_share_code opens a link set (through shared_set; the raw function is internal since migration 024)');
+select is((shared_set('codeonlyme000005') is not null), false, 'stranger · set_by_share_code never opens an only_me set, code or not');
+select is((shared_set('codedraft0000006') is not null), false, 'stranger · set_by_share_code never opens a draft');
 select pg_temp.back();
 
 -- ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000005');
 select ok(not pg_temp.sees('public'), 'blocked · public: no');
 select ok(not pg_temp.sees('followers'), 'blocked · followers: no, although they follow');
 select ok(not can_view_set('55555555-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000005', 'codelink00000002'), 'blocked · link, even with the code: no');
-select is((select count(*) from set_by_share_code('codepublic000001')), 0::bigint, 'blocked · set_by_share_code: nothing');
+select is((shared_set('codepublic000001') is not null), false, 'blocked · set_by_share_code: nothing');
 select is((select count(*) from blocks), 0::bigint, 'blocked · cannot see that they are blocked');
 select pg_temp.back();
 -- And the other direction: if the stranger blocks the owner, the owner's public set is gone for them.
@@ -180,7 +180,7 @@ select pg_temp.back();
 -- ---------------------------------------------------------------------------
 select pg_temp.act_as('aaaaaaaa-0000-4000-8000-000000000001');
 select isnt((select reset_share_code('55555555-0000-4000-8000-000000000002')), 'codelink00000002', 'owner · reset gives a new code');
-select is((select count(*) from set_by_share_code('codelink00000002')), 0::bigint, 'the old link no longer opens anything');
+select is((shared_set('codelink00000002') is not null), false, 'the old link no longer opens anything');
 select throws_ok($$ update sets set share_code = 'mine' where id = '55555555-0000-4000-8000-000000000002' $$,
   'P0001', null, 'owner · cannot pick their own share code by hand');
 select throws_ok($$ update sets set owner_id = 'aaaaaaaa-0000-4000-8000-000000000002' where id = '55555555-0000-4000-8000-000000000002' $$,

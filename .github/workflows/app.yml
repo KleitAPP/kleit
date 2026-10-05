@@ -43,6 +43,8 @@ jobs:
         run: bun scripts/check-product-page.ts
       - name: The Creative canvas document's rules (cap, undo, snapping, order)
         run: bun scripts/check-canvas-doc.ts
+      - name: Every shipped font has its licence recorded
+        run: node scripts/check-fonts.mjs
       - name: Type check
         run: bunx tsc --noEmit
       - name: Build

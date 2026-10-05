@@ -9,10 +9,32 @@ export const GUIDE = "#d9552b";
 export const CROP_SCRIM = "rgba(0,0,0,0.45)";
 
 export type Images = Record<string, HTMLImageElement | null>;
+
+/** The key a layer's picture is kept under: the item id, or `asset:<catalogue id>` for a decoration. */
+export function imageKey(layer: DocLayer): string {
+  return layer.kind === "asset" ? `asset:${layer.asset ?? ""}` : layer.itemId;
+}
+/** The key the background picture is kept under. */
+export const BACKGROUND_KEY = "background";
 /** Font id → CSS family, once loaded (fonts/load.ts). */
 export type Families = Record<string, string>;
 
 export type StageApi = { stage: RefObject<Konva.Stage | null> };
+
+/** The crop that fills a box with a picture the way CSS object-fit: cover does (centred). */
+export function cover(img: HTMLImageElement, w: number, h: number) {
+  const k = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const cw = w / k;
+  const ch = h / k;
+  return {
+    crop: {
+      x: (img.naturalWidth - cw) / 2,
+      y: (img.naturalHeight - ch) / 2,
+      width: cw,
+      height: ch,
+    },
+  };
+}
 
 /**
  * The canvas (S59). Three Konva layers, the rule from the artwork pack: background (never
@@ -285,7 +307,7 @@ export function CanvasStage({
   }
 
   const piece = (layer: DocLayer, ghost: boolean) => {
-    const img = images[layer.itemId] ?? null;
+    const img = images[imageKey(layer)] ?? null;
     const x = ghost && drag ? drag.x : layer.x;
     const y = ghost && drag ? drag.y : layer.y;
     const common = {
@@ -383,6 +405,18 @@ export function CanvasStage({
     >
       <Layer listening={false}>
         <Rect x={0} y={0} width={doc.canvas.w} height={doc.canvas.h} fill={doc.background} />
+        {doc.backgroundAsset && images[BACKGROUND_KEY] ? (
+          <KImage
+            image={images[BACKGROUND_KEY]!}
+            x={0}
+            y={0}
+            width={doc.canvas.w}
+            height={doc.canvas.h}
+            {...cover(images[BACKGROUND_KEY]!, doc.canvas.w, doc.canvas.h)}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+        ) : null}
       </Layer>
       <Layer>
         {doc.order.map((id) => {

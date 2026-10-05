@@ -37,7 +37,14 @@ export function PanelButton({
   );
 }
 
-export function layerName(layer: Layer, items: Record<string, ItemSummary>, index: number): string {
+export function layerName(
+  layer: Layer,
+  items: Record<string, ItemSummary>,
+  index: number,
+  decorNames: Record<string, string> = {},
+): string {
+  if (layer.kind === "asset" && layer.asset)
+    return t("layers.name", { n: index + 1, name: decorNames[layer.asset] ?? t("library.title") });
   if (layer.kind === "text" && layer.text)
     return t("layers.name", {
       n: index + 1,
@@ -178,6 +185,7 @@ export function LayersPanel({
   onOpenChange,
   doc,
   items,
+  decorNames = {},
   selected,
   onSelect,
   onOrder,
@@ -188,6 +196,8 @@ export function LayersPanel({
   onOpenChange: (open: boolean) => void;
   doc: Doc;
   items: Record<string, ItemSummary>;
+  /** Decoration titles by catalogue id, for the list's names. */
+  decorNames?: Record<string, string>;
   selected: string | null;
   onSelect: (id: string) => void;
   onOrder: (id: string, move: OrderMove) => void;
@@ -210,7 +220,7 @@ export function LayersPanel({
             const layer = doc.layers[id];
             if (!layer) return null;
             const index = doc.order.indexOf(id);
-            const name = layerName(layer, items, index);
+            const name = layerName(layer, items, index, decorNames);
             return (
               <li key={id} className="flex items-center gap-2 py-2">
                 <button

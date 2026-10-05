@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { loadDoc, loadImage } from "@/canvas/persist";
 import { loadFont } from "@/fonts/load";
 import type { Doc } from "@/canvas/doc";
+import { libraryUrl, loadCatalogue, type Catalogue } from "@/library/library";
 
 /**
  * A Creative set, read-only, as plain HTML: every visible layer an absolutely placed picture
@@ -13,12 +14,18 @@ export function CreativeView({ setId }: { setId: string }) {
   const [doc, setDoc] = useState<Doc | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [families, setFamilies] = useState<Record<string, string>>({});
+  const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     void loadDoc(setId).then(async (loaded) => {
       if (cancelled || !loaded) return;
       setDoc(loaded.doc);
+      if (
+        loaded.doc.backgroundAsset ||
+        Object.values(loaded.doc.layers).some((l) => l.kind === "asset")
+      )
+        void loadCatalogue().then((c) => !cancelled && setCatalogue(c));
       for (const l of Object.values(loaded.doc.layers)) {
         const id = l.kind === "text" ? l.text?.font : undefined;
         if (id)
@@ -42,6 +49,7 @@ export function CreativeView({ setId }: { setId: string }) {
 
   if (!doc) return <div className="kl-skeleton aspect-[4/5] w-full rounded-md bg-surface-2" />;
   const { w, h } = doc.canvas;
+  const background = doc.backgroundAsset ? catalogue?.backgrounds[doc.backgroundAsset] : null;
   return (
     <div
       className="relative w-full overflow-hidden rounded-md border border-line"
@@ -51,10 +59,18 @@ export function CreativeView({ setId }: { setId: string }) {
         containerType: "inline-size",
       }}
     >
+      {background ? (
+        <img
+          src={libraryUrl(background.file)}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : null}
       {doc.order.map((id) => {
         const l = doc.layers[id];
         if (!l || l.hidden) return null;
-        const src = urls[l.itemId];
+        const decor = l.kind === "asset" && l.asset ? catalogue?.assets[l.asset] : null;
+        const src = decor ? libraryUrl(decor.file) : urls[l.itemId];
         const crop = l.crop;
         if (l.kind === "text" && l.text) {
           return (
@@ -94,7 +110,7 @@ export function CreativeView({ setId }: { setId: string }) {
             {src ? (
               <img
                 src={src}
-                alt=""
+                alt={decor?.title ?? ""}
                 className="size-full"
                 style={
                   crop

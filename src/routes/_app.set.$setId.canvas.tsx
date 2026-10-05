@@ -2,8 +2,15 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type Konva from "konva";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { CanvasStage, type Families, type Images } from "@/canvas/CanvasStage";
 import {
+  BACKGROUND_KEY,
+  CanvasStage,
+  imageKey,
+  type Families,
+  type Images,
+} from "@/canvas/CanvasStage";
+import {
+  addAssetLayer,
   addLayer,
   addTextLayer,
   cloneLayer,
@@ -34,7 +41,9 @@ import {
 import { FONTS } from "@/fonts/catalogue";
 import { loadFont } from "@/fonts/load";
 import { myFonts, type MyFont } from "@/fonts/myFonts";
-import { addRow, loadDoc, loadImage, saveDiff } from "@/canvas/persist";
+import { addRow, loadDoc, loadImage, loadLibraryImage, saveDiff } from "@/canvas/persist";
+import { LibraryDrawer } from "@/library/LibraryDrawer";
+import { loadCatalogue, type Catalogue, type LibraryAsset } from "@/library/library";
 import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import type { ItemSummary } from "@/items/items";
@@ -73,6 +82,8 @@ function CanvasScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [library, setLibrary] = useState<"assets" | "backgrounds" | null>(null);
+  const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
   const [missing, setMissing] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "failed">("saved");
@@ -143,6 +154,38 @@ function CanvasScreen() {
       }
     }, 400);
   }, [doc, setId]);
+
+  // Every decoration and the background picture the document uses, loaded once from /library/.
+  // The catalogue maps an id to its file; it is only fetched when a set actually has one.
+  useEffect(() => {
+    if (!doc) return;
+    const wanted = Object.values(doc.layers)
+      .filter((l) => l.kind === "asset" && l.asset)
+      .map((l) => ({ key: imageKey(l), id: l.asset! }));
+    if (doc.backgroundAsset) wanted.push({ key: BACKGROUND_KEY, id: doc.backgroundAsset });
+    const missing = wanted.filter(({ key }) => images[key] === undefined);
+    if (!missing.length) return;
+    let cancelled = false;
+    void loadCatalogue().then(async (cat) => {
+      setCatalogue(cat);
+      for (const { key, id } of missing) {
+        const entry = key === BACKGROUND_KEY ? cat.backgrounds[id] : cat.assets[id];
+        const img = entry ? await loadLibraryImage(entry.file) : null;
+        if (!cancelled) setImages((m) => (m[key] === undefined ? { ...m, [key]: img } : m));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [doc, images]);
+  // The background picture changes with the document; drop the old one so the new one loads.
+  useEffect(() => {
+    setImages((m) => {
+      if (m[BACKGROUND_KEY] === undefined) return m;
+      const { [BACKGROUND_KEY]: _old, ...rest } = m;
+      return rest;
+    });
+  }, [doc?.backgroundAsset]);
 
   // Every font the document uses, loaded once; the stage draws with a fallback until then.
   useEffect(() => {
@@ -224,10 +267,41 @@ function CanvasScreen() {
       );
   }
 
+  function addDecoration(id: string, asset: LibraryAsset) {
+    if (!doc) return;
+    setLibrary(null);
+    if (doc.order.length >= LAYER_CAP) {
+      setNotice(t("canvas.capReached", { cap: LAYER_CAP }));
+      return;
+    }
+    const layerId = `decor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const added = addAssetLayer(doc, layerId, id, { w: asset.w, h: asset.h });
+    if (!added.ok) return;
+    apply(added.doc);
+    setSelected(layerId);
+    if (doc.order.length + 1 >= LAYER_WARNING)
+      setNotice(
+        t("canvas.capWarning", {
+          count: doc.order.length + 1,
+          cap: LAYER_CAP,
+          warn: LAYER_WARNING,
+        }),
+      );
+  }
+
   async function duplicate() {
     if (!doc || !sel) return;
     if (doc.order.length >= LAYER_CAP) {
       setNotice(t("canvas.capReached", { cap: LAYER_CAP }));
+      return;
+    }
+    if (sel.kind !== "item") {
+      // Words and decorations live in the layout: a copy needs no row, only an id of its own.
+      const copyId = `${sel.kind === "text" ? "text" : "decor"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const cloned = cloneLayer(doc, sel.id, copyId);
+      if (!cloned.ok) return;
+      apply(cloned.doc);
+      setSelected(copyId);
       return;
     }
     const probe = cloneLayer(doc, sel.id, "probe");
@@ -336,7 +410,12 @@ function CanvasScreen() {
   }
 
   const index = sel ? doc.order.indexOf(sel.id) : -1;
-  const imgFor = sel ? images[sel.itemId] : null;
+  const imgFor = sel ? images[imageKey(sel)] : null;
+  const decorNames: Record<string, string> = {};
+  if (catalogue)
+    for (const l of Object.values(doc.layers))
+      if (l.kind === "asset" && l.asset && catalogue.assets[l.asset])
+        decorNames[l.asset] = catalogue.assets[l.asset]!.title;
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-3 pb-8">
@@ -488,13 +567,24 @@ function CanvasScreen() {
         ) : (
           <div className="flex flex-col gap-3">
             <PrimaryButton onClick={() => setPicking(true)}>{t("canvas.addPiece")}</PrimaryButton>
+            <PanelButton label={t("canvas.addDecoration")} onPress={() => setLibrary("assets")} />
             <PanelButton label={t("canvas.addText")} onPress={addText} />
             <div className="flex flex-wrap gap-2" role="group" aria-label={t("canvas.background")}>
+              {doc.backgroundAsset ? (
+                <Chip
+                  label={t("canvas.plainColour")}
+                  onToggle={() => apply({ ...doc, backgroundAsset: null })}
+                />
+              ) : null}
+              <PanelButton
+                label={t("canvas.moreBackgrounds")}
+                onPress={() => setLibrary("backgrounds")}
+              />
               {SWATCHES.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => apply({ ...doc, background: s.hex })}
+                  onClick={() => apply({ ...doc, background: s.hex, backgroundAsset: null })}
                   aria-label={s.name}
                   aria-pressed={doc.background.toLowerCase() === s.hex.toLowerCase()}
                   className={`size-12 rounded-pill border-2 ${doc.background.toLowerCase() === s.hex.toLowerCase() ? "border-ink" : "border-line"}`}
@@ -525,11 +615,23 @@ function CanvasScreen() {
       </div>
 
       <ItemPicker open={picking} onOpenChange={setPicking} onPick={(item) => void addPiece(item)} />
+      <LibraryDrawer
+        open={library !== null}
+        mode={library ?? "assets"}
+        onOpenChange={(o) => !o && setLibrary(null)}
+        onPick={(id, asset) => {
+          if (library === "backgrounds") {
+            setLibrary(null);
+            apply({ ...doc, backgroundAsset: id });
+          } else addDecoration(id, asset);
+        }}
+      />
       <LayersPanel
         open={layersOpen}
         onOpenChange={setLayersOpen}
         doc={doc}
         items={items}
+        decorNames={decorNames}
         selected={selected}
         onSelect={(id) => {
           setSelected(id);

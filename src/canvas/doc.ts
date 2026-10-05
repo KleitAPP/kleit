@@ -39,12 +39,15 @@ export type TextStyle = {
 };
 
 export type Layer = {
-  /** The set_items row id once saved; a temporary id before. For text, an id of its own. */
+  /** The set_items row id once saved; a temporary id before. For text and decoration, an id of its own. */
   id: string;
-  /** Empty for a text layer. */
+  /** Empty for a text or decoration layer. */
   itemId: string;
-  kind: "item" | "text";
+  /** A clipped piece, words, or a decoration from the library (M4.4). */
+  kind: "item" | "text" | "asset";
   text?: TextStyle;
+  /** The library catalogue id of a decoration (`src/library/catalogue.json`). */
+  asset?: string;
   x: number;
   y: number;
   w: number;
@@ -62,6 +65,8 @@ export type Doc = {
   canvas: CanvasSize;
   /** A fixed colour written into the set - never a theme token (L14). */
   background: string;
+  /** A library background picture over the colour, by catalogue id; null for the colour alone. */
+  backgroundAsset: string | null;
   caption: string;
   /** Bottom to top. */
   order: string[];
@@ -73,37 +78,53 @@ export type LayoutV2 = {
   mode: "creative";
   canvas: CanvasSize;
   background: string;
+  backgroundAsset?: string | null;
   caption: string;
   order: string[];
   /** Text layers live in the layout (they are not pieces), keyed by id. */
   texts?: Record<string, Layer>;
+  /** Decoration layers too: they are the library's pictures, not the user's pieces. */
+  decor?: Record<string, Layer>;
 };
 
-export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text">;
+export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text" | "asset">;
 
 export function emptyDoc(
   shape: Exclude<CanvasShape, "free"> = "portrait",
   background = "#F4EFE6",
 ): Doc {
-  return { canvas: CANVAS_SHAPES[shape], background, caption: "", order: [], layers: {} };
+  return {
+    canvas: CANVAS_SHAPES[shape],
+    background,
+    backgroundAsset: null,
+    caption: "",
+    order: [],
+    layers: {},
+  };
 }
 
 export function layoutOf(doc: Doc): LayoutV2 {
   const texts: Record<string, Layer> = {};
-  for (const [id, l] of Object.entries(doc.layers)) if (l.kind === "text") texts[id] = l;
+  const decor: Record<string, Layer> = {};
+  for (const [id, l] of Object.entries(doc.layers)) {
+    if (l.kind === "text") texts[id] = l;
+    if (l.kind === "asset") decor[id] = l;
+  }
   return {
     version: 2,
     mode: "creative",
     canvas: doc.canvas,
     background: doc.background,
+    backgroundAsset: doc.backgroundAsset,
     caption: doc.caption,
     order: [...doc.order],
     texts,
+    decor,
   };
 }
 
 export function positionOf(layer: Layer): PositionV2 {
-  const { id: _id, itemId: _itemId, kind: _kind, text: _text, ...rest } = layer;
+  const { id: _id, itemId: _itemId, kind: _kind, text: _text, asset: _asset, ...rest } = layer;
   return rest;
 }
 
@@ -165,6 +186,22 @@ export function addLayer(
     id,
     doc: { ...doc, order: [...doc.order, id], layers: { ...doc.layers, [id]: layer } },
   };
+}
+
+/**
+ * A decoration from the library (M4.4): placed like a piece, a third of the canvas wide, on top.
+ * It is not a set_items row - the layout carries it - so its id is the editor's own.
+ */
+export function addAssetLayer(
+  doc: Doc,
+  id: string,
+  asset: string,
+  size: { w: number; h: number },
+): AddResult {
+  const added = addLayer(doc, id, "", size);
+  if (!added.ok) return added;
+  const layer: Layer = { ...added.doc.layers[id]!, kind: "asset", asset };
+  return { ...added, doc: { ...added.doc, layers: { ...added.doc.layers, [id]: layer } } };
 }
 
 /** A text layer (S62): the words in the middle of the canvas, a third of its width, on top. */
@@ -386,12 +423,13 @@ export function changedLayers(before: Doc, after: Doc): { changed: string[]; rem
 
 export function layoutChanged(before: Doc, after: Doc): boolean {
   const textChanged = Object.entries(after.layers).some(
-    ([id, l]) => l.kind === "text" && before.layers[id] !== l,
+    ([id, l]) => l.kind !== "item" && before.layers[id] !== l,
   );
   return (
     textChanged ||
     before.canvas !== after.canvas ||
     before.background !== after.background ||
+    before.backgroundAsset !== after.backgroundAsset ||
     before.caption !== after.caption ||
     before.order.length !== after.order.length ||
     before.order.some((id, i) => after.order[i] !== id)

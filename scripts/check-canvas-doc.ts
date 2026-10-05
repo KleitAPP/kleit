@@ -3,6 +3,7 @@
  *   bun scripts/check-canvas-doc.ts
  */
 import {
+  addAssetLayer,
   addLayer,
   changedLayers,
   cloneLayer,
@@ -13,6 +14,7 @@ import {
   historyOf,
   LAYER_CAP,
   layoutChanged,
+  layoutOf,
   redo,
   removeLayer,
   reorder,
@@ -150,6 +152,28 @@ check(layoutChanged(before, after) === true, "removing a layer changes the layou
 check(
   layoutChanged(before, updateLayer(before, "a", { x: 5 })) === false,
   "moving a piece does not",
+);
+
+// Decorations (M4.4): in the layout, not in set_items; a change to one is a layout change.
+const dec = addAssetLayer(doc, "d1", "aic-109313", { w: 716, h: 624 });
+check(dec.ok && dec.doc.layers["d1"]!.kind === "asset", "a decoration is its own kind of layer");
+check(
+  dec.ok && dec.doc.layers["d1"]!.w === 360 && dec.doc.layers["d1"]!.h === 314,
+  "placed a third of the canvas wide at its true shape",
+  dec.ok ? `${dec.doc.layers["d1"]!.w}x${dec.doc.layers["d1"]!.h}` : "",
+);
+const decLayout = dec.ok ? layoutOf(dec.doc) : null;
+check(
+  !!decLayout?.decor?.["d1"] && decLayout.decor["d1"]!.asset === "aic-109313",
+  "the layout carries it by catalogue id",
+);
+check(
+  !!dec.ok && layoutChanged(dec.doc, updateLayer(dec.doc, "d1", { x: 9 })) === true,
+  "moving a decoration changes the layout (there is no row to hold it)",
+);
+check(
+  layoutChanged(doc, { ...doc, backgroundAsset: "coquette-170774" }) === true,
+  "choosing a background picture changes the layout",
 );
 
 console.log(`1..${n}`);

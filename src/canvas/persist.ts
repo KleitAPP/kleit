@@ -56,6 +56,7 @@ export async function loadDoc(setId: string): Promise<Loaded | null> {
   const shape = raw?.canvas?.shape && raw.canvas.shape !== "free" ? raw.canvas.shape : "portrait";
   let doc: Doc = {
     ...emptyDoc(shape, raw?.background ?? "#F4EFE6"),
+    backgroundAsset: raw?.backgroundAsset ?? null,
     caption: raw?.caption ?? "",
     canvas: raw?.canvas && raw.canvas.shape === "free" ? raw.canvas : CANVAS_SHAPES[shape],
   };
@@ -78,6 +79,10 @@ export async function loadDoc(setId: string): Promise<Loaded | null> {
   for (const [id, text] of Object.entries(raw?.texts ?? {})) {
     if (text && text.kind === "text" && text.text)
       layers[id] = { ...layerFromRow(id, "", text), kind: "text", text: text.text };
+  }
+  for (const [id, decor] of Object.entries(raw?.decor ?? {})) {
+    if (decor && decor.kind === "asset" && decor.asset)
+      layers[id] = { ...layerFromRow(id, "", decor), kind: "asset", asset: decor.asset };
   }
   const order = (raw?.order ?? []).filter((id) => layers[id]);
   for (const id of seen) if (!order.includes(id)) order.push(id);
@@ -139,14 +144,14 @@ export async function saveDiff(
   let ok = true;
   for (const id of changed) {
     const layer = after.layers[id];
-    if (!layer || layer.kind === "text") continue; // text lives in the layout, written below
+    if (!layer || layer.kind !== "item") continue; // text and decoration live in the layout, below
     const { error } = await supabase
       .from("set_items")
       .update({ position: positionOf(layer) })
       .eq("id", id);
     if (error) ok = false;
   }
-  const removedRows = removed.filter((id) => before.layers[id]?.kind !== "text");
+  const removedRows = removed.filter((id) => before.layers[id]?.kind === "item");
   if (removedRows.length) {
     const { error } = await supabase.from("set_items").delete().in("id", removedRows);
     if (error) ok = false;
@@ -160,6 +165,16 @@ export async function saveDiff(
   }
   if (ok && published) refreshPreview(setId);
   return ok;
+}
+
+/** A library picture (decoration or background), from this site's own /library/ folder. */
+export function loadLibraryImage(file: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = `/library/${file}`;
+  });
 }
 
 /** One HTMLImageElement per item, loaded once; the editor draws from these. */

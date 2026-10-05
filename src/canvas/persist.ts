@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { imageUrlFor, type ItemSummary } from "@/items/items";
-import { refreshPreview } from "@/sets/sets";
+import { commentsDefault, refreshPreview } from "@/sets/sets";
 
 import {
   changedLayers,
@@ -112,7 +112,12 @@ export async function createCreativeDraft(): Promise<string | null> {
   if (!me) return null;
   const { data, error } = await supabase
     .from("sets")
-    .insert({ owner_id: me, status: "draft", layout: layoutOf(emptyDoc("portrait")) })
+    .insert({
+      owner_id: me,
+      status: "draft",
+      layout: layoutOf(emptyDoc("portrait")),
+      comments_setting: await commentsDefault(me),
+    })
     .select("id")
     .single();
   return error || !data ? null : data.id;

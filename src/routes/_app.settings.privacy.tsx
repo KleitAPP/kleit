@@ -28,6 +28,9 @@ export const Route = createFileRoute("/_app/settings/privacy")({
 /** Spec 10.2 #4: Everyone / Followers (default) / People I follow / No one. */
 const DM_CHOICES = ["everyone", "followers", "following", "nobody"] as const;
 type DmSetting = (typeof DM_CHOICES)[number];
+/** Spec 11 #1 / gap C10: the default for new sets; each set can differ. */
+const COMMENT_CHOICES = ["everyone", "following", "off"] as const;
+type CommentsDefault = (typeof COMMENT_CHOICES)[number];
 
 type Switches = {
   is_private: boolean;
@@ -49,6 +52,23 @@ function Privacy() {
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<keyof Switches | null>(null);
   const [dm, setDm] = useState<DmSetting | null>(null);
+  const [commentsDefault, setCommentsDefault] = useState<CommentsDefault | null>(null);
+
+  async function chooseComments(next: CommentsDefault) {
+    if (commentsDefault === null) return;
+    const before = commentsDefault;
+    setCommentsDefault(next);
+    setFailed(false);
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    const { error } = me
+      ? await supabase.from("profiles").update({ comments_default: next }).eq("user_id", me)
+      : { error: new Error("signed out") };
+    if (error) {
+      setCommentsDefault(before);
+      setFailed(true);
+    } else setSaved(true);
+  }
 
   async function chooseDm(next: DmSetting) {
     if (dm === null) return;
@@ -74,12 +94,17 @@ function Privacy() {
       if (!me) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_private, findable_by_email, findable_by_phone, suggestable, dm_setting")
+        .select(
+          "is_private, findable_by_email, findable_by_phone, suggestable, dm_setting, comments_default",
+        )
         .eq("user_id", me)
         .maybeSingle();
       if (!cancelled && profile) {
-        const { dm_setting, ...switches } = profile;
+        const { dm_setting, comments_default, ...switches } = profile;
         setNow(switches);
+        setCommentsDefault(
+          (COMMENT_CHOICES.find((c) => c === comments_default) ?? "everyone") as CommentsDefault,
+        );
         setDm((DM_CHOICES.find((c) => c === dm_setting) ?? "followers") as DmSetting);
       }
     })();
@@ -159,6 +184,23 @@ function Privacy() {
             label={t(`privacy.dm.${c}`)}
             selected={dm === c}
             onToggle={() => void chooseDm(c)}
+          />
+        ))}
+      </div>
+
+      <h2 className="mt-6 text-base font-medium text-ink">{t("privacy.commentsDefault")}</h2>
+      <p className="text-sm text-ink-soft">{t("social.settingWhy")}</p>
+      <div
+        className="mt-2 flex flex-wrap gap-2"
+        role="group"
+        aria-label={t("privacy.commentsDefault")}
+      >
+        {COMMENT_CHOICES.map((c) => (
+          <Chip
+            key={c}
+            label={t(`social.setting.${c}`)}
+            selected={commentsDefault === c}
+            onToggle={() => void chooseComments(c)}
           />
         ))}
       </div>

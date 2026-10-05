@@ -53,6 +53,17 @@ export type Placement = { slot: number; item: ItemSummary };
 const ITEM_FIELDS =
   "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
 
+/** The person's default for comments on a new set (spec 11 #1). */
+export async function commentsDefault(me: string): Promise<"everyone" | "following" | "off"> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("comments_default")
+    .eq("user_id", me)
+    .maybeSingle();
+  const v = data?.comments_default;
+  return v === "following" || v === "off" ? v : "everyone";
+}
+
 /** The templates the builder offers: Kleit's first, then yours, then published ones (M4.5). */
 export async function templates(): Promise<Template[]> {
   const { data: who } = await supabase.auth.getUser();
@@ -83,7 +94,7 @@ export async function createQuickDraft(): Promise<string | null> {
   };
   const { data, error } = await supabase
     .from("sets")
-    .insert({ owner_id: me, layout, status: "draft" })
+    .insert({ owner_id: me, layout, status: "draft", comments_setting: await commentsDefault(me) })
     .select("id")
     .single();
   if (error || !data) return null;

@@ -30,6 +30,7 @@ function Settings() {
         <Later title={t("settings.signInMethods")} />
         <Later title={t("settings.notifications")} />
         <Row to="/settings/blocked" title={t("settings.blocked")} why={t("settings.blockedWhy")} />
+        <Row to="/settings/muted" title={t("settings.muted")} why={t("settings.mutedWhy")} />
       </ul>
 
       <button

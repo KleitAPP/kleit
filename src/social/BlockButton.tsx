@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
-import { block, haveBlocked, unblock } from "@/social/blocks";
+import { block, haveBlocked, haveMuted, mute, unblock, unmute } from "@/social/blocks";
 import type { Person } from "@/social/follows";
 
 /** Block / Unblock on someone's profile, with the plain warning first (spec 10.4; G6). */
@@ -11,6 +11,14 @@ export function BlockButton({ them, me }: { them: Person; me: string | null }) {
   const navigate = useNavigate();
   const [blocked, setBlocked] = useState<boolean | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [muted, setMuted] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void haveMuted(them.user_id).then((m) => !cancelled && setMuted(m));
+    return () => {
+      cancelled = true;
+    };
+  }, [them.user_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,6 +32,20 @@ export function BlockButton({ them, me }: { them: Person; me: string | null }) {
 
   return (
     <>
+      {muted !== null ? (
+        <button
+          type="button"
+          title={t("mute.why")}
+          onClick={() =>
+            muted
+              ? void unmute(them.user_id).then((ok) => ok && setMuted(false))
+              : void mute(them.user_id).then((ok) => ok && setMuted(true))
+          }
+          className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+        >
+          {muted ? t("mute.unmute") : t("mute.mute")}
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() =>

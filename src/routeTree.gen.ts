@@ -41,6 +41,7 @@ import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings.bre
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
 import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.legal'
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings.library'
+import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings.muted'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
@@ -219,6 +220,11 @@ const AppSettingsLibraryRoute = AppSettingsLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsMutedRoute = AppSettingsMutedRouteImport.update({
+  id: '/muted',
+  path: '/muted',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -338,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
+  '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
+  '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
@@ -440,6 +448,7 @@ export interface FileRoutesById {
   '/_app/settings/devices': typeof AppSettingsDevicesRoute
   '/_app/settings/legal': typeof AppSettingsLegalRoute
   '/_app/settings/library': typeof AppSettingsLibraryRoute
+  '/_app/settings/muted': typeof AppSettingsMutedRoute
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
@@ -492,6 +501,7 @@ export interface FileRouteTypes {
     | '/settings/devices'
     | '/settings/legal'
     | '/settings/library'
+    | '/settings/muted'
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
@@ -542,6 +552,7 @@ export interface FileRouteTypes {
     | '/settings/devices'
     | '/settings/legal'
     | '/settings/library'
+    | '/settings/muted'
     | '/settings/privacy'
     | '/u/$username'
     | '/you/closet'
@@ -593,6 +604,7 @@ export interface FileRouteTypes {
     | '/_app/settings/devices'
     | '/_app/settings/legal'
     | '/_app/settings/library'
+    | '/_app/settings/muted'
     | '/_app/settings/privacy'
     | '/_app/u/$username'
     | '/_app/you_/closet'
@@ -852,6 +864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsLibraryRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/muted': {
+      id: '/_app/settings/muted'
+      path: '/muted'
+      fullPath: '/settings/muted'
+      preLoaderRoute: typeof AppSettingsMutedRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/settings/privacy': {
       id: '/_app/settings/privacy'
       path: '/privacy'
@@ -981,6 +1000,7 @@ interface AppSettingsRouteChildren {
   AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
   AppSettingsLegalRoute: typeof AppSettingsLegalRoute
   AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
+  AppSettingsMutedRoute: typeof AppSettingsMutedRoute
   AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
 }
 
@@ -991,6 +1011,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsDevicesRoute: AppSettingsDevicesRoute,
   AppSettingsLegalRoute: AppSettingsLegalRoute,
   AppSettingsLibraryRoute: AppSettingsLibraryRoute,
+  AppSettingsMutedRoute: AppSettingsMutedRoute,
   AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
 }
 

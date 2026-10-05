@@ -46,3 +46,36 @@ export async function blockedPeople(): Promise<Blocked[]> {
   const { data } = await supabase.rpc("blocked_people");
   return (data ?? []) as Blocked[];
 }
+
+// Mute (spec 10.4 #5): quieter than a block - their sets stay out of your feed (M6), nothing else changes.
+export type Muted = { user_id: string; username: string; display_name: string; muted_at: string };
+
+export async function mute(them: string): Promise<boolean> {
+  const my = await me();
+  if (!my) return false;
+  const { error } = await supabase.from("mutes").insert({ muter_id: my, muted_id: them });
+  return !error || error.code === "23505";
+}
+
+export async function unmute(them: string): Promise<boolean> {
+  const my = await me();
+  if (!my) return false;
+  const { error } = await supabase.from("mutes").delete().eq("muter_id", my).eq("muted_id", them);
+  return !error;
+}
+
+export async function haveMuted(them: string): Promise<boolean> {
+  const my = await me();
+  if (!my) return false;
+  const { data } = await supabase
+    .from("mutes")
+    .select("muted_id")
+    .eq("muter_id", my)
+    .eq("muted_id", them);
+  return (data?.length ?? 0) > 0;
+}
+
+export async function mutedPeople(): Promise<Muted[]> {
+  const { data } = await supabase.rpc("muted_people");
+  return (data ?? []) as Muted[];
+}

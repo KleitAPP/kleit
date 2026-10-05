@@ -208,7 +208,7 @@ try {
     await wait(1500); // the debounced autosave
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await page.waitForURL(/\/send$/);
-    await page.getByRole("button", { name: "Publish" }).click();
+    await page.getByRole("button", { name: "Publish", exact: true }).click();
     const link = page.getByText(/\/s\/[A-Za-z0-9]{8,32}/);
     await link.waitFor();
     const code = (await link.innerText()).match(/\/s\/([A-Za-z0-9]{8,32})/)[1];

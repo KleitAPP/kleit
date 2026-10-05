@@ -411,7 +411,7 @@ try {
     .from("templates")
     .insert({
       owner_id: victim.id,
-      name: `${XSS} private`,
+      name: `<b>x</b> private`,
       kind: "slot",
       is_public: false,
       layout: {
@@ -428,7 +428,7 @@ try {
     .from("templates")
     .insert({
       owner_id: victim.id,
-      name: "published",
+      name: "attack-test template (ignore)",
       kind: "slot",
       is_public: true,
       layout: {
@@ -464,11 +464,13 @@ try {
     "attacker: cannot make a template in the victim's name",
     tplSteal.error?.code,
   );
-  await admin.from("templates").delete().in("id", [tplPriv.id, tplPub.id]);
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
   const end = new Date().toISOString();
+  // The test accounts' templates go every run, whatever happened above: a published one would
+  // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
+  await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);
   await admin
     .from("sets")
     .update({ deleted_at: end })

@@ -22,10 +22,10 @@ for (const id of ids) {
     ? readFileSync(`public/fonts/${id}.OFL.txt`, "utf8")
     : "";
   say(/SIL Open Font License, Version 1\.1/.test(lic), `${id}: OFL 1.1 licence text beside it`);
-  say(
-    new RegExp(`id: "${id}"[^\\n]*copyright: "[^"]+"`).test(source),
-    `${id}: copyright line recorded`,
-  );
+  // Prettier may wrap the record and switch the quotes: find the record, then the key with a non-empty string.
+  const at = source.indexOf(`id: "${id}"`);
+  const record = source.slice(at, source.indexOf("}", at));
+  say(/copyright:\s*["'][^"']+["']/.test(record), `${id}: copyright line recorded`);
 }
 for (const f of files) say(ids.includes(f), `${f}.ttf has a catalogue record`);
 console.log(

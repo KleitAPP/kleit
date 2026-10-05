@@ -40,6 +40,7 @@ update comments set body = 'love this (edited)' where id = '91919191-0000-4000-8
 select is((select edited_at is not null from comments where id = '91919191-0000-4000-8000-000000000001'), true, 'author: edited inside the window, stamped');
 -- Outside the window: age the row as the server, then try again.
 reset role;
+select set_config('request.jwt.claims', '', true); -- the claims are transaction-local; drop them too, or auth.uid() still answers
 update comments set created_at = now() - interval '16 minutes' where id = '91919191-0000-4000-8000-000000000001';
 select pg_temp.act_as('acacacac-0000-4000-8000-000000000002');
 select throws_ok($$ update comments set body = 'too late' where id = '91919191-0000-4000-8000-000000000001' $$, '42501', null, 'author: cannot edit after 15 minutes');

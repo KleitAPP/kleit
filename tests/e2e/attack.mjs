@@ -464,6 +464,42 @@ try {
     "attacker: cannot make a template in the victim's name",
     tplSteal.error?.code,
   );
+
+  // ---------------------------------------------------------------------------
+  // 8. The social milestone (M5): notifications are the owner's alone; a private set takes no
+  //    comment or like from a stranger; a message across the victim's "no one" setting is
+  //    refused; a follow request cannot be forged or approved by the wrong person.
+  // ---------------------------------------------------------------------------
+  const { data: notes } = await a.from("notifications").select("id").eq("user_id", victim.id);
+  check((notes ?? []).length === 0, "attacker: cannot read the victim's notifications");
+  const plant = await a
+    .from("notifications")
+    .insert({ user_id: victim.id, kind: "like", actor_id: attacker.id });
+  check(!!plant.error, "attacker: cannot plant a notification", plant.error?.code);
+  const privComment = await a
+    .from("comments")
+    .insert({ set_id: priv.id, author_id: attacker.id, body: "hello?" });
+  check(
+    !!privComment.error,
+    "attacker: cannot comment on the victim's only-me set",
+    privComment.error?.code,
+  );
+  const privLike = await a.from("likes").insert({ user_id: attacker.id, set_id: priv.id });
+  check(!!privLike.error, "attacker: cannot like the victim's only-me set", privLike.error?.code);
+  await victim.client.from("profiles").update({ dm_setting: "nobody" }).eq("user_id", victim.id);
+  const dm = await a.rpc("send_message", { p_to: victim.id, p_body: "psst" });
+  check(!!dm.error, "attacker: a message to someone set to 'No one' is refused", dm.error?.code);
+  await victim.client.from("profiles").update({ dm_setting: "followers" }).eq("user_id", victim.id);
+  const forgedReq = await a
+    .from("follow_requests")
+    .insert({ requester_id: victim.id, target_id: attacker.id });
+  check(
+    !!forgedReq.error,
+    "attacker: cannot forge a follow request in the victim's name",
+    forgedReq.error?.code,
+  );
+  const { data: approved } = await a.rpc("approve_follow_request", { p_requester: victim.id });
+  check(approved !== true, "attacker: cannot approve a request that was never made");
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
@@ -471,6 +507,13 @@ try {
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
   await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);
+  await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);
+  await admin.from("comments").delete().in("author_id", [victim.id, attacker.id]);
+  await admin.from("likes").delete().in("user_id", [victim.id, attacker.id]);
+  await admin
+    .from("conversations")
+    .delete()
+    .or(`user_a.in.(${victim.id},${attacker.id}),user_b.in.(${victim.id},${attacker.id})`);
   await admin
     .from("sets")
     .update({ deleted_at: end })

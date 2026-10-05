@@ -28,6 +28,7 @@ import { Route as JoinUsernameRouteImport } from './routes/join.username'
 import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppCollectionCollectionIdRouteImport } from './routes/_app.collection.$collectionId'
+import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
@@ -148,6 +149,11 @@ const AppCollectionCollectionIdRoute =
     path: '/collection/$collectionId',
     getParentRoute: () => AppRoute,
   } as any)
+const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => AppInboxRoute,
+} as any)
 const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
   id: '/item/$itemId',
   path: '/item/$itemId',
@@ -274,7 +280,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
-  '/inbox': typeof AppInboxRoute
+  '/inbox': typeof AppInboxRouteWithChildren
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
@@ -289,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -317,7 +324,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
-  '/inbox': typeof AppInboxRoute
+  '/inbox': typeof AppInboxRouteWithChildren
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/you': typeof AppYouRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -363,7 +371,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
-  '/_app/inbox': typeof AppInboxRoute
+  '/_app/inbox': typeof AppInboxRouteWithChildren
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/you': typeof AppYouRoute
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/_app/add/link': typeof AppAddLinkRoute
   '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/_app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
@@ -425,6 +434,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/collection/$collectionId'
+    | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
@@ -469,6 +479,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/collection/$collectionId'
+    | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/_app/add/link'
     | '/_app/add/photo'
     | '/_app/collection/$collectionId'
+    | '/_app/inbox/$conversationId'
     | '/_app/item/$itemId'
     | '/_app/poll/new'
     | '/_app/settings/account'
@@ -689,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCollectionCollectionIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/inbox/$conversationId': {
+      id: '/_app/inbox/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/inbox/$conversationId'
+      preLoaderRoute: typeof AppInboxConversationIdRouteImport
+      parentRoute: typeof AppInboxRoute
+    }
     '/_app/item/$itemId': {
       id: '/_app/item/$itemId'
       path: '/item/$itemId'
@@ -860,6 +879,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppInboxRouteChildren {
+  AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
+}
+
+const AppInboxRouteChildren: AppInboxRouteChildren = {
+  AppInboxConversationIdRoute: AppInboxConversationIdRoute,
+}
+
+const AppInboxRouteWithChildren = AppInboxRoute._addFileChildren(
+  AppInboxRouteChildren,
+)
+
 interface AppSettingsRouteChildren {
   AppSettingsAccountRoute: typeof AppSettingsAccountRoute
   AppSettingsBreakRoute: typeof AppSettingsBreakRoute
@@ -883,7 +914,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppInboxRoute: typeof AppInboxRoute
+  AppInboxRoute: typeof AppInboxRouteWithChildren
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppYouRoute: typeof AppYouRoute
@@ -912,7 +943,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppInboxRoute: AppInboxRoute,
+  AppInboxRoute: AppInboxRouteWithChildren,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppYouRoute: AppYouRoute,

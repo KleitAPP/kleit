@@ -357,6 +357,63 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          requested_by: string | null
+          state: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          requested_by?: string | null
+          state?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          requested_by?: string | null
+          state?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       follow_requests: {
         Row: {
           created_at: string
@@ -637,6 +694,7 @@ export type Database = {
           created_at: string
           deactivated_at: string | null
           display_name: string
+          dm_setting: string
           findable_by_email: boolean
           findable_by_phone: boolean
           is_private: boolean
@@ -654,6 +712,7 @@ export type Database = {
           created_at?: string
           deactivated_at?: string | null
           display_name?: string
+          dm_setting?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -671,6 +730,7 @@ export type Database = {
           created_at?: string
           deactivated_at?: string | null
           display_name?: string
+          dm_setting?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -1167,6 +1227,8 @@ export type Database = {
         Returns: Json
       }
       approve_follow_request: { Args: { p_requester: string }; Returns: boolean }
+      accept_message_request: { Args: { p_conversation: string }; Returns: boolean }
+      send_message: { Args: { p_to: string; p_body: string }; Returns: string }
       follow_counts: {
         Args: { p_user: string }
         Returns: { followers: number; following: number }[]

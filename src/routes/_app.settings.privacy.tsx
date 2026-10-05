@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Toast } from "@/components/kleit";
+import { Chip, Toast } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
 /**
@@ -25,6 +25,10 @@ export const Route = createFileRoute("/_app/settings/privacy")({
   component: Privacy,
 });
 
+/** Spec 10.2 #4: Everyone / Followers (default) / People I follow / No one. */
+const DM_CHOICES = ["everyone", "followers", "following", "nobody"] as const;
+type DmSetting = (typeof DM_CHOICES)[number];
+
 type Switches = {
   is_private: boolean;
   findable_by_email: boolean;
@@ -44,6 +48,23 @@ function Privacy() {
   const [saved, setSaved] = useState(false);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<keyof Switches | null>(null);
+  const [dm, setDm] = useState<DmSetting | null>(null);
+
+  async function chooseDm(next: DmSetting) {
+    if (dm === null) return;
+    const before = dm;
+    setDm(next);
+    setFailed(false);
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    const { error } = me
+      ? await supabase.from("profiles").update({ dm_setting: next }).eq("user_id", me)
+      : { error: new Error("signed out") };
+    if (error) {
+      setDm(before);
+      setFailed(true);
+    } else setSaved(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -53,10 +74,14 @@ function Privacy() {
       if (!me) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_private, findable_by_email, findable_by_phone, suggestable")
+        .select("is_private, findable_by_email, findable_by_phone, suggestable, dm_setting")
         .eq("user_id", me)
         .maybeSingle();
-      if (!cancelled && profile) setNow(profile);
+      if (!cancelled && profile) {
+        const { dm_setting, ...switches } = profile;
+        setNow(switches);
+        setDm((DM_CHOICES.find((c) => c === dm_setting) ?? "followers") as DmSetting);
+      }
     })();
     return () => {
       cancelled = true;
@@ -83,10 +108,13 @@ function Privacy() {
     // Written out rather than built from a variable, so the generated types still check that
     // each of these really is a column on profiles.
     const patch =
-      key === "is_private" ? { is_private: next.is_private }
-      : key === "findable_by_email" ? { findable_by_email: next.findable_by_email }
-      : key === "findable_by_phone" ? { findable_by_phone: next.findable_by_phone }
-      : { suggestable: next.suggestable };
+      key === "is_private"
+        ? { is_private: next.is_private }
+        : key === "findable_by_email"
+          ? { findable_by_email: next.findable_by_email }
+          : key === "findable_by_phone"
+            ? { findable_by_phone: next.findable_by_phone }
+            : { suggestable: next.suggestable };
     const { error } = await supabase.from("profiles").update(patch).eq("user_id", me);
     setBusy(null);
     if (error) {
@@ -122,8 +150,25 @@ function Privacy() {
         ))}
       </ul>
 
-      {saved ? <Toast message={t("privacy.saved")} tone="positive" onDismiss={() => setSaved(false)} /> : null}
-      {failed ? <Toast message={t("privacy.failed")} tone="danger" onDismiss={() => setFailed(false)} /> : null}
+      <h2 className="mt-6 text-base font-medium text-ink">{t("privacy.dm")}</h2>
+      <p className="text-sm text-ink-soft">{t("privacy.dmWhy")}</p>
+      <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={t("privacy.dm")}>
+        {DM_CHOICES.map((c) => (
+          <Chip
+            key={c}
+            label={t(`privacy.dm.${c}`)}
+            selected={dm === c}
+            onToggle={() => void chooseDm(c)}
+          />
+        ))}
+      </div>
+
+      {saved ? (
+        <Toast message={t("privacy.saved")} tone="positive" onDismiss={() => setSaved(false)} />
+      ) : null}
+      {failed ? (
+        <Toast message={t("privacy.failed")} tone="danger" onDismiss={() => setFailed(false)} />
+      ) : null}
     </div>
   );
 }

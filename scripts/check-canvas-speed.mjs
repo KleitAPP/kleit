@@ -37,6 +37,21 @@ try {
       }
     }
   }
+  // M4.6: the export from the same kind of stage - the right size, the right type, see-through
+  // where it says so, and no editor marks (the probe draws nothing on the UI layer to check).
+  for (const [format, size, expectW, expectType, alpha] of [
+    ["png", 1080, 1080, "image/png", 255],
+    ["jpg", 2160, 2160, "image/jpeg", 255],
+    ["png-transparent", 1080, 1080, "image/png", 0],
+  ]) {
+    const r = await page.evaluate(([f, s]) => window.KleitSpeed.exportProbe(f, s), [format, size]);
+    const ok =
+      r.w === expectW && r.type === expectType && r.cornerAlpha === alpha && r.bytes > 1000;
+    if (!ok) failed += 1;
+    console.log(
+      `${ok ? "ok" : "not ok"} - export ${format} ${size}: ${r.w}x${r.h} ${r.type}, ${r.bytes} bytes, corner alpha ${r.cornerAlpha}`,
+    );
+  }
 } catch (error) {
   failed += 1;
   console.log(

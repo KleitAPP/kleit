@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Konva from "konva";
 import { useEffect, useMemo, useRef, useState } from "react";
+
+import { emptyDoc } from "@/canvas/doc";
+import { exportSet, type ExportFormat, type ExportSize } from "@/canvas/exportSet";
 import { Image as KImage, Layer, Path, Rect, Stage } from "react-konva";
 
 import {
@@ -46,6 +49,11 @@ declare global {
     KleitSpeed?: {
       run: (count: number, kind: NodeKind, pixelRatio: number) => Promise<SpeedResult>;
       last: SpeedResult | null;
+      /** M4.6: the export, from this stage - size, type and a corner pixel's alpha. */
+      exportProbe: (
+        format: ExportFormat,
+        size: ExportSize,
+      ) => Promise<{ w: number; h: number; type: string; bytes: number; cornerAlpha: number }>;
     };
   }
 }
@@ -161,8 +169,26 @@ function CanvasSpeed() {
     return out;
   }
 
+  async function exportProbe(format: ExportFormat, size: ExportSize) {
+    const { blob } = await exportSet(
+      stageRef.current!,
+      { ...emptyDoc("portrait"), background: PAPER },
+      format,
+      size,
+      "probe",
+    );
+    const bmp = await createImageBitmap(blob);
+    const c = document.createElement("canvas");
+    c.width = bmp.width;
+    c.height = bmp.height;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(bmp, 0, 0);
+    const px = ctx.getImageData(2, 2, 1, 1).data;
+    return { w: bmp.width, h: bmp.height, type: blob.type, bytes: blob.size, cornerAlpha: px[3]! };
+  }
+
   useEffect(() => {
-    window.KleitSpeed = { run, last: result };
+    window.KleitSpeed = { run, last: result, exportProbe };
     return () => {
       delete window.KleitSpeed;
     };

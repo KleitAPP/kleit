@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { myConversations, type Conversation } from "@/social/messages";
+import { markAllRead, myNotifications, type Notification } from "@/social/notifications";
 
 /**
  * S70 — Inbox: Notifications (still honestly empty until M5.6) · Messages (M5.2), with
@@ -22,8 +23,23 @@ const TABS: readonly TabItem<Tab>[] = [
 ];
 
 function InboxTab() {
-  const [tab, setTab] = useState<Tab>("messages");
+  const [tab, setTab] = useState<Tab>("notifications");
   const [convs, setConvs] = useState<Conversation[] | null>(null);
+  const [notes, setNotes] = useState<Notification[] | null>(null);
+
+  useEffect(() => {
+    if (tab !== "notifications") return;
+    let cancelled = false;
+    void myNotifications().then((n) => {
+      if (cancelled) return;
+      setNotes(n);
+      // Seen is read: the list is the acknowledgement.
+      if (n.some((x) => !x.read_at)) void markAllRead();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab]);
 
   useEffect(() => {
     if (tab !== "messages") return;
@@ -43,9 +59,19 @@ function InboxTab() {
       <div className="mt-4">
         <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.inbox")}>
           {tab === "notifications" ? (
-            <div className="mt-3">
-              <EmptyState line={t("inbox.empty")} />
-            </div>
+            !notes ? (
+              <div className="kl-skeleton mt-3 h-24 w-full rounded-md bg-surface-2" />
+            ) : notes.length === 0 ? (
+              <div className="mt-3">
+                <EmptyState line={t("inbox.empty")} />
+              </div>
+            ) : (
+              <ul className="mt-3 overflow-hidden rounded-md border border-line bg-surface">
+                {notes.map((n) => (
+                  <NoteRow key={n.id} n={n} />
+                ))}
+              </ul>
+            )
           ) : !convs ? (
             <div className="kl-skeleton mt-3 h-24 w-full rounded-md bg-surface-2" />
           ) : (
@@ -76,6 +102,73 @@ function InboxTab() {
       </div>
     </div>
   );
+}
+
+function noteWords(n: Notification): string {
+  const name = n.actor?.username ?? t("notify.someone");
+  switch (n.kind) {
+    case "vote":
+      return n.bundled_count > 1
+        ? t("notify.vote", { count: n.bundled_count })
+        : t("notify.voteOne");
+    case "like":
+      return n.bundled_count > 1
+        ? t("notify.likeMore", { name, count: n.bundled_count - 1 })
+        : t("notify.like", { name });
+    case "message":
+      return n.bundled_count > 1
+        ? t("notify.messageMore", { name, count: n.bundled_count })
+        : t("notify.message", { name });
+    default:
+      return t(`notify.${n.kind}`, { name });
+  }
+}
+
+function NoteRow({ n }: { n: Notification }) {
+  const when = new Date(n.updated_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const cls = "block min-h-12 px-4 py-3";
+  const inner = (
+    <>
+      <p className={`text-base ${n.read_at ? "text-ink-soft" : "text-ink"}`}>{noteWords(n)}</p>
+      <p className="text-sm text-ink-soft">{when}</p>
+    </>
+  );
+  let link: React.ReactNode;
+  if (n.ref_type === "set" && n.ref_id)
+    link = (
+      <Link to="/set/$setId" params={{ setId: n.ref_id }} className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.ref_type === "poll" && n.ref_id)
+    link = (
+      <Link to="/poll/$pollId" params={{ pollId: n.ref_id }} className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.ref_type === "conversation" && n.ref_id)
+    link = (
+      <Link to="/inbox/$conversationId" params={{ conversationId: n.ref_id }} className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.kind === "follow_request")
+    link = (
+      <Link to="/you/people" className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.ref_type === "profile" && n.actor)
+    link = (
+      <Link to="/u/$username" params={{ username: n.actor.username }} className={cls}>
+        {inner}
+      </Link>
+    );
+  else link = <div className={cls}>{inner}</div>;
+  return <li className="border-b border-line last:border-b-0">{link}</li>;
 }
 
 function Row({ c }: { c: Conversation }) {

@@ -363,6 +363,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          bundled_count: number
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          ref_id: string | null
+          ref_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          bundled_count?: number
+          created_at?: string
+          id?: string
+          kind: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          bundled_count?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -1369,6 +1408,7 @@ export type Database = {
         Returns: number
       }
       send_message: { Args: { p_body: string; p_to: string }; Returns: string }
+      unread_notifications: { Args: Record<string, never>; Returns: number }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {

@@ -104,8 +104,6 @@ returns trigger language plpgsql security definer set search_path = '' as $$
 declare
   me uuid := auth.uid();
 begin
-  -- Not a person: the server's own writes (moderation at M7) are its business.
-  if me is null then return new; end if;
   if new.set_id <> old.set_id or new.author_id <> old.author_id or new.created_at <> old.created_at then
     raise exception 'not allowed' using errcode = '42501';
   end if;

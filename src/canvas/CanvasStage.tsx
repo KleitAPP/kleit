@@ -453,7 +453,7 @@ export function CanvasStage({
         if (e.target === e.target.getStage()) onSelect(null);
       }}
     >
-      <Layer listening={false}>
+      <Layer listening={false} name="background">
         <Rect x={0} y={0} width={doc.canvas.w} height={doc.canvas.h} fill={doc.background} />
         {doc.backgroundAsset && images[BACKGROUND_KEY] ? (
           <KImage
@@ -474,7 +474,7 @@ export function CanvasStage({
           return layer && !layer.hidden ? piece(layer, false) : null;
         })}
       </Layer>
-      <Layer>
+      <Layer name="ui">
         {dragging ? piece(dragging, true) : null}
         {drag?.v !== null && drag?.v !== undefined ? (
           <Line

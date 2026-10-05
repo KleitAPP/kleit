@@ -26,9 +26,9 @@ const MIME: Record<ExportFormat, string> = {
 };
 
 function shot(stage: Konva.Stage, width: number, format: ExportFormat): HTMLCanvasElement {
-  const layers = stage.getLayers();
-  const ui = layers[2];
-  const background = layers[0];
+  // By name, not by position: a layer that re-mounts moves to the end of the stage's children.
+  const ui = stage.findOne<Konva.Layer>(".ui");
+  const background = stage.findOne<Konva.Layer>(".background");
   ui?.hide();
   if (format === "png-transparent") background?.hide();
   try {

@@ -283,7 +283,7 @@ function CanvasSpeed() {
       >
         <Stage ref={stageRef} width={W * scale} height={H * scale} scaleX={scale} scaleY={scale}>
           {/* Layer 1: background. Never listens (artwork pack §7.5 rule 3). */}
-          <Layer listening={false}>
+          <Layer listening={false} name="background">
             <Rect x={0} y={0} width={W} height={H} fill={PAPER} />
           </Layer>
           {/* Layer 2: the nodes. The first one is the one the test drags. */}
@@ -321,7 +321,7 @@ function CanvasSpeed() {
             )}
           </Layer>
           {/* Layer 3: UI - the selection outline around the dragged node. */}
-          <Layer listening={false}>
+          <Layer listening={false} name="ui">
             <Rect
               x={nodes[0]?.x ?? 0}
               y={nodes[0]?.y ?? 0}

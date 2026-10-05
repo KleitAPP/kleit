@@ -12,7 +12,7 @@ export type Notification = {
   id: string;
   kind: NotificationKind;
   actor: Person | null;
-  ref_type: "set" | "poll" | "conversation" | "profile" | null;
+  ref_type: "set" | "poll" | "conversation" | "profile" | "group" | null;
   ref_id: string | null;
   bundled_count: number;
   updated_at: string;

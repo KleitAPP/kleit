@@ -635,6 +635,93 @@ export type Database = {
           },
         ]
       }
+      groups: {
+        Row: {
+          created_at: string
+          creator_id: string
+          deleted_at: string | null
+          description: string
+          id: string
+          name: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          name: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      group_members: {
+        Row: {
+          created_at: string
+          group_id: string
+          invited_by: string | null
+          role: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          invited_by?: string | null
+          role?: string
+          state?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          invited_by?: string | null
+          role?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      group_posts: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          deleted_at: string | null
+          group_id: string
+          id: string
+          set_id: string | null
+        }
+        Insert: {
+          author_id: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          group_id: string
+          id?: string
+          set_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          group_id?: string
+          id?: string
+          set_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null

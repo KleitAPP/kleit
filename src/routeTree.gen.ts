@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
@@ -28,6 +29,7 @@ import { Route as JoinUsernameRouteImport } from './routes/join.username'
 import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppCollectionCollectionIdRouteImport } from './routes/_app.collection.$collectionId'
+import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$groupId'
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
@@ -72,6 +74,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGroupsRoute = AppGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInboxRoute = AppInboxRouteImport.update({
@@ -150,6 +157,11 @@ const AppCollectionCollectionIdRoute =
     path: '/collection/$collectionId',
     getParentRoute: () => AppRoute,
   } as any)
+const AppGroupsGroupIdRoute = AppGroupsGroupIdRouteImport.update({
+  id: '/groups_/$groupId',
+  path: '/groups/$groupId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
   id: '/inbox_/$conversationId',
   path: '/inbox/$conversationId',
@@ -286,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
@@ -301,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
@@ -331,6 +345,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRouteWithChildren
@@ -347,6 +362,7 @@ export interface FileRoutesByTo {
   '/add/link': typeof AppAddLinkRoute
   '/add/photo': typeof AppAddPhotoRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
@@ -379,6 +395,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
@@ -395,6 +412,7 @@ export interface FileRoutesById {
   '/_app/add/link': typeof AppAddLinkRoute
   '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/_app/groups_/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/poll/new': typeof AppPollNewRoute
@@ -428,6 +446,7 @@ export interface FileRouteTypes {
     | '/'
     | '/vibes'
     | '/welcome'
+    | '/groups'
     | '/inbox'
     | '/search'
     | '/settings'
@@ -443,6 +462,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/collection/$collectionId'
+    | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/poll/new'
@@ -473,6 +493,7 @@ export interface FileRouteTypes {
   to:
     | '/vibes'
     | '/welcome'
+    | '/groups'
     | '/inbox'
     | '/search'
     | '/settings'
@@ -489,6 +510,7 @@ export interface FileRouteTypes {
     | '/add/link'
     | '/add/photo'
     | '/collection/$collectionId'
+    | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/poll/new'
@@ -520,6 +542,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/vibes'
     | '/welcome'
+    | '/_app/groups'
     | '/_app/inbox'
     | '/_app/search'
     | '/_app/settings'
@@ -536,6 +559,7 @@ export interface FileRouteTypes {
     | '/_app/add/link'
     | '/_app/add/photo'
     | '/_app/collection/$collectionId'
+    | '/_app/groups_/$groupId'
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
     | '/_app/poll/new'
@@ -606,6 +630,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/groups': {
+      id: '/_app/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof AppGroupsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inbox': {
@@ -711,6 +742,13 @@ declare module '@tanstack/react-router' {
       path: '/collection/$collectionId'
       fullPath: '/collection/$collectionId'
       preLoaderRoute: typeof AppCollectionCollectionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/groups_/$groupId': {
+      id: '/_app/groups_/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AppGroupsGroupIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inbox_/$conversationId': {
@@ -923,6 +961,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
@@ -931,6 +970,7 @@ interface AppRouteChildren {
   AppAddLinkRoute: typeof AppAddLinkRoute
   AppAddPhotoRoute: typeof AppAddPhotoRoute
   AppCollectionCollectionIdRoute: typeof AppCollectionCollectionIdRoute
+  AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppPollNewRoute: typeof AppPollNewRoute
@@ -953,6 +993,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
@@ -961,6 +1002,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAddLinkRoute: AppAddLinkRoute,
   AppAddPhotoRoute: AppAddPhotoRoute,
   AppCollectionCollectionIdRoute: AppCollectionCollectionIdRoute,
+  AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppPollNewRoute: AppPollNewRoute,

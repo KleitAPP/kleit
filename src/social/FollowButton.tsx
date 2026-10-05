@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { t } from "@/i18n/en";
+import { BlockButton } from "@/social/BlockButton";
 import { MessageButton } from "@/social/MessageButton";
 import {
   cancelRequest,
@@ -76,6 +77,7 @@ export function FollowButton({ them, me }: { them: Person; me: string | null }) 
           {label}
         </button>
         <MessageButton them={them} me={me} />
+        <BlockButton them={them} me={me} />
         <p className="text-sm text-ink-soft">
           {t("profile.followers", { count: rel.followers })} ·{" "}
           {t("profile.followingN", { count: rel.followingCount })}

@@ -105,6 +105,16 @@ export const en = {
   "settings.privacyWhy": "Who can see your sets",
   "settings.notifications": "Notifications",
   "settings.blocked": "Blocked accounts",
+  "settings.blockedWhy": "Unblock here",
+  "block.block": "Block",
+  "block.unblock": "Unblock",
+  "block.title": "Block @{name}?",
+  "block.why":
+    "They won't be able to find you, see your sets, follow or message you. Follows between you are removed. They aren't told.",
+  "block.signedOutNote":
+    "Someone signed out can still open a link you shared. Reset the link on that set if you need to.",
+  "block.none": "Nobody blocked.",
+  "block.blockedOn": "Blocked",
   "settings.help": "Help and legal",
   "settings.break": "Take a break",
   "settings.delete": "Delete account",

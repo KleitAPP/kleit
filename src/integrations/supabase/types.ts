@@ -1227,6 +1227,10 @@ export type Database = {
         Returns: Json
       }
       approve_follow_request: { Args: { p_requester: string }; Returns: boolean }
+      blocked_people: {
+        Args: Record<string, never>
+        Returns: { user_id: string; username: string; display_name: string; blocked_at: string }[]
+      }
       accept_message_request: { Args: { p_conversation: string }; Returns: boolean }
       send_message: { Args: { p_to: string; p_body: string }; Returns: string }
       follow_counts: {

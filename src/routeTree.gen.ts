@@ -32,6 +32,7 @@ import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox.
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
+import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings.blocked'
 import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings.break'
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
 import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.legal'
@@ -169,6 +170,11 @@ const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsBlockedRoute = AppSettingsBlockedRouteImport.update({
+  id: '/blocked',
+  path: '/blocked',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppSettingsBreakRoute = AppSettingsBreakRouteImport.update({
   id: '/break',
   path: '/break',
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
+  '/settings/blocked': typeof AppSettingsBlockedRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/item/$itemId': typeof AppItemItemIdRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
+  '/settings/blocked': typeof AppSettingsBlockedRoute
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings/account': typeof AppSettingsAccountRoute
+  '/_app/settings/blocked': typeof AppSettingsBlockedRoute
   '/_app/settings/break': typeof AppSettingsBreakRoute
   '/_app/settings/devices': typeof AppSettingsDevicesRoute
   '/_app/settings/legal': typeof AppSettingsLegalRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
+    | '/settings/blocked'
     | '/settings/break'
     | '/settings/devices'
     | '/settings/legal'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/item/$itemId'
     | '/poll/new'
     | '/settings/account'
+    | '/settings/blocked'
     | '/settings/break'
     | '/settings/devices'
     | '/settings/legal'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/_app/item/$itemId'
     | '/_app/poll/new'
     | '/_app/settings/account'
+    | '/_app/settings/blocked'
     | '/_app/settings/break'
     | '/_app/settings/devices'
     | '/_app/settings/legal'
@@ -729,6 +741,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsAccountRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/blocked': {
+      id: '/_app/settings/blocked'
+      path: '/blocked'
+      fullPath: '/settings/blocked'
+      preLoaderRoute: typeof AppSettingsBlockedRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/settings/break': {
       id: '/_app/settings/break'
       path: '/break'
@@ -893,6 +912,7 @@ const AppInboxRouteWithChildren = AppInboxRoute._addFileChildren(
 
 interface AppSettingsRouteChildren {
   AppSettingsAccountRoute: typeof AppSettingsAccountRoute
+  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
   AppSettingsBreakRoute: typeof AppSettingsBreakRoute
   AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
   AppSettingsLegalRoute: typeof AppSettingsLegalRoute
@@ -902,6 +922,7 @@ interface AppSettingsRouteChildren {
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsAccountRoute: AppSettingsAccountRoute,
+  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
   AppSettingsBreakRoute: AppSettingsBreakRoute,
   AppSettingsDevicesRoute: AppSettingsDevicesRoute,
   AppSettingsLegalRoute: AppSettingsLegalRoute,

@@ -29,7 +29,7 @@ function Settings() {
         <Row to="/settings/legal" title={t("settings.help")} />
         <Later title={t("settings.signInMethods")} />
         <Later title={t("settings.notifications")} />
-        <Later title={t("settings.blocked")} />
+        <Row to="/settings/blocked" title={t("settings.blocked")} why={t("settings.blockedWhy")} />
       </ul>
 
       <button

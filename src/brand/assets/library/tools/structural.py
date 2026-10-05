@@ -428,8 +428,188 @@ def shadow_paper():
     add("paper-shadow", "frame", "Paper with shadow", poly(wobble_rect(r, 16, 16, 168, 168, 2), opacity=".18") + poly(wobble_rect(r, 6, 6, 168, 168, 2)))
 shadow_paper()
 
+# ---------------------------------------------------------------- batch 2 (2026-10-05, evening): editorial, more frames, more marks
+def ring_poly(id_, title, n, r_out, r_in, w=200, h=200, start=-math.pi/2):
+    r = rng(id_)
+    outer = disc(r, w/2, h/2, r_out, n, 0.03, start); inner = disc(r, w/2, h/2, r_in, n, 0.02, start)
+    add(id_, "frame", title, path(ring_d(outer, inner), evenodd=True), w, h)
+
+ring_poly("frame-hex", "Hexagon frame", 6, 96, 78)
+ring_poly("frame-octagon", "Octagon frame", 8, 96, 80)
+ring_poly("frame-diamond", "Diamond frame", 4, 98, 80)
+ring_poly("frame-round-thin", "Thin round frame", 16, 96, 86)
+
+def frame_notched():
+    r = rng("frame-notched")
+    n = 18
+    o = [(6+n, 6), (194-n, 6), (194, 6+n), (194, 194-n), (194-n, 194), (6+n, 194), (6, 194-n), (6, 6+n)]
+    o = [(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in o]
+    add("frame-notched", "frame", "Notched frame", path(ring_d(o, wobble_rect(r, 22, 22, 156, 156, 2)), evenodd=True))
+frame_notched()
+
+def frame_heart():
+    r = rng("frame-heart")
+    def heart(k, cx=100, cy=104):
+        ps = [(0, 74), (-78, -4), (-78, -44), (-56, -72), (-28, -72), (0, -44), (28, -72), (56, -72), (78, -44), (78, -4)]
+        return [(cx + x * k + r.uniform(-1.5, 1.5), cy + y * k + r.uniform(-1.5, 1.5)) for x, y in ps]
+    add("frame-heart", "frame", "Heart frame", path(ring_d(heart(1.15), heart(0.86)), evenodd=True))
+frame_heart()
+
+def frame_star():
+    r = rng("frame-star")
+    def star(k):
+        ps = []
+        for i in range(10):
+            a = -math.pi/2 + math.pi*i/5
+            rad = (96 if i % 2 == 0 else 44) * k
+            ps.append((100 + rad*math.cos(a), 104 + rad*math.sin(a)))
+        return ps
+    add("frame-star", "frame", "Star frame", path(ring_d(star(1.0), star(0.74)), evenodd=True))
+frame_star()
+
+def frame_polaroid_wide():
+    r = rng("frame-polaroid-wide")
+    add("frame-polaroid-wide", "frame", "Wide instant frame", path(ring_d(wobble_rect(r, 4, 4, 242, 192), wobble_rect(r, 18, 18, 214, 140, 2)), evenodd=True), 250, 200)
+frame_polaroid_wide()
+
+def frame_tag_shape():
+    r = rng("frame-tag-shape")
+    o = [(6, 40), (40, 6), (194, 6), (194, 194), (6, 194)]
+    o = [(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in o]
+    hole = disc(r, 36, 36, 7, 8, 0.08)
+    inner = wobble_rect(r, 22, 56, 156, 122, 2)
+    d = ring_d(o, inner) + " M" + " L".join(f"{fmt(x)} {fmt(y)}" for x, y in hole) + " Z"
+    add("frame-tag-shape", "frame", "Tag-shaped frame", path(d, evenodd=True))
+frame_tag_shape()
+
+def frame_inset_double():
+    r = rng("frame-inset-double")
+    a = path(ring_d(wobble_rect(r, 4, 4, 192, 192), wobble_rect(r, 22, 22, 156, 156, 2)), evenodd=True)
+    b = path(ring_d(wobble_rect(r, 30, 30, 140, 140, 2), wobble_rect(r, 38, 38, 124, 124, 2)), evenodd=True, opacity=".55")
+    add("frame-inset-double", "frame", "Frame with an inner line", a + b)
+frame_inset_double()
+
+# editorial
+def masthead():
+    r = rng("masthead")
+    body = poly(wobble_rect(r, 4, 14, 242, 40, 1)) + poly([(4, 60), (246, 60), (246, 65), (4, 65)]) + poly([(4, 70), (246, 70), (246, 73), (4, 73)])
+    add("masthead", "editorial", "Masthead bar", body, 250, 80)
+masthead()
+
+def column_rule():
+    add("column-rule", "editorial", "Column rule", poly([(28, 4), (36, 4), (36, 246), (28, 246)]), 64, 250)
+column_rule()
+
+def byline_rule():
+    add("byline-rule", "editorial", "Short rule", poly([(60, 26), (190, 26), (190, 34), (60, 34)]), 250, 60)
+byline_rule()
+
+def section_ornament():
+    r = rng("section-ornament")
+    body = poly([(4, 28), (90, 28), (90, 32), (4, 32)]) + poly([(160, 28), (246, 28), (246, 32), (160, 32)])
+    body += "".join(poly(disc(r, 110 + i * 15, 30, 4.5, 8, 0.1)) for i in range(3))
+    add("section-ornament", "editorial", "Section break", body, 250, 60)
+section_ornament()
+
+def pull_quote_bars():
+    r = rng("pull-quote-bars")
+    add("pull-quote-bars", "editorial", "Pull-quote bars", poly(wobble_rect(r, 4, 6, 242, 14, 1)) + poly(wobble_rect(r, 4, 100, 242, 14, 1)), 250, 120)
+pull_quote_bars()
+
+def caption_bar():
+    r = rng("caption-bar")
+    add("caption-bar", "editorial", "Caption bar", poly(wobble_rect(r, 4, 12, 242, 24, 1)), 250, 48)
+caption_bar()
+
+def kicker_tab():
+    r = rng("kicker-tab")
+    o = [(6, 8), (150, 8), (168, 30), (150, 52), (6, 52)]
+    add("kicker-tab", "editorial", "Kicker tab", poly([(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in o]), 180, 60)
+kicker_tab()
+
+def drop_cap_box():
+    r = rng("drop-cap-box")
+    add("drop-cap-box", "editorial", "Drop-cap box", path(ring_d(wobble_rect(r, 6, 6, 188, 188), wobble_rect(r, 18, 18, 164, 164, 2)), evenodd=True))
+drop_cap_box()
+
+def page_badge():
+    r = rng("page-badge")
+    add("page-badge", "editorial", "Page badge", poly(disc(r, 100, 100, 60, 12)))
+page_badge()
+
+def bracket_pair():
+    r = rng("bracket-pair")
+    L = poly([(30, 20), (70, 20), (70, 32), (42, 32), (42, 168), (70, 168), (70, 180), (30, 180)])
+    R = poly([(170, 20), (130, 20), (130, 32), (158, 32), (158, 168), (130, 168), (130, 180), (170, 180)])
+    add("bracket-pair", "editorial", "Square brackets", L + R)
+bracket_pair()
+
+# tape and clips, batch 2
+add("tape-long", "tape", "Long strip of tape", tape("tape-long", "", -3, 230, 30, cx=125, cy=40), 250, 80)
+add("tape-short", "tape", "Short piece of tape", tape("tape-short", "", 12, 70, 28))
+
+def pin_flat():
+    r = rng("pin-flat")
+    add("pin-flat", "clip", "Flat-head pin", path(ring_d(disc(r, 100, 100, 44, 12), disc(r, 100, 100, 12, 8)), evenodd=True))
+pin_flat()
+
+def rubber_band():
+    r = rng("rubber-band")
+    outer = [(100 + 90 * math.cos(a) * (1 + r.uniform(-0.04, 0.04)), 100 + 50 * math.sin(a) * (1 + r.uniform(-0.04, 0.04))) for a in [2*math.pi*i/16 for i in range(16)]]
+    inner = [(100 + 76 * math.cos(a), 100 + 36 * math.sin(a)) for a in [2*math.pi*i/16 + 0.1 for i in range(16)]]
+    add("rubber-band", "clip", "Rubber band", path(ring_d(outer, inner), evenodd=True, opacity=".55"))
+rubber_band()
+
+# marks, batch 2
+def plus_mark():
+    add("plus-mark", "mark", "Plus", poly([(88, 30), (112, 30), (112, 88), (170, 88), (170, 112), (112, 112), (112, 170), (88, 170), (88, 112), (30, 112), (30, 88), (88, 88)]))
+plus_mark()
+
+def equals_mark():
+    add("equals-mark", "mark", "Equals", poly([(30, 72), (170, 72), (170, 92), (30, 92)]) + poly([(30, 108), (170, 108), (170, 128), (30, 128)]))
+equals_mark()
+
+def lightning():
+    r = rng("lightning")
+    ps = [(112, 16), (58, 108), (96, 108), (84, 184), (144, 84), (106, 84), (124, 16)]
+    add("lightning", "mark", "Lightning bolt", poly([(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in ps]))
+lightning()
+
+def crown():
+    r = rng("crown")
+    ps = [(24, 160), (24, 70), (62, 108), (100, 40), (138, 108), (176, 70), (176, 160)]
+    add("crown", "mark", "Crown", poly([(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in ps]))
+crown()
+
+def crescent():
+    r = rng("crescent")
+    outer = disc(r, 100, 100, 84, 16, 0.02)
+    inner = [(126 + 70 * math.cos(a), 96 + 70 * math.sin(a)) for a in [2*math.pi*i/16 for i in range(16)]]
+    # a crescent is the big disc with a second disc cut out of it, offset
+    add("crescent", "mark", "Crescent moon", path(ring_d(outer, inner), evenodd=True))
+crescent()
+
+def pennant():
+    r = rng("pennant")
+    ps = [(20, 30), (180, 100), (20, 170), (36, 100)]
+    add("pennant", "mark", "Pennant", poly([(x + r.uniform(-1.5, 1.5), y + r.uniform(-1.5, 1.5)) for x, y in ps]))
+pennant()
+
+def arrow_double():
+    add("arrow-double", "mark", "Two-way arrow", poly([(14, 100), (58, 64), (58, 88), (142, 88), (142, 64), (186, 100), (142, 136), (142, 112), (58, 112), (58, 136)]))
+arrow_double()
+
+def dash_mark():
+    add("dash-mark", "mark", "Dash", poly([(40, 90), (160, 90), (160, 110), (40, 110)]))
+dash_mark()
+
+def triangle_mark():
+    r = rng("triangle-mark")
+    add("triangle-mark", "mark", "Cut triangle", poly([(100 + r.uniform(-2, 2), 24), (180, 170 + r.uniform(-2, 2)), (20, 170 + r.uniform(-2, 2))]))
+triangle_mark()
+
 # ---------------------------------------------------------------- write
-WEAK = {"clip-bulldog"}  # reads as a handbag; redraw before it ships
+WEAK = {"clip-bulldog", "frame-tag-shape"}  # a handbag, and a window; redraw before they ship
 rows = []
 for id_, family, title, text in ASSETS:
     p = os.path.join(OUT, f"{id_}.svg")

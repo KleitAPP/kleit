@@ -352,10 +352,10 @@ export function CanvasStage({
           rotateEnabled
           keepRatio
           enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
-          anchorSize={28 / scale}
+          anchorSize={14}
           borderStroke={GUIDE}
           anchorStroke={GUIDE}
-          rotateAnchorOffset={40 / scale}
+          rotateAnchorOffset={30}
           flipEnabled={false}
         />
         {cropBox ? (
@@ -387,7 +387,7 @@ export function CanvasStage({
               ref={cropTrRef}
               rotateEnabled={false}
               keepRatio={false}
-              anchorSize={28 / scale}
+              anchorSize={14}
               borderStroke={GUIDE}
               anchorStroke={GUIDE}
               flipEnabled={false}

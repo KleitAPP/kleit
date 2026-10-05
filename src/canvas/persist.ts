@@ -81,8 +81,10 @@ export async function loadDoc(setId: string): Promise<Loaded | null> {
       layers[id] = { ...layerFromRow(id, "", text), kind: "text", text: text.text };
   }
   for (const [id, decor] of Object.entries(raw?.decor ?? {})) {
-    if (decor && decor.kind === "asset" && decor.asset)
+    if (decor && decor.kind === "asset" && decor.asset) {
       layers[id] = { ...layerFromRow(id, "", decor), kind: "asset", asset: decor.asset };
+      if (decor.colour) layers[id]!.colour = decor.colour;
+    }
   }
   const order = (raw?.order ?? []).filter((id) => layers[id]);
   for (const id of seen) if (!order.includes(id)) order.push(id);
@@ -167,13 +169,35 @@ export async function saveDiff(
   return ok;
 }
 
-/** A library picture (decoration or background), from this site's own /library/ folder. */
-export function loadLibraryImage(file: string): Promise<HTMLImageElement | null> {
+/**
+ * A library picture (decoration or background), from this site's own /library/ folder. A
+ * structural SVG is fetched as text, given the user's colour in place of currentColor, and
+ * sized up four times so the canvas draws it sharp at any scale.
+ */
+export async function loadLibraryImage(
+  file: string,
+  colour?: string,
+): Promise<HTMLImageElement | null> {
+  let src = `/library/${file}`;
+  if (file.endsWith(".svg")) {
+    try {
+      const text = await (await fetch(src)).text();
+      const sized = text
+        .replace(
+          / width="(\d+)" height="(\d+)"/,
+          (_m, w, h) => ` width="${w * 4}" height="${h * 4}"`,
+        )
+        .replace(/currentColor/g, colour && /^#[0-9a-fA-F]{6}$/.test(colour) ? colour : "#161513");
+      src = URL.createObjectURL(new Blob([sized], { type: "image/svg+xml" }));
+    } catch {
+      return null;
+    }
+  }
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = `/library/${file}`;
+    img.src = src;
   });
 }
 

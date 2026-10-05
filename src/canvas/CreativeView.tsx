@@ -107,7 +107,20 @@ export function CreativeView({ setId }: { setId: string }) {
               opacity: l.opacity,
             }}
           >
-            {src ? (
+            {decor?.kind === "structural" ? (
+              <span
+                role="img"
+                aria-label={decor.title}
+                className="block size-full"
+                style={{
+                  backgroundColor: l.colour ?? "#161513",
+                  maskImage: `url(${src})`,
+                  WebkitMaskImage: `url(${src})`,
+                  maskSize: "100% 100%",
+                  WebkitMaskSize: "100% 100%",
+                }}
+              />
+            ) : src ? (
               <img
                 src={src}
                 alt={decor?.title ?? ""}

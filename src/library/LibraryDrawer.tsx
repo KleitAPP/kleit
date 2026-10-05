@@ -19,6 +19,58 @@ import {
  * Every tile's label is the asset's title - for a museum cutout, the museum's own words - which
  * is also what a screen reader says and what the layers list shows once placed.
  */
+/**
+ * A tile's picture. A structural SVG is one colour (currentColor) so it is shown as a mask in
+ * the theme's ink - that is the drawer's tile, UI, not the user's canvas (artwork pack A18).
+ */
+function Thumb({
+  asset,
+  alt,
+  small = false,
+  cover = false,
+}: {
+  asset: LibraryAsset;
+  alt: string;
+  small?: boolean;
+  cover?: boolean;
+}) {
+  const side = small ? 80 : 120;
+  if (asset.kind === "structural") {
+    const url = `url(${libraryUrl(asset.thumb)})`;
+    return (
+      <span
+        role="img"
+        aria-label={alt}
+        className="block aspect-square w-full bg-ink"
+        style={{
+          maskImage: url,
+          WebkitMaskImage: url,
+          maskSize: "80% 80%",
+          WebkitMaskSize: "80% 80%",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
+      />
+    );
+  }
+  return (
+    <img
+      src={libraryUrl(asset.thumb)}
+      alt={alt}
+      loading="lazy"
+      width={side}
+      height={side}
+      className={
+        cover
+          ? "aspect-square w-full rounded-sm object-cover"
+          : "aspect-square w-full object-contain"
+      }
+    />
+  );
+}
+
 export function LibraryDrawer({
   open,
   mode,
@@ -116,15 +168,7 @@ export function LibraryDrawer({
                     >
                       <div className="grid grid-cols-2 gap-1">
                         {firstFour.map(([id, a]) => (
-                          <img
-                            key={id}
-                            src={libraryUrl(a.thumb)}
-                            alt=""
-                            loading="lazy"
-                            width={80}
-                            height={80}
-                            className="aspect-square w-full object-contain"
-                          />
+                          <Thumb key={id} asset={a} alt="" small />
                         ))}
                       </div>
                       <p className="mt-2 text-base text-ink">{p.name}</p>
@@ -152,18 +196,7 @@ export function LibraryDrawer({
                     title={`${a.title} — ${a.credit}`}
                     className="flex w-full flex-col items-center rounded-md border border-line bg-surface-2 p-1"
                   >
-                    <img
-                      src={libraryUrl(a.thumb)}
-                      alt={a.title}
-                      loading="lazy"
-                      width={120}
-                      height={120}
-                      className={
-                        mode === "backgrounds"
-                          ? "aspect-square w-full rounded-sm object-cover"
-                          : "aspect-square w-full object-contain"
-                      }
-                    />
+                    <Thumb asset={a} alt={a.title} cover={mode === "backgrounds"} />
                     <span className="mt-1 line-clamp-1 w-full text-center text-xs text-ink-soft">
                       {a.title}
                     </span>

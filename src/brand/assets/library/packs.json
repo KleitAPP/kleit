@@ -1,5 +1,20 @@
 [
  {
+  "id": "structural",
+  "name": "Frames & tape",
+  "tier": "free",
+  "for": "Frames, tape, rules and marks cut from one colour - you choose the colour, and it stays.",
+  "holds": "Frames, corners, tape, clips, pins, rules, text bars, tags, arrows, stars, hearts",
+  "palette": [
+   "#FAF9F7",
+   "#F2F1EE",
+   "#161513",
+   "#C0442B",
+   "#6B6963",
+   "#D9D6CF"
+  ]
+ },
+ {
   "id": "coquette",
   "name": "Coquette",
   "tier": "free",

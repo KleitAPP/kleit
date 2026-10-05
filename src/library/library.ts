@@ -8,7 +8,9 @@
  */
 
 export type LibraryAsset = {
-  kind: "cutout" | "drawn";
+  /** A museum photograph, a picture drawn for Kleit, or a one-colour structural SVG the user recolours. */
+  kind: "cutout" | "drawn" | "structural";
+  family?: string;
   /** The museum's own object title for a cutout - the name a screen reader says (§8 #2). */
   title: string;
   packs: string[];

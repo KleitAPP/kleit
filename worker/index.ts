@@ -85,7 +85,7 @@ type TextLayer = Position & {
   };
 };
 
-type DecorLayer = Position & { kind: "asset"; asset: string };
+type DecorLayer = Position & { kind: "asset"; asset: string; colour?: string };
 
 const LIB = LIBRARY as unknown as {
   assets: Record<string, [string, string]>;
@@ -331,6 +331,12 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
         const entry = LIB.assets[d.asset];
         if (!entry) return "";
         const transform = `rotate(${d.rotation ?? 0}deg) scale(${d.flipX ? -1 : 1},${d.flipY ? -1 : 1})`;
+        if (entry[0].endsWith(".svg")) {
+          // A structural piece is one colour: the SVG as a mask, filled with the colour the
+          // owner chose - which is written in the set and never changes (L14).
+          const colour = /^#[0-9a-fA-F]{6}$/.test(d.colour ?? "") ? d.colour : "#161513";
+          return `<div role="img" aria-label="${esc(entry[1])}" style="position:absolute;left:${(d.x / w) * 100}%;top:${(d.y / h) * 100}%;width:${(d.w / w) * 100}%;height:${(d.h / h) * 100}%;transform:${transform};opacity:${d.opacity ?? 1};background:${colour};-webkit-mask:url(/library/${entry[0]}) 0 0/100% 100%;mask:url(/library/${entry[0]}) 0 0/100% 100%"></div>`;
+        }
         const crop = d.crop
           ? `;width:${100 / d.crop.w}%;height:${100 / d.crop.h}%;margin-left:${(-d.crop.x / d.crop.w) * 100}%;margin-top:${(-d.crop.y / d.crop.h) * 100}%;max-width:none`
           : "";

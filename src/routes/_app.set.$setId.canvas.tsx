@@ -36,6 +36,7 @@ import {
   LayersPanel,
   PanelButton,
   SelectedPanel,
+  TEXT_COLOURS,
   TextPanel,
 } from "@/canvas/panels";
 import { FONTS } from "@/fonts/catalogue";
@@ -161,16 +162,17 @@ function CanvasScreen() {
     if (!doc) return;
     const wanted = Object.values(doc.layers)
       .filter((l) => l.kind === "asset" && l.asset)
-      .map((l) => ({ key: imageKey(l), id: l.asset! }));
-    if (doc.backgroundAsset) wanted.push({ key: BACKGROUND_KEY, id: doc.backgroundAsset });
+      .map((l) => ({ key: imageKey(l), id: l.asset!, colour: l.colour }));
+    if (doc.backgroundAsset)
+      wanted.push({ key: BACKGROUND_KEY, id: doc.backgroundAsset, colour: undefined });
     const missing = wanted.filter(({ key }) => images[key] === undefined);
     if (!missing.length) return;
     let cancelled = false;
     void loadCatalogue().then(async (cat) => {
       setCatalogue(cat);
-      for (const { key, id } of missing) {
+      for (const { key, id, colour } of missing) {
         const entry = key === BACKGROUND_KEY ? cat.backgrounds[id] : cat.assets[id];
-        const img = entry ? await loadLibraryImage(entry.file) : null;
+        const img = entry ? await loadLibraryImage(entry.file, colour) : null;
         if (!cancelled) setImages((m) => (m[key] === undefined ? { ...m, [key]: img } : m));
       }
     });
@@ -275,7 +277,13 @@ function CanvasScreen() {
       return;
     }
     const layerId = `decor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const added = addAssetLayer(doc, layerId, id, { w: asset.w, h: asset.h });
+    const added = addAssetLayer(
+      doc,
+      layerId,
+      id,
+      { w: asset.w, h: asset.h },
+      asset.kind === "structural" ? DEFAULT_TEXT_COLOUR : undefined,
+    );
     if (!added.ok) return;
     apply(added.doc);
     setSelected(layerId);
@@ -521,6 +529,21 @@ function CanvasScreen() {
                 />
               </label>
             ) : null}
+          </div>
+        ) : null}
+        {sel?.kind === "asset" && sel.colour ? (
+          <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label={t("text.colour")}>
+            {TEXT_COLOURS.map((c) => (
+              <button
+                key={c.hex}
+                type="button"
+                onClick={() => change(sel.id, { colour: c.hex })}
+                aria-label={c.name}
+                aria-pressed={sel.colour!.toLowerCase() === c.hex.toLowerCase()}
+                className={`size-12 rounded-pill border-2 ${sel.colour!.toLowerCase() === c.hex.toLowerCase() ? "border-ink" : "border-line"}`}
+                style={{ backgroundColor: c.hex }}
+              />
+            ))}
           </div>
         ) : null}
         {sel ? (

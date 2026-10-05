@@ -12,7 +12,8 @@ export type Images = Record<string, HTMLImageElement | null>;
 
 /** The key a layer's picture is kept under: the item id, or `asset:<catalogue id>` for a decoration. */
 export function imageKey(layer: DocLayer): string {
-  return layer.kind === "asset" ? `asset:${layer.asset ?? ""}` : layer.itemId;
+  if (layer.kind !== "asset") return layer.itemId;
+  return `asset:${layer.asset ?? ""}${layer.colour ? `:${layer.colour}` : ""}`;
 }
 /** The key the background picture is kept under. */
 export const BACKGROUND_KEY = "background";

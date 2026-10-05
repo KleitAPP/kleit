@@ -48,6 +48,8 @@ export type Layer = {
   text?: TextStyle;
   /** The library catalogue id of a decoration (`src/library/catalogue.json`). */
   asset?: string;
+  /** A structural decoration's colour, chosen by the user and fixed in the set (L14). */
+  colour?: string;
   x: number;
   y: number;
   w: number;
@@ -87,7 +89,7 @@ export type LayoutV2 = {
   decor?: Record<string, Layer>;
 };
 
-export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text" | "asset">;
+export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text" | "asset" | "colour">;
 
 export function emptyDoc(
   shape: Exclude<CanvasShape, "free"> = "portrait",
@@ -124,7 +126,15 @@ export function layoutOf(doc: Doc): LayoutV2 {
 }
 
 export function positionOf(layer: Layer): PositionV2 {
-  const { id: _id, itemId: _itemId, kind: _kind, text: _text, asset: _asset, ...rest } = layer;
+  const {
+    id: _id,
+    itemId: _itemId,
+    kind: _kind,
+    text: _text,
+    asset: _asset,
+    colour: _colour,
+    ...rest
+  } = layer;
   return rest;
 }
 
@@ -197,10 +207,12 @@ export function addAssetLayer(
   id: string,
   asset: string,
   size: { w: number; h: number },
+  colour?: string,
 ): AddResult {
   const added = addLayer(doc, id, "", size);
   if (!added.ok) return added;
   const layer: Layer = { ...added.doc.layers[id]!, kind: "asset", asset };
+  if (colour) layer.colour = colour;
   return { ...added, doc: { ...added.doc, layers: { ...added.doc.layers, [id]: layer } } };
 }
 

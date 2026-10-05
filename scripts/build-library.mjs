@@ -91,22 +91,31 @@ const assets = {};
 const backgrounds = {};
 const seen = new Set(); // files claimed by a row
 
-function claim(dir, id, row, into, make) {
-  const file = `${dir}/${id}.webp`;
+/** An SVG's viewBox → {w, h}. */
+function svgSize(path) {
+  const m = /viewBox="0 0 (\d+) (\d+)"/.exec(readFileSync(path, "utf8"));
+  if (!m) throw new Error(`no viewBox: ${path}`);
+  return { w: Number(m[1]), h: Number(m[2]) };
+}
+
+function claim(dir, id, row, into, make, ext = "webp") {
+  const file = `${dir}/${id}.${ext}`;
   const exists = existsSync(join(PUB, file));
   if (!exists) {
     if (ships(row)) problems.push(`row says ship but no file: ${file}`);
     return;
   }
   seen.add(file);
-  if (!existsSync(join(PUB, `thumbs/${id}.webp`))) problems.push(`no thumbnail: thumbs/${id}.webp`);
+  // A structural SVG is its own thumbnail (a few hundred bytes); pictures get a 160 px one.
+  const thumb = ext === "svg" ? file : `thumbs/${id}.webp`;
+  if (!existsSync(join(PUB, thumb))) problems.push(`no thumbnail: ${thumb}`);
   if (!ships(row) || into[id]) return; // a later record for the same id never overrides the first
   for (const p of make.packs) if (!packIds.has(p)) problems.push(`${id}: unknown pack "${p}"`);
-  const size = webpSize(join(PUB, file));
+  const size = ext === "svg" ? svgSize(join(PUB, file)) : webpSize(join(PUB, file));
   into[id] = {
     ...make,
     file,
-    thumb: `thumbs/${id}.webp`,
+    thumb,
     w: size.w,
     h: size.h,
     bytes: statSync(join(PUB, file)).size,
@@ -148,6 +157,38 @@ for (const rec of drawnRecords) {
     });
   }
 }
+// The structural set (frames, tape, rules, bars, marks): one-colour SVG the user recolours.
+// It is a pack of its own in the drawer ("Frames & tape"), and every SVG must be a single colour.
+for (const r of csv(join(REC, "licence/structural-licence-record.csv"))) {
+  if (!/Kleit/.test(r.owns_output)) problems.push(`${r.asset_id}: Kleit does not own the output`);
+  const file = join(PUB, `structural/${r.asset_id}.svg`);
+  if (existsSync(file)) {
+    const text = readFileSync(file, "utf8");
+    if (
+      /fill="(?!currentColor|none)/.test(text) ||
+      /stroke="(?!currentColor)/.test(text) ||
+      /url\(|gradient|filter/i.test(text)
+    )
+      problems.push(
+        `${r.asset_id}: a structural asset must be one colour (currentColor), no gradients or filters`,
+      );
+  }
+  claim(
+    "structural",
+    r.asset_id,
+    r,
+    assets,
+    {
+      kind: "structural",
+      title: r.title,
+      packs: ["structural"],
+      credit: "Drawn for Kleit",
+      source: "",
+      family: r.family,
+    },
+    "svg",
+  );
+}
 // Backgrounds: museum (CSV) and drawn (index).
 for (const r of csv(join(REC, "licence/background-licence-record.csv"))) {
   if (!/CC0/.test(r.licence)) problems.push(`${r.asset_id}: background licence is not CC0`);
@@ -175,6 +216,9 @@ for (const [id, v] of Object.entries(
 for (const dir of ["cutouts", "drawn", "backgrounds"])
   for (const f of files(dir))
     if (!seen.has(`${dir}/${f}`)) problems.push(`file with no licence row: ${dir}/${f}`);
+if (existsSync(join(PUB, "structural")))
+  for (const f of readdirSync(join(PUB, "structural")))
+    if (!seen.has(`structural/${f}`)) problems.push(`file with no licence row: structural/${f}`);
 for (const f of files("thumbs")) {
   const id = f.slice(0, -5);
   if (!["cutouts", "drawn", "backgrounds"].some((d) => seen.has(`${d}/${f}`)))
@@ -223,8 +267,9 @@ if (check) {
 }
 const n = Object.keys(assets).length;
 const cut = Object.values(assets).filter((a) => a.kind === "cutout").length;
+const structural = Object.values(assets).filter((a) => a.kind === "structural").length;
 console.log(
-  `library OK: ${n} assets (${cut} museum cutouts, ${n - cut} drawn), ${Object.keys(backgrounds).length} backgrounds, ${packs.length} packs; every file has a licence row`,
+  `library OK: ${n} assets (${cut} museum cutouts, ${n - cut - structural} drawn, ${structural} structural), ${Object.keys(backgrounds).length} backgrounds, ${packs.length} packs; every file has a licence row`,
 );
 for (const p of catalogue.packs)
   console.log(

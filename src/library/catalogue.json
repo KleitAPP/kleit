@@ -1,6 +1,23 @@
 {
  "packs": [
   {
+   "id": "structural",
+   "name": "Frames & tape",
+   "tier": "free",
+   "for": "Frames, tape, rules and marks cut from one colour - you choose the colour, and it stays.",
+   "holds": "Frames, corners, tape, clips, pins, rules, text bars, tags, arrows, stars, hearts",
+   "palette": [
+    "#FAF9F7",
+    "#F2F1EE",
+    "#161513",
+    "#C0442B",
+    "#6B6963",
+    "#D9D6CF"
+   ],
+   "count": 49,
+   "backgrounds": []
+  },
+  {
    "id": "coquette",
    "name": "Coquette",
    "tier": "free",
@@ -6889,6 +6906,741 @@
    "w": 900,
    "h": 780,
    "bytes": 33058
+  },
+  "frame-thin": {
+   "kind": "structural",
+   "title": "Thin cut frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-thin.svg",
+   "thumb": "structural/frame-thin.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 307
+  },
+  "frame-thick": {
+   "kind": "structural",
+   "title": "Thick cut frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-thick.svg",
+   "thumb": "structural/frame-thick.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 309
+  },
+  "frame-tall": {
+   "kind": "structural",
+   "title": "Tall thin frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-tall.svg",
+   "thumb": "structural/frame-tall.svg",
+   "w": 200,
+   "h": 250,
+   "bytes": 307
+  },
+  "frame-wide": {
+   "kind": "structural",
+   "title": "Wide thin frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-wide.svg",
+   "thumb": "structural/frame-wide.svg",
+   "w": 250,
+   "h": 200,
+   "bytes": 311
+  },
+  "frame-double": {
+   "kind": "structural",
+   "title": "Double rule frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-double.svg",
+   "thumb": "structural/frame-double.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 442
+  },
+  "frame-torn": {
+   "kind": "structural",
+   "title": "Torn paper frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-torn.svg",
+   "thumb": "structural/frame-torn.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 1060
+  },
+  "frame-polaroid": {
+   "kind": "structural",
+   "title": "Instant photo frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-polaroid.svg",
+   "thumb": "structural/frame-polaroid.svg",
+   "w": 200,
+   "h": 240,
+   "bytes": 313
+  },
+  "frame-filmstrip": {
+   "kind": "structural",
+   "title": "Film strip frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-filmstrip.svg",
+   "thumb": "structural/frame-filmstrip.svg",
+   "w": 250,
+   "h": 200,
+   "bytes": 1187
+  },
+  "frame-ticket": {
+   "kind": "structural",
+   "title": "Ticket stub frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-ticket.svg",
+   "thumb": "structural/frame-ticket.svg",
+   "w": 250,
+   "h": 200,
+   "bytes": 1686
+  },
+  "frame-corners": {
+   "kind": "structural",
+   "title": "Corner brackets",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-corners.svg",
+   "thumb": "structural/frame-corners.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 516
+  },
+  "frame-oval": {
+   "kind": "structural",
+   "title": "Faceted oval frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-oval.svg",
+   "thumb": "structural/frame-oval.svg",
+   "w": 200,
+   "h": 250,
+   "bytes": 598
+  },
+  "frame-arch": {
+   "kind": "structural",
+   "title": "Arch frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-arch.svg",
+   "thumb": "structural/frame-arch.svg",
+   "w": 200,
+   "h": 250,
+   "bytes": 478
+  },
+  "frame-stamp": {
+   "kind": "structural",
+   "title": "Postage stamp frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-stamp.svg",
+   "thumb": "structural/frame-stamp.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 3430
+  },
+  "frame-scallop": {
+   "kind": "structural",
+   "title": "Scalloped round frame",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/frame-scallop.svg",
+   "thumb": "structural/frame-scallop.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 726
+  },
+  "tape-strip": {
+   "kind": "structural",
+   "title": "Strip of tape",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "tape",
+   "file": "structural/tape-strip.svg",
+   "thumb": "structural/tape-strip.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 465
+  },
+  "tape-strip-steep": {
+   "kind": "structural",
+   "title": "Strip of tape, tilted",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "tape",
+   "file": "structural/tape-strip-steep.svg",
+   "thumb": "structural/tape-strip-steep.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 483
+  },
+  "tape-cross": {
+   "kind": "structural",
+   "title": "Two strips of tape crossed",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "tape",
+   "file": "structural/tape-cross.svg",
+   "thumb": "structural/tape-cross.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 746
+  },
+  "tape-corner": {
+   "kind": "structural",
+   "title": "Tape across a corner",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "tape",
+   "file": "structural/tape-corner.svg",
+   "thumb": "structural/tape-corner.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 433
+  },
+  "tape-washi": {
+   "kind": "structural",
+   "title": "Patterned tape",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "tape",
+   "file": "structural/tape-washi.svg",
+   "thumb": "structural/tape-washi.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 1110
+  },
+  "clip-paper": {
+   "kind": "structural",
+   "title": "Paper clip",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "clip",
+   "file": "structural/clip-paper.svg",
+   "thumb": "structural/clip-paper.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 325
+  },
+  "pin": {
+   "kind": "structural",
+   "title": "Push pin",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "clip",
+   "file": "structural/pin.svg",
+   "thumb": "structural/pin.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 462
+  },
+  "staple": {
+   "kind": "structural",
+   "title": "Staple",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "clip",
+   "file": "structural/staple.svg",
+   "thumb": "structural/staple.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 241
+  },
+  "binder-ring": {
+   "kind": "structural",
+   "title": "Binder ring",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "clip",
+   "file": "structural/binder-ring.svg",
+   "thumb": "structural/binder-ring.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 571
+  },
+  "rule-hair": {
+   "kind": "structural",
+   "title": "Thin rule",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "rule",
+   "file": "structural/rule-hair.svg",
+   "thumb": "structural/rule-hair.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 217
+  },
+  "rule-thick": {
+   "kind": "structural",
+   "title": "Thick rule",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "rule",
+   "file": "structural/rule-thick.svg",
+   "thumb": "structural/rule-thick.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 221
+  },
+  "rule-double": {
+   "kind": "structural",
+   "title": "Double rule",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "rule",
+   "file": "structural/rule-double.svg",
+   "thumb": "structural/rule-double.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 260
+  },
+  "rule-dotted": {
+   "kind": "structural",
+   "title": "Dotted rule",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "rule",
+   "file": "structural/rule-dotted.svg",
+   "thumb": "structural/rule-dotted.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 1310
+  },
+  "rule-dashed": {
+   "kind": "structural",
+   "title": "Dashed rule",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "rule",
+   "file": "structural/rule-dashed.svg",
+   "thumb": "structural/rule-dashed.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 652
+  },
+  "bar-solid": {
+   "kind": "structural",
+   "title": "Text bar",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/bar-solid.svg",
+   "thumb": "structural/bar-solid.svg",
+   "w": 250,
+   "h": 70,
+   "bytes": 222
+  },
+  "bar-torn": {
+   "kind": "structural",
+   "title": "Torn text bar",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/bar-torn.svg",
+   "thumb": "structural/bar-torn.svg",
+   "w": 250,
+   "h": 70,
+   "bytes": 708
+  },
+  "bar-tall": {
+   "kind": "structural",
+   "title": "Tall text bar",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/bar-tall.svg",
+   "thumb": "structural/bar-tall.svg",
+   "w": 250,
+   "h": 120,
+   "bytes": 237
+  },
+  "bar-speech": {
+   "kind": "structural",
+   "title": "Speech bar",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/bar-speech.svg",
+   "thumb": "structural/bar-speech.svg",
+   "w": 250,
+   "h": 80,
+   "bytes": 255
+  },
+  "tag-label": {
+   "kind": "structural",
+   "title": "Label tag",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/tag-label.svg",
+   "thumb": "structural/tag-label.svg",
+   "w": 250,
+   "h": 80,
+   "bytes": 346
+  },
+  "ribbon-banner": {
+   "kind": "structural",
+   "title": "Ribbon banner",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "bar",
+   "file": "structural/ribbon-banner.svg",
+   "thumb": "structural/ribbon-banner.svg",
+   "w": 250,
+   "h": 80,
+   "bytes": 348
+  },
+  "arrow-straight": {
+   "kind": "structural",
+   "title": "Arrow",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/arrow-straight.svg",
+   "thumb": "structural/arrow-straight.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 234
+  },
+  "arrow-curved": {
+   "kind": "structural",
+   "title": "Curved arrow",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/arrow-curved.svg",
+   "thumb": "structural/arrow-curved.svg",
+   "w": 220,
+   "h": 200,
+   "bytes": 402
+  },
+  "arrow-chevron": {
+   "kind": "structural",
+   "title": "Chevron",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/arrow-chevron.svg",
+   "thumb": "structural/arrow-chevron.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 229
+  },
+  "star-five": {
+   "kind": "structural",
+   "title": "Cut star",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/star-five.svg",
+   "thumb": "structural/star-five.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 285
+  },
+  "sparkle-four": {
+   "kind": "structural",
+   "title": "Sparkle",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/sparkle-four.svg",
+   "thumb": "structural/sparkle-four.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 267
+  },
+  "heart-cut": {
+   "kind": "structural",
+   "title": "Cut heart",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/heart-cut.svg",
+   "thumb": "structural/heart-cut.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 296
+  },
+  "asterisk": {
+   "kind": "structural",
+   "title": "Asterisk",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/asterisk.svg",
+   "thumb": "structural/asterisk.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 327
+  },
+  "quote-marks": {
+   "kind": "structural",
+   "title": "Quotation marks",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/quote-marks.svg",
+   "thumb": "structural/quote-marks.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 323
+  },
+  "check-mark": {
+   "kind": "structural",
+   "title": "Check mark",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/check-mark.svg",
+   "thumb": "structural/check-mark.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 234
+  },
+  "cross-mark": {
+   "kind": "structural",
+   "title": "Cross mark",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/cross-mark.svg",
+   "thumb": "structural/cross-mark.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 300
+  },
+  "ring": {
+   "kind": "structural",
+   "title": "Cut ring",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/ring.svg",
+   "thumb": "structural/ring.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 471
+  },
+  "dot": {
+   "kind": "structural",
+   "title": "Cut dot",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/dot.svg",
+   "thumb": "structural/dot.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 313
+  },
+  "snip-line": {
+   "kind": "structural",
+   "title": "Cut here",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/snip-line.svg",
+   "thumb": "structural/snip-line.svg",
+   "w": 250,
+   "h": 60,
+   "bytes": 811
+  },
+  "burst": {
+   "kind": "structural",
+   "title": "Burst",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "mark",
+   "file": "structural/burst.svg",
+   "thumb": "structural/burst.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 521
+  },
+  "paper-shadow": {
+   "kind": "structural",
+   "title": "Paper with shadow",
+   "packs": [
+    "structural"
+   ],
+   "credit": "Drawn for Kleit",
+   "source": "",
+   "family": "frame",
+   "file": "structural/paper-shadow.svg",
+   "thumb": "structural/paper-shadow.svg",
+   "w": 200,
+   "h": 200,
+   "bytes": 318
   }
  },
  "backgrounds": {

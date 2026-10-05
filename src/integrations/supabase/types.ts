@@ -322,6 +322,36 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          requested_by: string | null
+          state: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          requested_by?: string | null
+          state?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          requested_by?: string | null
+          state?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       drawer_items: {
         Row: {
           created_at: string
@@ -356,63 +386,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      conversations: {
-        Row: {
-          created_at: string
-          id: string
-          last_message_at: string
-          requested_by: string | null
-          state: string
-          user_a: string
-          user_b: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          last_message_at?: string
-          requested_by?: string | null
-          state?: string
-          user_a: string
-          user_b: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          last_message_at?: string
-          requested_by?: string | null
-          state?: string
-          user_a?: string
-          user_b?: string
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          body: string
-          conversation_id: string
-          created_at: string
-          deleted_at: string | null
-          id: string
-          sender_id: string
-        }
-        Insert: {
-          body: string
-          conversation_id: string
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          sender_id: string
-        }
-        Update: {
-          body?: string
-          conversation_id?: string
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          sender_id?: string
-        }
-        Relationships: []
       }
       follow_requests: {
         Row: {
@@ -559,6 +532,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       optout_sites: {
         Row: {
@@ -1165,6 +1173,23 @@ export type Database = {
       }
     }
     Functions: {
+      accept_message_request: {
+        Args: { p_conversation: string }
+        Returns: boolean
+      }
+      approve_follow_request: {
+        Args: { p_requester: string }
+        Returns: boolean
+      }
+      blocked_people: {
+        Args: never
+        Returns: {
+          blocked_at: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       can_view_set: {
         Args: { p_code?: string; p_set_id: string; p_viewer: string }
         Returns: boolean
@@ -1182,6 +1207,7 @@ export type Database = {
           created_at: string
           deactivated_at: string | null
           display_name: string
+          dm_setting: string
           findable_by_email: boolean
           findable_by_phone: boolean
           is_private: boolean
@@ -1208,6 +1234,13 @@ export type Database = {
         }[]
       }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
+      follow_counts: {
+        Args: { p_user: string }
+        Returns: {
+          followers: number
+          following: number
+        }[]
+      }
       my_items_scan_states: {
         Args: { p_item_ids: string[] }
         Returns: {
@@ -1226,23 +1259,13 @@ export type Database = {
         }
         Returns: Json
       }
-      approve_follow_request: { Args: { p_requester: string }; Returns: boolean }
-      blocked_people: {
-        Args: Record<string, never>
-        Returns: { user_id: string; username: string; display_name: string; blocked_at: string }[]
-      }
-      accept_message_request: { Args: { p_conversation: string }; Returns: boolean }
-      send_message: { Args: { p_to: string; p_body: string }; Returns: string }
-      follow_counts: {
-        Args: { p_user: string }
-        Returns: { followers: number; following: number }[]
-      }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }
         Returns: number
       }
+      send_message: { Args: { p_body: string; p_to: string }; Returns: string }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {

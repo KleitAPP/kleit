@@ -45,11 +45,19 @@ import { myFonts, type MyFont } from "@/fonts/myFonts";
 import { addRow, loadDoc, loadImage, loadLibraryImage, saveDiff } from "@/canvas/persist";
 import { LibraryDrawer } from "@/library/LibraryDrawer";
 import { loadCatalogue, type Catalogue, type LibraryAsset } from "@/library/library";
-import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
+import { Chip, EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import type { ItemSummary } from "@/items/items";
 import { ItemPicker } from "@/sets/ItemPicker";
 import { SWATCHES } from "@/sets/swatches";
+import {
+  download,
+  exportCarousel,
+  exportSet,
+  exportStory,
+  type ExportFormat,
+  type ExportSize,
+} from "@/canvas/exportSet";
 
 /**
  * S59–S61 — Creative mode (roadmap M4.2; spec 6.1).
@@ -86,6 +94,12 @@ function CanvasScreen() {
   const [library, setLibrary] = useState<"assets" | "backgrounds" | null>(null);
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
+  const [exportSize, setExportSize] = useState<ExportSize>(1080);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportProblem, setExportProblem] = useState(false);
+  const [title, setTitle] = useState("");
   const [missing, setMissing] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "failed">("saved");
   const [notice, setNotice] = useState<string | null>(null);
@@ -105,6 +119,7 @@ function CanvasScreen() {
         return;
       }
       published.current = loaded.status === "published";
+      setTitle(loaded.title);
       setItems(loaded.items);
       setHistory(historyOf(loaded.doc));
       lastSaved.current = loaded.doc;
@@ -360,6 +375,19 @@ function CanvasScreen() {
     if (!doc) return;
     apply(removeLayer(doc, id));
     if (selected === id) setSelected(null);
+  }
+
+  async function runExport(make: () => Promise<{ blob: Blob; filename: string }>) {
+    if (!stageRef.current) return;
+    setExportBusy(true);
+    setExportProblem(false);
+    try {
+      download(await make());
+    } catch {
+      setExportProblem(true);
+    } finally {
+      setExportBusy(false);
+    }
   }
 
   // Web keyboard shortcuts (spec 6.1 #23).
@@ -632,6 +660,14 @@ function CanvasScreen() {
             >
               {t("canvas.send")}
             </PrimaryButton>
+            <PanelButton
+              label={t("export.open")}
+              disabled={doc.order.length === 0}
+              onPress={() => {
+                setSelected(null);
+                setExporting(true);
+              }}
+            />
             <p className="hidden text-xs text-ink-soft md:block">{t("canvas.shortcuts")}</p>
           </div>
         )}
@@ -649,6 +685,82 @@ function CanvasScreen() {
           } else addDecoration(id, asset);
         }}
       />
+      <Sheet
+        open={exporting}
+        onOpenChange={setExporting}
+        title={t("export.title")}
+        description={t("export.note")}
+        action={
+          <PrimaryButton
+            disabled={exportBusy}
+            onClick={() =>
+              void runExport(() =>
+                exportSet(
+                  stageRef.current!,
+                  doc,
+                  exportFormat,
+                  exportSize,
+                  title || t("canvas.title"),
+                ),
+              )
+            }
+          >
+            {exportBusy ? t("export.working") : t("export.go")}
+          </PrimaryButton>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t("export.format")}>
+            {(
+              [
+                ["png", t("export.png")],
+                ["jpg", t("export.jpg")],
+                ["png-transparent", t("export.transparent")],
+              ] as const
+            ).map(([f, label]) => (
+              <Chip
+                key={f}
+                label={label}
+                selected={exportFormat === f}
+                onToggle={() => setExportFormat(f)}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t("export.size")}>
+            <Chip
+              label={t("export.size1080")}
+              selected={exportSize === 1080}
+              onToggle={() => setExportSize(1080)}
+            />
+            <Chip
+              label={t("export.size2160")}
+              selected={exportSize === 2160}
+              onToggle={() => setExportSize(2160)}
+            />
+          </div>
+          <PanelButton
+            label={t("export.story")}
+            disabled={exportBusy}
+            onPress={() =>
+              void runExport(() => exportStory(stageRef.current!, doc, title || t("canvas.title")))
+            }
+          />
+          <PanelButton
+            label={t("export.carousel")}
+            disabled={exportBusy}
+            onPress={() =>
+              void runExport(() =>
+                exportCarousel(stageRef.current!, doc, images, title || t("canvas.title")),
+              )
+            }
+          />
+          {exportProblem ? (
+            <p role="alert" className="text-sm text-danger">
+              {t("export.failed")}
+            </p>
+          ) : null}
+        </div>
+      </Sheet>
       <LayersPanel
         open={layersOpen}
         onOpenChange={setLayersOpen}

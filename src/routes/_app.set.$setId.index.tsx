@@ -17,6 +17,8 @@ import { inkFor } from "@/sets/swatches";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
+import { setCommentsSetting, type CommentsSetting } from "@/social/comments";
+import { SocialBar } from "@/social/SocialBar";
 import { TemplateDressing } from "@/templates/TemplateDressing";
 
 /**
@@ -54,6 +56,8 @@ function SetPage() {
   const [template, setTemplate] = useState<Template | null>(null);
   const [images, setImages] = useState<Record<string, string | null>>({});
   const [mine, setMine] = useState(false);
+  const [me, setMe] = useState<string | null>(null);
+  const [commentsSetting, setCommentsSettingState] = useState<CommentsSetting>("everyone");
   const [missing, setMissing] = useState(false);
   const [options, setOptions] = useState(false);
   const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
@@ -82,6 +86,14 @@ function SetPage() {
         .eq("id", setId)
         .maybeSingle();
       setMine(!!owner && owner.owner_id === who.data.user?.id);
+      setMe(who.data.user?.id ?? null);
+      const { data: cs } = await supabase
+        .from("sets")
+        .select("comments_setting")
+        .eq("id", setId)
+        .maybeSingle();
+      if (cs && ["everyone", "following", "off"].includes(cs.comments_setting))
+        setCommentsSettingState(cs.comments_setting as CommentsSetting);
       const urls: Record<string, string | null> = {};
       await Promise.all(
         loaded.placements.map(async (p) => {
@@ -280,7 +292,7 @@ function SetPage() {
         </section>
       ) : null}
 
-      <p className="mt-6 text-sm text-ink-soft">{t("setpage.socialLater")}</p>
+      <SocialBar setId={setId} me={me} mine={mine} commentsSetting={commentsSetting} />
 
       {mine ? (
         <div className="mt-6">
@@ -303,6 +315,26 @@ function SetPage() {
             >
               {t("setpage.edit")}
             </Link>
+          </li>
+          <li className="py-3">
+            <p className="text-base text-ink">{t("social.setting")}</p>
+            <p className="text-sm text-ink-soft">{t("social.settingWhy")}</p>
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              role="group"
+              aria-label={t("social.setting")}
+            >
+              {(["everyone", "following", "off"] as const).map((c) => (
+                <Chip
+                  key={c}
+                  label={t(`social.setting.${c}`)}
+                  selected={commentsSetting === c}
+                  onToggle={() =>
+                    void setCommentsSetting(setId, c).then((ok) => ok && setCommentsSettingState(c))
+                  }
+                />
+              ))}
+            </div>
           </li>
           <li className="py-3">
             <p className="text-base text-ink">{t("send.whoCanSee")}</p>

@@ -322,6 +322,51 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          edited_at: string | null
+          id: string
+          set_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          set_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          set_id?: string
+        }
+        Relationships: []
+      }
+      likes: {
+        Row: { created_at: string; set_id: string; user_id: string }
+        Insert: { created_at?: string; set_id: string; user_id: string }
+        Update: { created_at?: string; set_id?: string; user_id?: string }
+        Relationships: []
+      }
+      reactions: {
+        Row: { created_at: string; emoji: string; set_id: string; user_id: string }
+        Insert: { created_at?: string; emoji: string; set_id: string; user_id: string }
+        Update: { created_at?: string; emoji?: string; set_id?: string; user_id?: string }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -703,6 +748,7 @@ export type Database = {
           deactivated_at: string | null
           display_name: string
           dm_setting: string
+          comments_default: string
           findable_by_email: boolean
           findable_by_phone: boolean
           is_private: boolean
@@ -721,6 +767,7 @@ export type Database = {
           deactivated_at?: string | null
           display_name?: string
           dm_setting?: string
+          comments_default?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -739,6 +786,7 @@ export type Database = {
           deactivated_at?: string | null
           display_name?: string
           dm_setting?: string
+          comments_default?: string
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
@@ -893,6 +941,7 @@ export type Database = {
           remixed_from_label: string | null
           remixed_from_set_id: string | null
           share_code: string
+          comments_setting: string
           song_artist: string | null
           song_cover_url: string | null
           song_title: string | null
@@ -921,6 +970,7 @@ export type Database = {
           remixed_from_label?: string | null
           remixed_from_set_id?: string | null
           share_code?: string
+          comments_setting?: string
           song_artist?: string | null
           song_cover_url?: string | null
           song_title?: string | null
@@ -949,6 +999,7 @@ export type Database = {
           remixed_from_label?: string | null
           remixed_from_set_id?: string | null
           share_code?: string
+          comments_setting?: string
           song_artist?: string | null
           song_cover_url?: string | null
           song_title?: string | null
@@ -1266,6 +1317,16 @@ export type Database = {
         Returns: number
       }
       send_message: { Args: { p_body: string; p_to: string }; Returns: string }
+      set_social: {
+        Args: { p_set: string }
+        Returns: {
+          likes: number
+          comments: number
+          reactions: Json
+          my_like: boolean
+          my_reaction: string | null
+        }[]
+      }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {

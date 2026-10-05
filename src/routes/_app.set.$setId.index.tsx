@@ -11,6 +11,7 @@ import {
   type Placement,
   type SetSummary,
   type Template,
+  refreshPreview,
 } from "@/sets/sets";
 import { inkFor } from "@/sets/swatches";
 import { SaveToCollection } from "@/collections/SaveToCollection";
@@ -118,7 +119,10 @@ function SetPage() {
   async function changeVisibility(next: Visibility) {
     if (!set) return;
     const { error } = await supabase.from("sets").update({ visibility: next }).eq("id", set.id);
-    if (!error) setSet({ ...set, visibility: next });
+    if (!error) {
+      setSet({ ...set, visibility: next });
+      refreshPreview(set.id);
+    }
   }
 
   async function resetLink() {

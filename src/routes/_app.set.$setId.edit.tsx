@@ -15,6 +15,7 @@ import {
   type Placement,
   type QuickLayout,
   type Template,
+  refreshPreview,
 } from "@/sets/sets";
 import { SWATCHES, inkFor } from "@/sets/swatches";
 import { myDrawer } from "@/items/items";
@@ -60,6 +61,8 @@ function QuickBuilder() {
   const pending = useRef<QuickLayout | null>(null);
   /** Always the newest layout - for code that runs after an await and must not use a stale copy. */
   const latest = useRef<QuickLayout | null>(null);
+  /** Published sets redraw their chat picture after each save (CL30); drafts have none. */
+  const published = useRef(false);
 
   // Load everything once.
   useEffect(() => {
@@ -72,6 +75,7 @@ function QuickBuilder() {
         return;
       }
       setAll(tpls);
+      published.current = loaded.set.status === "published";
       const opening = loaded.set.layout.template
         ? loaded.set.layout
         : { ...loaded.set.layout, template: tpls[0]?.id ?? "" };
@@ -106,6 +110,7 @@ function QuickBuilder() {
         if (ok) {
           if (pending.current === toSave) pending.current = null;
           setSaveState("saved");
+          if (published.current) refreshPreview(setId);
         } else {
           setSaveState("failed");
           saveTimer.current = window.setTimeout(attempt, 4000);

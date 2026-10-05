@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { supabase } from "@/integrations/supabase/client";
-import { autoTitle, loadSet, type Placement, type SetSummary } from "@/sets/sets";
+import { refreshPreview, autoTitle, loadSet, type Placement, type SetSummary } from "@/sets/sets";
 import { t } from "@/i18n/en";
 
 /**
@@ -97,6 +97,7 @@ function SendSet() {
       return;
     }
     setSet({ ...set, status: "published", title: title.trim() || autoTitle(placements) });
+    refreshPreview(set.id);
   }
 
   async function saveAltText() {
@@ -110,7 +111,10 @@ function SendSet() {
   async function changeVisibility(next: Visibility) {
     if (!set) return;
     const { error } = await supabase.from("sets").update({ visibility: next }).eq("id", set.id);
-    if (!error) setSet({ ...set, visibility: next });
+    if (!error) {
+      setSet({ ...set, visibility: next });
+      refreshPreview(set.id); // a public picture only for a public or link set; taken down otherwise
+    }
     setChanging(false);
   }
 

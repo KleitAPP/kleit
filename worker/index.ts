@@ -41,7 +41,13 @@ type PollOption = {
   id: string;
   label: string;
   sort_order: number;
-  set: { id: string; title: string; layout: { background?: string } | null; pieces: PollPiece[] };
+  set: {
+    id: string;
+    title: string;
+    layout: { background?: string } | null;
+    preview: string | null;
+    pieces: PollPiece[];
+  };
 };
 type SharedPoll = {
   id: string;
@@ -73,6 +79,7 @@ type SharedSet = {
   visibility: "public" | "link";
   published_at: string | null;
   owner: { username: string; display_name: string };
+  preview: string | null;
   pieces: Piece[];
 };
 
@@ -166,6 +173,10 @@ function renderPoll(poll: SharedPoll, code: string, base: string, env: Env): str
   const closes = new Date(poll.closes_at);
   const closesText = closes.toLocaleDateString("en-US", { weekday: "long" });
   const options = [...poll.options].sort((a, b) => a.sort_order - b.sort_order);
+  const firstPreview = options.find((o) => o.set.preview)?.set.preview ?? null;
+  const pollPreview = firstPreview
+    ? `${env.SUPABASE_URL}/storage/v1/object/public/set-previews/${firstPreview}`
+    : null;
 
   const cards = options
     .map((o) => {
@@ -212,7 +223,15 @@ function renderPoll(poll: SharedPoll, code: string, base: string, env: Env): str
 <meta property="og:title" content="${esc(question)}">
 <meta property="og:description" content="Help ${esc(who)} choose - ${options.length} sets, one tap.">
 <meta property="og:url" content="${esc(pageUrl)}">
-<meta name="twitter:card" content="summary">
+${
+  pollPreview
+    ? `<meta property="og:image" content="${esc(pollPreview)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+<meta name="twitter:image" content="${esc(pollPreview)}">`
+    : ""
+}
+<meta name="twitter:card" content="${pollPreview ? "summary_large_image" : "summary"}">
 <link rel="canonical" href="${esc(pageUrl)}">
 ${STYLE}${POLL_STYLE}</head>
 <body>
@@ -285,6 +304,11 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
     : "#F4EFE6";
   const functions = `${env.SUPABASE_URL}/functions/v1`;
   const pageUrl = `${base}/s/${code}`;
+  // The chat picture (CL30): a versioned file in the public set-previews bucket, drawn by the
+  // set-preview function from the same pieces this page shows.
+  const preview = set.preview
+    ? `${env.SUPABASE_URL}/storage/v1/object/public/set-previews/${set.preview}`
+    : null;
 
   const pieces = set.pieces
     .map((p) => {
@@ -314,7 +338,15 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(pageUrl)}">
-<meta name="twitter:card" content="summary">
+${
+  preview
+    ? `<meta property="og:image" content="${esc(preview)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+<meta name="twitter:image" content="${esc(preview)}">`
+    : ""
+}
+<meta name="twitter:card" content="${preview ? "summary_large_image" : "summary"}">
 <link rel="canonical" href="${esc(pageUrl)}">
 ${STYLE}</head>
 <body>

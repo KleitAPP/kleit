@@ -257,6 +257,24 @@ try {
     shared.replace(/\s+/g, " ").slice(0, 200),
   );
   check(elapsed < 2500, "signed out: the page arrives in under 2.5 s", `${elapsed} ms`);
+  // CL30: the chat picture. Drawn after publish by the server; give it a moment, then read the
+  // tag and fetch the file it points at.
+  let ogImage = null;
+  for (let tries = 0; tries < 10 && !ogImage; tries++) {
+    await gp.goto(`${SITE}/s/${first.code}`);
+    ogImage = await gp.getAttribute('meta[property="og:image"]', "content").catch(() => null);
+    if (!ogImage) await wait(2000);
+  }
+  const picture = ogImage ? await fetch(ogImage) : null;
+  check(
+    !!picture &&
+      picture.status === 200 &&
+      /^image\/jpeg/.test(picture.headers.get("content-type") ?? ""),
+    "signed out: the link carries a chat picture (og:image) that really exists",
+    ogImage
+      ? `${picture?.status} ${picture?.headers.get("content-type")} ${ogImage.slice(-30)}`
+      : "no og:image tag",
+  );
 
   // 6. Guest vote: two taps, then the bars, then the sign-up card; a repeat tap is refused.
   await gp.goto(`${SITE}/p/${pollCode}`);

@@ -116,6 +116,15 @@ export async function saveLayout(setId: string, layout: QuickLayout): Promise<bo
   return !error;
 }
 
+/**
+ * Asks the server to redraw the picture a group chat shows next to this set's link (CL30).
+ * Fire and forget: the link works without it, and the server decides whether this set may have
+ * a public picture at all (published, public or link) and takes an old one down if not.
+ */
+export function refreshPreview(setId: string): void {
+  void supabase.functions.invoke("set-preview", { body: { set_id: setId } }).catch(() => undefined);
+}
+
 /** Put a piece in a slot, replacing whatever was there. */
 export async function placeItem(setId: string, slot: number, itemId: string): Promise<boolean> {
   // One piece per slot: clear the slot first, then the piece may only sit in one slot.

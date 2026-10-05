@@ -402,6 +402,69 @@ try {
     "stranger: a private set's code and a wrong code are the same page",
     `${wrong.status}/${privPage.status}`,
   );
+
+  // ---------------------------------------------------------------------------
+  // 7. Templates (M4.5): a private one is nobody else's; a published one is readable but not
+  //    editable; nothing can be made in the victim's name.
+  // ---------------------------------------------------------------------------
+  const { data: tplPriv } = await victim.client
+    .from("templates")
+    .insert({
+      owner_id: victim.id,
+      name: `${XSS} private`,
+      kind: "slot",
+      is_public: false,
+      layout: {
+        version: 2,
+        canvas: { w: 1080, h: 1350, shape: "portrait" },
+        background: "#F4EFE6",
+        slots: [{ x: 0.1, y: 0.1, w: 0.5, h: 0.5 }],
+        order: [],
+      },
+    })
+    .select("id")
+    .single();
+  const { data: tplPub } = await victim.client
+    .from("templates")
+    .insert({
+      owner_id: victim.id,
+      name: "published",
+      kind: "slot",
+      is_public: true,
+      layout: {
+        version: 2,
+        canvas: { w: 1080, h: 1350, shape: "portrait" },
+        background: "#F4EFE6",
+        slots: [{ x: 0.1, y: 0.1, w: 0.5, h: 0.5 }],
+        order: [],
+      },
+    })
+    .select("id")
+    .single();
+  const { data: seesTplPriv } = await a.from("templates").select("id").eq("id", tplPriv.id);
+  check((seesTplPriv ?? []).length === 0, "attacker: cannot read the victim's private template");
+  const { data: seesTplPub } = await a.from("templates").select("id").eq("id", tplPub.id);
+  check(
+    (seesTplPub ?? []).length === 1,
+    "attacker: can read the victim's published template (as intended)",
+  );
+  const { data: tplHijack } = await a
+    .from("templates")
+    .update({ name: "hijacked", is_public: false })
+    .eq("id", tplPub.id)
+    .select("id");
+  check((tplHijack ?? []).length === 0, "attacker: cannot change the victim's template");
+  const { data: tplGone } = await a.from("templates").delete().eq("id", tplPub.id).select("id");
+  check((tplGone ?? []).length === 0, "attacker: cannot delete it");
+  const tplSteal = await a
+    .from("templates")
+    .insert({ owner_id: victim.id, name: "planted", kind: "slot", layout: {} });
+  check(
+    !!tplSteal.error,
+    "attacker: cannot make a template in the victim's name",
+    tplSteal.error?.code,
+  );
+  await admin.from("templates").delete().in("id", [tplPriv.id, tplPub.id]);
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

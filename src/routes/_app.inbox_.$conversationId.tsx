@@ -22,7 +22,7 @@ import {
  * received it; the sender sees that it is waiting. New rows arrive live; a message taken back
  * shows "Message unavailable" rather than vanishing (spec 10.2; technical pack row 30).
  */
-export const Route = createFileRoute("/_app/inbox/$conversationId")({
+export const Route = createFileRoute("/_app/inbox_/$conversationId")({
   head: () => ({ meta: [{ title: "Message" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ConversationScreen,
 });

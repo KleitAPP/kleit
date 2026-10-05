@@ -83,28 +83,26 @@ function CanvasSpeed() {
   const thumbs = useMemo(() => thumbnailDataUris(24), []);
 
   useEffect(() => {
-    // The first render of this many nodes: from mount (or re-key) to the layer having drawn.
-    const stage = stageRef.current;
-    if (!stage) return;
-    const canvasLayer = stage.getLayers()[1];
+    // The first render of this many nodes: from the moment the change was asked for (the
+    // mount, or the re-key in run()) to the frame after the layer has painted - React's work,
+    // Konva's node creation and the draw all inside it.
     firstRender.current = null;
-    const started = performance.now();
-    canvasLayer?.batchDraw();
+    const started = mountedAt.current;
     requestAnimationFrame(() => {
-      firstRender.current = performance.now() - started;
+      requestAnimationFrame(() => {
+        firstRender.current = performance.now() - started;
+      });
     });
   }, [nodes, kind, pixelRatio]);
 
   async function run(c = count, k = kind, pr = pixelRatio): Promise<SpeedResult> {
     setBusy(true);
-    if (c !== count || k !== kind || pr !== pixelRatio) {
-      setCount(c);
-      setKind(k);
-      setPixelRatio(pr);
-      mountedAt.current = performance.now();
-      setEpoch((e) => e + 1);
-      await new Promise((r) => setTimeout(r, 400));
-    }
+    mountedAt.current = performance.now();
+    setCount(c);
+    setKind(k);
+    setPixelRatio(pr);
+    setEpoch((e) => e + 1); // a fresh layer every run, so "first render" is always a first render
+    await new Promise((r) => setTimeout(r, 600));
     const stage = stageRef.current!;
     const canvasLayer = stage.getLayers()[1]!;
     const mover = movingRef.current!;

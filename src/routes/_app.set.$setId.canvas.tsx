@@ -2,9 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type Konva from "konva";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { CanvasStage, type Images } from "@/canvas/CanvasStage";
+import { CanvasStage, type Families, type Images } from "@/canvas/CanvasStage";
 import {
   addLayer,
+  addTextLayer,
   cloneLayer,
   commit,
   fit,
@@ -23,7 +24,16 @@ import {
   type History,
   type OrderMove,
 } from "@/canvas/doc";
-import { LayersPanel, PanelButton, SelectedPanel } from "@/canvas/panels";
+import {
+  DEFAULT_TEXT_COLOUR,
+  LayersPanel,
+  PanelButton,
+  SelectedPanel,
+  TextPanel,
+} from "@/canvas/panels";
+import { FONTS } from "@/fonts/catalogue";
+import { loadFont } from "@/fonts/load";
+import { myFonts, type MyFont } from "@/fonts/myFonts";
 import { addRow, loadDoc, loadImage, saveDiff } from "@/canvas/persist";
 import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
@@ -54,6 +64,12 @@ function CanvasScreen() {
   const [history, setHistory] = useState<History | null>(null);
   const [items, setItems] = useState<Record<string, ItemSummary>>({});
   const [images, setImages] = useState<Images>({});
+  const [families, setFamilies] = useState<Families>({});
+  const [advanced, setAdvanced] = useState(false);
+  const [mine, setMine] = useState<MyFont[]>([]);
+  useEffect(() => {
+    void myFonts().then(setMine);
+  }, []);
   const [selected, setSelected] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -127,6 +143,18 @@ function CanvasScreen() {
       }
     }, 400);
   }, [doc, setId]);
+
+  // Every font the document uses, loaded once; the stage draws with a fallback until then.
+  useEffect(() => {
+    if (!doc) return;
+    for (const l of Object.values(doc.layers)) {
+      const id = l.kind === "text" ? l.text?.font : undefined;
+      if (!id || families[id] !== undefined) continue;
+      void loadFont(id).then((family) => {
+        if (family) setFamilies((f) => ({ ...f, [id]: family }));
+      });
+    }
+  }, [doc, families]);
 
   const apply = useCallback((next: Doc) => {
     setHistory((h) => (h ? commit(h, next) : h));
@@ -225,6 +253,25 @@ function CanvasScreen() {
       return commit(h, cloned.doc);
     });
     setSelected(rowId);
+  }
+
+  function addText() {
+    if (!doc) return;
+    if (doc.order.length >= LAYER_CAP) {
+      setNotice(t("canvas.capReached", { cap: LAYER_CAP }));
+      return;
+    }
+    const id = `text-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const added = addTextLayer(doc, id, {
+      text: t("text.default"),
+      font: "playfair",
+      size: 96,
+      colour: DEFAULT_TEXT_COLOUR,
+      align: "center",
+    });
+    if (!added.ok) return;
+    apply(added.doc);
+    setSelected(id);
   }
 
   function remove(id: string) {
@@ -342,8 +389,15 @@ function CanvasScreen() {
             setSelected(id);
             if (id !== selected) setCropping(false);
           }}
+          families={families}
           onChange={change}
           onCrop={(id, crop) => change(id, { crop })}
+          onMeasure={(id, h) => {
+            // Not an undo step: the words did not change, only the box that holds them.
+            setHistory((hist) =>
+              hist ? { ...hist, present: updateLayer(hist.present, id, { h }) } : hist,
+            );
+          }}
         />
       </div>
       {doc.order.length === 0 ? (
@@ -361,6 +415,35 @@ function CanvasScreen() {
 
       {/* Thumb zone. */}
       <div className="mt-3">
+        {sel?.kind === "text" && sel.text ? (
+          <div className="mb-3">
+            <TextPanel
+              style={sel.text}
+              fonts={[
+                ...FONTS.map((f) => ({ id: f.id, name: f.name })),
+                ...mine.map((f) => ({ id: f.id, name: `${f.name} (${t("text.myFonts")})` })),
+              ]}
+              onChange={(next) => change(sel.id, { text: next })}
+              onAdvanced={() => setAdvanced((a) => !a)}
+            />
+            {advanced ? (
+              <label className="mt-2 block">
+                <span className="text-sm text-ink-soft">{t("text.hex")}</span>
+                <input
+                  type="text"
+                  value={sel.text.colour}
+                  maxLength={7}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (/^#[0-9a-fA-F]{6}$/.test(v))
+                      change(sel.id, { text: { ...sel.text!, colour: v } });
+                  }}
+                  className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+                />
+              </label>
+            ) : null}
+          </div>
+        ) : null}
         {sel ? (
           <SelectedPanel
             layer={sel}
@@ -405,6 +488,7 @@ function CanvasScreen() {
         ) : (
           <div className="flex flex-col gap-3">
             <PrimaryButton onClick={() => setPicking(true)}>{t("canvas.addPiece")}</PrimaryButton>
+            <PanelButton label={t("canvas.addText")} onPress={addText} />
             <div className="flex flex-wrap gap-2" role="group" aria-label={t("canvas.background")}>
               {SWATCHES.map((s) => (
                 <button

@@ -29,10 +29,22 @@ export const SNAP_DISTANCE = 8;
 
 export type Crop = { x: number; y: number; w: number; h: number }; // fractions of the source, 0..1
 
+/** A text layer's words and their look (spec 6.2 #1; S62). `font` is a catalogue id, or `private:<path>`. */
+export type TextStyle = {
+  text: string;
+  font: string;
+  size: number;
+  colour: string;
+  align: "left" | "center" | "right";
+};
+
 export type Layer = {
-  /** The set_items row id once saved; a temporary id before. */
+  /** The set_items row id once saved; a temporary id before. For text, an id of its own. */
   id: string;
+  /** Empty for a text layer. */
   itemId: string;
+  kind: "item" | "text";
+  text?: TextStyle;
   x: number;
   y: number;
   w: number;
@@ -63,9 +75,11 @@ export type LayoutV2 = {
   background: string;
   caption: string;
   order: string[];
+  /** Text layers live in the layout (they are not pieces), keyed by id. */
+  texts?: Record<string, Layer>;
 };
 
-export type PositionV2 = Omit<Layer, "id" | "itemId">;
+export type PositionV2 = Omit<Layer, "id" | "itemId" | "kind" | "text">;
 
 export function emptyDoc(
   shape: Exclude<CanvasShape, "free"> = "portrait",
@@ -75,6 +89,8 @@ export function emptyDoc(
 }
 
 export function layoutOf(doc: Doc): LayoutV2 {
+  const texts: Record<string, Layer> = {};
+  for (const [id, l] of Object.entries(doc.layers)) if (l.kind === "text") texts[id] = l;
   return {
     version: 2,
     mode: "creative",
@@ -82,11 +98,12 @@ export function layoutOf(doc: Doc): LayoutV2 {
     background: doc.background,
     caption: doc.caption,
     order: [...doc.order],
+    texts,
   };
 }
 
 export function positionOf(layer: Layer): PositionV2 {
-  const { id: _id, itemId: _itemId, ...rest } = layer;
+  const { id: _id, itemId: _itemId, kind: _kind, text: _text, ...rest } = layer;
   return rest;
 }
 
@@ -99,6 +116,7 @@ export function layerFromRow(
   return {
     id,
     itemId,
+    kind: "item",
     x: position?.x ?? fallback.x ?? 0,
     y: position?.y ?? fallback.y ?? 0,
     w: position?.w ?? fallback.w ?? 400,
@@ -142,6 +160,25 @@ export function addLayer(
     w,
     h,
   });
+  return {
+    ok: true,
+    id,
+    doc: { ...doc, order: [...doc.order, id], layers: { ...doc.layers, [id]: layer } },
+  };
+}
+
+/** A text layer (S62): the words in the middle of the canvas, a third of its width, on top. */
+export function addTextLayer(doc: Doc, id: string, style: TextStyle): AddResult {
+  if (count(doc) >= LAYER_CAP) return { ok: false, reason: "cap" };
+  const w = Math.round(doc.canvas.w * 0.6);
+  const h = Math.round(style.size * 1.4);
+  const base = layerFromRow(id, "", null, {
+    x: Math.round((doc.canvas.w - w) / 2),
+    y: Math.round((doc.canvas.h - h) / 2),
+    w,
+    h,
+  });
+  const layer: Layer = { ...base, kind: "text", text: style };
   return {
     ok: true,
     id,
@@ -348,7 +385,11 @@ export function changedLayers(before: Doc, after: Doc): { changed: string[]; rem
 }
 
 export function layoutChanged(before: Doc, after: Doc): boolean {
+  const textChanged = Object.entries(after.layers).some(
+    ([id, l]) => l.kind === "text" && before.layers[id] !== l,
+  );
   return (
+    textChanged ||
     before.canvas !== after.canvas ||
     before.background !== after.background ||
     before.caption !== after.caption ||

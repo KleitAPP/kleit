@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "eslint.config.js", "scripts/**/*.ts", "supabase/functions/_shared/**/*.ts"],
-  "exclude": ["supabase/functions/_shared/screen.ts"],
+  "exclude": ["supabase/functions/_shared/screen.ts", "supabase/functions/_shared/text-draw.ts"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

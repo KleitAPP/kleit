@@ -19,6 +19,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, Image, type Frame } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
+import { drawText, fontBytes, type TextStyle } from "../_shared/text-draw.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -54,6 +56,7 @@ type Shared = {
     version?: number;
     canvas?: { w: number; h: number };
     order?: string[];
+    texts?: Record<string, Position & { kind: "text"; text: TextStyle }>;
   } | null;
   pieces: Piece[];
 };
@@ -150,16 +153,34 @@ Deno.serve(async (request) => {
 
   // Which pieces, where: a template's slots, or a Creative set's own positions in its own order.
   type Place = {
-    piece: Piece;
+    piece: Piece | null;
+    text?: Position & { kind: "text"; text: TextStyle };
     box: { x: number; y: number; w: number; h: number };
     pos: Position | null;
   };
   const places: Place[] = [];
   if (creative) {
     const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
-    const order = (set.layout!.order ?? []).filter((id) => byRow.has(id));
+    const texts = set.layout!.texts ?? {};
+    const order = (set.layout!.order ?? []).filter((id) => byRow.has(id) || texts[id]);
     for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
     for (const id of order) {
+      const text = texts[id];
+      if (text) {
+        if (!text.hidden)
+          places.push({
+            piece: null,
+            text,
+            box: {
+              x: text.x / canvasW,
+              y: text.y / canvasH,
+              w: text.w / canvasW,
+              h: text.h / canvasH,
+            },
+            pos: text,
+          });
+        continue;
+      }
       const p = byRow.get(id)!;
       if (!p.position || p.position.hidden) continue;
       places.push({
@@ -181,8 +202,33 @@ Deno.serve(async (request) => {
     }
   }
 
-  for (const { piece, box, pos } of places) {
-    if (!piece.pictured) continue;
+  for (const { piece, text, box, pos } of places) {
+    let art: Image;
+    if (text) {
+      // Words, drawn at the canvas's own scale and then scaled with everything else.
+      const font = await fontBytes(text.text.font, mine.owner_id as string, async (path) => {
+        const { data } = await server.storage.from("private-fonts").download(path);
+        return data ? new Uint8Array(await data.arrayBuffer()) : null;
+      });
+      if (!font) continue;
+      try {
+        art = await drawText(text.text, text.w, font);
+      } catch {
+        continue;
+      }
+      // The box is already the layer's width; scale it with the rest of the canvas.
+      const drawnBoxW = Math.max(1, Math.round(box.w * drawnW));
+      art.resize(drawnBoxW, Math.max(1, Math.round(art.height * scale)));
+      if (pos?.flipX) art.flip("horizontal");
+      if (pos?.flipY) art.flip("vertical");
+      if (pos?.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity, true);
+      const cx = offX + Math.round(box.x * drawnW + drawnBoxW / 2);
+      const cy = offY + Math.round(box.y * drawnH + art.height / 2);
+      if (pos?.rotation) art.rotate(pos.rotation, true);
+      picture.composite(art, cx - Math.round(art.width / 2), cy - Math.round(art.height / 2));
+      continue;
+    }
+    if (!piece || !piece.pictured) continue;
     const { data: item } = await server
       .from("items")
       .select("image_id, image_bucket")
@@ -192,7 +238,6 @@ Deno.serve(async (request) => {
     const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
     const { data: file } = await server.storage.from(bucket).download(item.image_id);
     if (!file) continue;
-    let art: Image;
     try {
       art = still(await decode(new Uint8Array(await file.arrayBuffer())));
     } catch {

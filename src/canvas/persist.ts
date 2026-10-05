@@ -75,6 +75,10 @@ export async function loadDoc(setId: string): Promise<Loaded | null> {
     layers[row.id] = layerFromRow(row.id, item.id, position, fallback);
     seen.push(row.id);
   }
+  for (const [id, text] of Object.entries(raw?.texts ?? {})) {
+    if (text && text.kind === "text" && text.text)
+      layers[id] = { ...layerFromRow(id, "", text), kind: "text", text: text.text };
+  }
   const order = (raw?.order ?? []).filter((id) => layers[id]);
   for (const id of seen) if (!order.includes(id)) order.push(id);
   doc = { ...doc, layers, order };
@@ -135,15 +139,16 @@ export async function saveDiff(
   let ok = true;
   for (const id of changed) {
     const layer = after.layers[id];
-    if (!layer) continue;
+    if (!layer || layer.kind === "text") continue; // text lives in the layout, written below
     const { error } = await supabase
       .from("set_items")
       .update({ position: positionOf(layer) })
       .eq("id", id);
     if (error) ok = false;
   }
-  if (removed.length) {
-    const { error } = await supabase.from("set_items").delete().in("id", removed);
+  const removedRows = removed.filter((id) => before.layers[id]?.kind !== "text");
+  if (removedRows.length) {
+    const { error } = await supabase.from("set_items").delete().in("id", removedRows);
     if (error) ok = false;
   }
   if (layoutChanged(before, after) || removed.length) {

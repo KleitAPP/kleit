@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { loadDoc, loadImage } from "@/canvas/persist";
+import { loadFont } from "@/fonts/load";
 import type { Doc } from "@/canvas/doc";
 
 /**
@@ -11,12 +12,20 @@ import type { Doc } from "@/canvas/doc";
 export function CreativeView({ setId }: { setId: string }) {
   const [doc, setDoc] = useState<Doc | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
+  const [families, setFamilies] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
     void loadDoc(setId).then(async (loaded) => {
       if (cancelled || !loaded) return;
       setDoc(loaded.doc);
+      for (const l of Object.values(loaded.doc.layers)) {
+        const id = l.kind === "text" ? l.text?.font : undefined;
+        if (id)
+          void loadFont(id).then(
+            (family) => family && !cancelled && setFamilies((f) => ({ ...f, [id]: family })),
+          );
+      }
       const next: Record<string, string> = {};
       await Promise.all(
         Object.values(loaded.items).map(async (item) => {
@@ -36,13 +45,39 @@ export function CreativeView({ setId }: { setId: string }) {
   return (
     <div
       className="relative w-full overflow-hidden rounded-md border border-line"
-      style={{ aspectRatio: `${w} / ${h}`, backgroundColor: doc.background }}
+      style={{
+        aspectRatio: `${w} / ${h}`,
+        backgroundColor: doc.background,
+        containerType: "inline-size",
+      }}
     >
       {doc.order.map((id) => {
         const l = doc.layers[id];
         if (!l || l.hidden) return null;
         const src = urls[l.itemId];
         const crop = l.crop;
+        if (l.kind === "text" && l.text) {
+          return (
+            <div
+              key={id}
+              className="absolute whitespace-pre-wrap"
+              style={{
+                left: `${(l.x / w) * 100}%`,
+                top: `${(l.y / h) * 100}%`,
+                width: `${(l.w / w) * 100}%`,
+                transform: `rotate(${l.rotation}deg) scale(${l.flipX ? -1 : 1}, ${l.flipY ? -1 : 1})`,
+                opacity: l.opacity,
+                fontFamily: families[l.text.font] ?? "sans-serif",
+                fontSize: `${(l.text.size / w) * 100}cqw`,
+                lineHeight: 1.2,
+                color: l.text.colour,
+                textAlign: l.text.align,
+              }}
+            >
+              {l.text.text}
+            </div>
+          );
+        }
         return (
           <div
             key={id}

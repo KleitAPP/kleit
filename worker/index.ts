@@ -71,6 +71,17 @@ type Position = {
   crop?: { x: number; y: number; w: number; h: number } | null;
 };
 
+type TextLayer = Position & {
+  kind: "text";
+  text: {
+    text: string;
+    font: string;
+    size: number;
+    colour: string;
+    align: "left" | "center" | "right";
+  };
+};
+
 type Piece = {
   id: string;
   row?: string;
@@ -96,6 +107,7 @@ type SharedSet = {
     version?: number;
     canvas?: { w: number; h: number };
     order?: string[];
+    texts?: Record<string, TextLayer>;
   } | null;
   visibility: "public" | "link";
   published_at: string | null;
@@ -288,10 +300,26 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
   if (set.layout?.version !== 2 || !set.layout.canvas) return "";
   const { w, h } = set.layout.canvas;
   const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
-  const order = (set.layout.order ?? []).filter((id) => byRow.has(id));
+  const texts = set.layout.texts ?? {};
+  const order = (set.layout.order ?? []).filter((id) => byRow.has(id) || texts[id]);
   for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
+  const fontsUsed = new Set<string>();
   const layers = order
     .map((id) => {
+      const text = texts[id];
+      if (text) {
+        if (text.hidden) return "";
+        // A curated font is served from this site; a private font never leaves the account, so
+        // its words come as a picture drawn by the server (text-image).
+        const isPrivate = text.text.font.startsWith("private:");
+        if (!isPrivate) fontsUsed.add(text.text.font);
+        const transform = `rotate(${text.rotation ?? 0}deg) scale(${text.flipX ? -1 : 1},${text.flipY ? -1 : 1})`;
+        const box = `position:absolute;left:${(text.x / w) * 100}%;top:${(text.y / h) * 100}%;width:${(text.w / w) * 100}%;transform:${transform};opacity:${text.opacity ?? 1}`;
+        if (isPrivate) {
+          return `<div style="${box}"><img src="${functions}/text-image?set=${set.id}&layer=${encodeURIComponent(id)}" alt="${esc(text.text.text)}" style="width:100%;display:block"></div>`;
+        }
+        return `<div style="${box};font-family:kleit-${esc(text.text.font)},sans-serif;font-size:${(text.text.size / w) * 100}cqw;line-height:1.2;color:${esc(text.text.colour)};text-align:${text.text.align};white-space:pre-wrap">${esc(text.text.text)}</div>`;
+      }
       const p = byRow.get(id)!;
       const pos = p.position;
       if (!pos || pos.hidden) return "";
@@ -306,7 +334,11 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
       return `<div style="position:absolute;left:${(pos.x / w) * 100}%;top:${(pos.y / h) * 100}%;width:${(pos.w / w) * 100}%;height:${(pos.h / h) * 100}%;transform:${transform};opacity:${pos.opacity ?? 1};overflow:hidden">${img}</div>`;
     })
     .join("");
-  return `<section class="creative" style="background:${background};aspect-ratio:${w} / ${h}" aria-label="The set">${layers}</section>`;
+  const faces = [...fontsUsed]
+    .filter((f) => /^[a-z0-9]+$/.test(f))
+    .map((f) => `@font-face{font-family:kleit-${f};src:url(/fonts/${f}.ttf);font-display:swap}`)
+    .join("");
+  return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${layers}</section>`;
 }
 
 function notAvailable(status = 404): Response {

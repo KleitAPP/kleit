@@ -1,6 +1,6 @@
 import type Konva from "konva";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { Image as KImage, Layer, Line, Rect, Stage, Transformer } from "react-konva";
+import { Image as KImage, Layer, Line, Rect, Stage, Text as KText, Transformer } from "react-konva";
 
 import { guidesFor, snap, type Doc, type Layer as DocLayer } from "@/canvas/doc";
 
@@ -9,6 +9,8 @@ export const GUIDE = "#d9552b";
 export const CROP_SCRIM = "rgba(0,0,0,0.45)";
 
 export type Images = Record<string, HTMLImageElement | null>;
+/** Font id → CSS family, once loaded (fonts/load.ts). */
+export type Families = Record<string, string>;
 
 export type StageApi = { stage: RefObject<Konva.Stage | null> };
 
@@ -25,6 +27,7 @@ export type StageApi = { stage: RefObject<Konva.Stage | null> };
 export function CanvasStage({
   doc,
   images,
+  families,
   selected,
   cropping,
   scale,
@@ -32,9 +35,11 @@ export function CanvasStage({
   onSelect,
   onChange,
   onCrop,
+  onMeasure,
 }: {
   doc: Doc;
   images: Images;
+  families: Families;
   selected: string | null;
   cropping: boolean;
   scale: number;
@@ -42,6 +47,8 @@ export function CanvasStage({
   onSelect: (id: string | null) => void;
   onChange: (id: string, patch: Partial<DocLayer>) => void;
   onCrop: (id: string, crop: DocLayer["crop"]) => void;
+  /** A text layer's real height once drawn, so the document's box follows the words. */
+  onMeasure: (id: string, h: number) => void;
 }) {
   const nodes = useRef<Record<string, Konva.Image | null>>({});
   const trRef = useRef<Konva.Transformer>(null);
@@ -70,6 +77,17 @@ export function CanvasStage({
     h: number;
     rotation: number;
   } | null>(null);
+
+  // A text layer's height is whatever its words need at its width; tell the document.
+  useEffect(() => {
+    for (const id of doc.order) {
+      const layer = doc.layers[id];
+      const node = nodes.current[id] as unknown as Konva.Text | null;
+      if (!layer || layer.kind !== "text" || !node || typeof node.height !== "function") continue;
+      const h = Math.round(node.height());
+      if (h > 0 && Math.abs(h - layer.h) > 1) onMeasure(id, h);
+    }
+  }, [doc, families, onMeasure]);
 
   // The selection handles follow the selected piece (a Transformer may live on another layer).
   useEffect(() => {
@@ -197,6 +215,20 @@ export function CanvasStage({
     if (!node || !layer) return;
     const w = Math.max(24, Math.round(layer.w * Math.abs(node.scaleX())));
     const h = Math.max(24, Math.round(layer.h * Math.abs(node.scaleY())));
+    if (layer.kind === "text" && layer.text) {
+      // Scaling words scales their size; the box follows the words on the next draw.
+      const k = Math.abs(node.scaleX());
+      node.scaleX(layer.flipX ? -1 : 1);
+      node.scaleY(layer.flipY ? -1 : 1);
+      onChange(id, {
+        w,
+        x: Math.round(node.x() - w / 2),
+        y: Math.round(node.y() - h / 2),
+        rotation: Math.round(node.rotation()),
+        text: { ...layer.text, size: Math.max(12, Math.round(layer.text.size * k)) },
+      });
+      return;
+    }
     node.scaleX(layer.flipX ? -1 : 1);
     node.scaleY(layer.flipY ? -1 : 1);
     // The node is positioned by its centre; the document keeps the top-left of the unrotated box.
@@ -268,6 +300,37 @@ export function CanvasStage({
       scaleY: layer.flipY ? -1 : 1,
       opacity: layer.opacity,
     };
+    if (layer.kind === "text" && layer.text) {
+      const family = families[layer.text.font] ?? "sans-serif";
+      return (
+        <KText
+          key={ghost ? `ghost-${layer.id}` : layer.id}
+          ref={
+            ghost ? undefined : (n) => void (nodes.current[layer.id] = n as unknown as Konva.Image)
+          }
+          text={layer.text.text}
+          fontFamily={family}
+          fontSize={layer.text.size}
+          fill={layer.text.colour}
+          align={layer.text.align}
+          lineHeight={1.2}
+          x={x + layer.w / 2}
+          y={y + layer.h / 2}
+          offsetX={layer.w / 2}
+          offsetY={layer.h / 2}
+          width={layer.w}
+          rotation={layer.rotation}
+          scaleX={layer.flipX ? -1 : 1}
+          scaleY={layer.flipY ? -1 : 1}
+          opacity={layer.opacity}
+          visible={ghost || drag?.id !== layer.id}
+          listening={!ghost && !layer.locked}
+          perfectDrawEnabled={false}
+          onPointerDown={(e) => pointerDown(layer.id, e)}
+          onTransformEnd={() => transformEnd(layer.id)}
+        />
+      );
+    }
     if (!img) {
       return (
         <Rect

@@ -39,6 +39,7 @@ import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collections'
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
+import { Route as AppYouFontsRouteImport } from './routes/_app.you_.fonts'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
 import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
 import { Route as AppPollPollIdEditRouteImport } from './routes/_app.poll.$pollId.edit'
@@ -198,6 +199,11 @@ const AppYouDrawerRoute = AppYouDrawerRouteImport.update({
   path: '/you/drawer',
   getParentRoute: () => AppRoute,
 } as any)
+const AppYouFontsRoute = AppYouFontsRouteImport.update({
+  id: '/you_/fonts',
+  path: '/you/fonts',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppYouItemsRoute = AppYouItemsRouteImport.update({
   id: '/you_/items',
   path: '/you/items',
@@ -269,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
   '/you/drawer': typeof AppYouDrawerRoute
+  '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
   '/you/drawer': typeof AppYouDrawerRoute
+  '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/collections': typeof AppYouCollectionsRoute
   '/_app/you_/drawer': typeof AppYouDrawerRoute
+  '/_app/you_/fonts': typeof AppYouFontsRoute
   '/_app/you_/items': typeof AppYouItemsRoute
   '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/_app/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/collections'
     | '/you/drawer'
+    | '/you/fonts'
     | '/you/items'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/you/closet'
     | '/you/collections'
     | '/you/drawer'
+    | '/you/fonts'
     | '/you/items'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
@@ -469,6 +480,7 @@ export interface FileRouteTypes {
     | '/_app/you_/closet'
     | '/_app/you_/collections'
     | '/_app/you_/drawer'
+    | '/_app/you_/fonts'
     | '/_app/you_/items'
     | '/_app/poll/$pollId/edit'
     | '/_app/set/$setId/canvas'
@@ -705,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouDrawerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/you_/fonts': {
+      id: '/_app/you_/fonts'
+      path: '/you/fonts'
+      fullPath: '/you/fonts'
+      preLoaderRoute: typeof AppYouFontsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/you_/items': {
       id: '/_app/you_/items'
       path: '/you/items'
@@ -799,6 +818,7 @@ interface AppRouteChildren {
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouCollectionsRoute: typeof AppYouCollectionsRoute
   AppYouDrawerRoute: typeof AppYouDrawerRoute
+  AppYouFontsRoute: typeof AppYouFontsRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
   AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
   AppSetSetIdCanvasRoute: typeof AppSetSetIdCanvasRoute
@@ -824,6 +844,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouCollectionsRoute: AppYouCollectionsRoute,
   AppYouDrawerRoute: AppYouDrawerRoute,
+  AppYouFontsRoute: AppYouFontsRoute,
   AppYouItemsRoute: AppYouItemsRoute,
   AppPollPollIdEditRoute: AppPollPollIdEditRoute,
   AppSetSetIdCanvasRoute: AppSetSetIdCanvasRoute,

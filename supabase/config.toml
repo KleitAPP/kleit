@@ -101,3 +101,9 @@ verify_jwt = false
 # is read from the Authorization header by the function.
 [functions.cast-vote]
 verify_jwt = false
+
+# A private-font text layer on a shared page, drawn by the server so the font never leaves the
+# account. For <img> tags on a page with no session, so no token; it answers only for a set the
+# world may see.
+[functions.text-image]
+verify_jwt = false

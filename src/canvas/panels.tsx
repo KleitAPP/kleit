@@ -2,7 +2,7 @@ import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import type { ItemSummary } from "@/items/items";
 
-import type { Doc, Layer, OrderMove } from "@/canvas/doc";
+import type { Doc, Layer, OrderMove, TextStyle } from "@/canvas/doc";
 
 /** A panel button: 48 dp, label always visible (never an icon alone). */
 export function PanelButton({
@@ -38,6 +38,11 @@ export function PanelButton({
 }
 
 export function layerName(layer: Layer, items: Record<string, ItemSummary>, index: number): string {
+  if (layer.kind === "text" && layer.text)
+    return t("layers.name", {
+      n: index + 1,
+      name: t("layers.text", { words: layer.text.text.slice(0, 40) }),
+    });
   const item = items[layer.itemId];
   const name =
     item?.title?.trim() || (item?.kind === "own" ? t("item.yourPiece") : t("item.untitled"));
@@ -244,5 +249,102 @@ export function LayersPanel({
         </ol>
       )}
     </Sheet>
+  );
+}
+
+/** The text colours (spec 6.1 #22: 12 swatches; a hex field under Advanced). Fixed, like a set's background (L14). */
+export const DEFAULT_TEXT_COLOUR = "#1F1D1A";
+export const TEXT_COLOURS: ReadonlyArray<{ hex: string; name: string }> = [
+  { hex: "#1F1D1A", name: "Ink" },
+  { hex: "#FFFFFF", name: "White" },
+  { hex: "#D9552B", name: "Brick" },
+  { hex: "#B23A48", name: "Cherry" },
+  { hex: "#E0A458", name: "Mustard" },
+  { hex: "#5B7553", name: "Olive" },
+  { hex: "#2E5E8C", name: "Navy" },
+  { hex: "#7A5195", name: "Plum" },
+  { hex: "#E6A3B3", name: "Rose" },
+  { hex: "#8C7B6B", name: "Taupe" },
+  { hex: "#6B6B6B", name: "Grey" },
+  { hex: "#F4EFE6", name: "Paper" },
+];
+
+/**
+ * S62 — the text tool, for a selected text layer: the words, the font, size, colour, alignment.
+ * Fonts are the curated OFL set plus the person's own uploads (S63).
+ */
+export function TextPanel({
+  style,
+  fonts,
+  onChange,
+  onAdvanced,
+}: {
+  style: TextStyle;
+  fonts: ReadonlyArray<{ id: string; name: string }>;
+  onChange: (next: TextStyle) => void;
+  onAdvanced?: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2" aria-label={t("text.title")}>
+      <label className="block">
+        <span className="text-sm text-ink-soft">{t("text.words")}</span>
+        <textarea
+          value={style.text}
+          maxLength={500}
+          rows={2}
+          onChange={(e) => onChange({ ...style, text: e.target.value })}
+          className="mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-ink"
+        />
+      </label>
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("text.font")}>
+        {fonts.map((f) => (
+          <PanelButton
+            key={f.id}
+            label={f.name}
+            pressed={style.font === f.id}
+            onPress={() => onChange({ ...style, font: f.id })}
+          />
+        ))}
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("text.size")}>
+        <PanelButton
+          label={t("panel.smaller")}
+          onPress={() => onChange({ ...style, size: Math.max(12, Math.round(style.size * 0.85)) })}
+        />
+        <PanelButton
+          label={t("panel.bigger")}
+          onPress={() => onChange({ ...style, size: Math.min(600, Math.round(style.size * 1.15)) })}
+        />
+        <PanelButton
+          label={t("text.alignLeft")}
+          pressed={style.align === "left"}
+          onPress={() => onChange({ ...style, align: "left" })}
+        />
+        <PanelButton
+          label={t("text.alignCenter")}
+          pressed={style.align === "center"}
+          onPress={() => onChange({ ...style, align: "center" })}
+        />
+        <PanelButton
+          label={t("text.alignRight")}
+          pressed={style.align === "right"}
+          onPress={() => onChange({ ...style, align: "right" })}
+        />
+        {onAdvanced ? <PanelButton label={t("text.advanced")} onPress={onAdvanced} /> : null}
+      </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("text.colour")}>
+        {TEXT_COLOURS.map((c) => (
+          <button
+            key={c.hex}
+            type="button"
+            onClick={() => onChange({ ...style, colour: c.hex })}
+            aria-label={c.name}
+            aria-pressed={style.colour.toLowerCase() === c.hex.toLowerCase()}
+            className={`size-12 rounded-pill border-2 ${style.colour.toLowerCase() === c.hex.toLowerCase() ? "border-ink" : "border-line"}`}
+            style={{ backgroundColor: c.hex }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

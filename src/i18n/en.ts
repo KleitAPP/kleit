@@ -222,6 +222,7 @@ export const en = {
     "Every photo is looked at before it appears anywhere. This is usually a few seconds.",
   "photo.clean": "Added. It's in your closet.",
   "photo.review": "This one needs a person to look at it first. We'll let you know.",
+  "photo.animated": "Moving pictures can't be added. Choose a still photo.",
   "photo.blocked": "This photo can't be added. If you think that's wrong, you can appeal.",
   "photo.stillChecking": "Still checking. It'll appear in your closet once it's done.",
   "photo.tooBig": "That photo is too large. Anything up to 10 MB is fine.",

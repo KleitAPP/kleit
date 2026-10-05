@@ -16,14 +16,18 @@ import pw from "playwright";
 const { chromium } = pw;
 
 // Bundle the real module into something a plain page can load.
-execFileSync("npx", [
-  "esbuild",
-  "src/photos/prepare.ts",
-  "--bundle",
-  "--format=iife",
-  "--global-name=Kleit",
-  "--outfile=/tmp/kleit-prepare.js",
-], { stdio: "inherit" });
+execFileSync(
+  "npx",
+  [
+    "esbuild",
+    "src/photos/prepare.ts",
+    "--bundle",
+    "--format=iife",
+    "--global-name=Kleit",
+    "--outfile=/tmp/kleit-prepare.js",
+  ],
+  { stdio: "inherit" },
+);
 
 const bundle = readFileSync("/tmp/kleit-prepare.js", "utf8");
 const photo = readFileSync("scripts/fixtures/gps-photo.jpg");
@@ -34,39 +38,78 @@ const page = await browser.newPage();
 await page.goto("about:blank");
 await page.addScriptTag({ content: bundle });
 
-const result = await page.evaluate(async ({ photoBase64 }) => {
-  const bytes = Uint8Array.from(atob(photoBase64), (c) => c.charCodeAt(0));
-  const file = new File([bytes], "photo.jpg", { type: "image/jpeg" });
+const result = await page.evaluate(
+  async ({ photoBase64 }) => {
+    const bytes = Uint8Array.from(atob(photoBase64), (c) => c.charCodeAt(0));
+    const file = new File([bytes], "photo.jpg", { type: "image/jpeg" });
 
-  const prepared = await window.Kleit.preparePhoto(file);
-  if (!prepared.ok) return { failedWith: prepared.problem };
+    const prepared = await window.Kleit.preparePhoto(file);
+    if (!prepared.ok) return { failedWith: prepared.problem };
 
-  const out = new Uint8Array(await prepared.photo.blob.arrayBuffer());
-  const asText = Array.from(out).map((b) => String.fromCharCode(b)).join("");
+    const out = new Uint8Array(await prepared.photo.blob.arrayBuffer());
+    const asText = Array.from(out)
+      .map((b) => String.fromCharCode(b))
+      .join("");
 
-  // A 30 MB blob, to prove the size limit refuses before anything is decoded.
-  const huge = new File([new Uint8Array(30 * 1024 * 1024)], "huge.jpg", { type: "image/jpeg" });
-  const hugeResult = await window.Kleit.preparePhoto(huge);
+    // A 30 MB blob, to prove the size limit refuses before anything is decoded.
+    const huge = new File([new Uint8Array(30 * 1024 * 1024)], "huge.jpg", { type: "image/jpeg" });
+    const hugeResult = await window.Kleit.preparePhoto(huge);
 
-  const notAPhoto = new File([new Uint8Array(10)], "notes.txt", { type: "text/plain" });
-  const notAPhotoResult = await window.Kleit.preparePhoto(notAPhoto);
+    const notAPhoto = new File([new Uint8Array(10)], "notes.txt", { type: "text/plain" });
+    const notAPhotoResult = await window.Kleit.preparePhoto(notAPhoto);
 
-  // Same photo again, capped small, to prove the longest side is respected.
-  const small = await window.Kleit.preparePhoto(file, 100);
+    // Same photo again, capped small, to prove the longest side is respected.
+    const small = await window.Kleit.preparePhoto(file, 100);
 
-  return {
-    inputBytes: bytes.length,
-    outputBytes: out.length,
-    width: prepared.photo.width,
-    height: prepared.photo.height,
-    type: prepared.photo.type,
-    hasExifMarker: asText.includes("Exif"),
-    hasGpsHint: asText.includes("GPS") || asText.includes("Kleit Test Phone"),
-    hugeRefused: hugeResult.ok === false ? hugeResult.problem : "ALLOWED",
-    notAPhotoRefused: notAPhotoResult.ok === false ? notAPhotoResult.problem : "ALLOWED",
-    smallLongestSide: small.ok ? Math.max(small.photo.width, small.photo.height) : "FAILED",
-  };
-}, { photoBase64 });
+    // A two-frame GIF (1x1, two pictures, the NETSCAPE loop block): refused as a moving picture.
+    // And the same bytes with one frame and no loop block: a still, allowed through.
+    const gifHead = [
+      0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0xff, 0xff, 0xff,
+    ];
+    const loop = [
+      0x21,
+      0xff,
+      0x0b,
+      ...Array.from("NETSCAPE2.0", (c) => c.charCodeAt(0)),
+      0x03,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+    ];
+    const frame = [
+      0x21, 0xf9, 0x04, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
+      0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00,
+    ];
+    const animated = new File(
+      [new Uint8Array([...gifHead, ...loop, ...frame, ...frame, 0x3b])],
+      "wave.gif",
+      { type: "image/gif" },
+    );
+    const still = new File([new Uint8Array([...gifHead, ...frame, 0x3b])], "dot.gif", {
+      type: "image/gif",
+    });
+    const animatedResult = await window.Kleit.preparePhoto(animated);
+    const stillResult = await window.Kleit.preparePhoto(still);
+
+    return {
+      inputBytes: bytes.length,
+      outputBytes: out.length,
+      width: prepared.photo.width,
+      height: prepared.photo.height,
+      type: prepared.photo.type,
+      hasExifMarker: asText.includes("Exif"),
+      hasGpsHint: asText.includes("GPS") || asText.includes("Kleit Test Phone"),
+      hugeRefused: hugeResult.ok === false ? hugeResult.problem : "ALLOWED",
+      notAPhotoRefused: notAPhotoResult.ok === false ? notAPhotoResult.problem : "ALLOWED",
+      smallLongestSide: small.ok ? Math.max(small.photo.width, small.photo.height) : "FAILED",
+      animatedRefused: animatedResult.ok === false ? animatedResult.problem : "ALLOWED",
+      stillGif: stillResult.ok ? "allowed" : stillResult.problem,
+    };
+  },
+  { photoBase64 },
+);
 
 await browser.close();
 
@@ -92,6 +135,14 @@ const checks = [
   {
     ok: result.type === "image/webp" || result.type === "image/jpeg",
     say: `it is re-encoded (${result.type})`,
+  },
+  {
+    ok: result.animatedRefused === "animated",
+    say: `a moving GIF is refused before it is uploaded (${result.animatedRefused})`,
+  },
+  {
+    ok: result.stillGif === "allowed",
+    say: `a still GIF is allowed through (${result.stillGif})`,
   },
   {
     ok: result.hugeRefused === "too-big",

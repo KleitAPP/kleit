@@ -55,7 +55,8 @@ export type Stage = "read" | "decode" | "clean" | "fingerprint" | "scan" | "reco
 export class ScreenFailure extends Error {
   constructor(
     public readonly stage: Stage,
-    public readonly problem: "image-unreadable" | "could-not-clean" | "scanner-not-configured" | "scan-failed",
+    public readonly problem:
+      "image-unreadable" | "could-not-clean" | "scanner-not-configured" | "scan-failed",
     cause?: unknown,
   ) {
     super(cause instanceof Error ? cause.message : problem);
@@ -73,13 +74,32 @@ export async function screenItem(
   const bucket = item.image_bucket === "closet-photos" ? "closet-photos" : "item-images";
 
   let stage: Stage = "read";
-  const { data: file, error: fileError } = await server.storage.from(bucket).download(item.image_id);
+  const { data: file, error: fileError } = await server.storage
+    .from(bucket)
+    .download(item.image_id);
   if (fileError || !file) throw new ScreenFailure(stage, "image-unreadable", fileError);
 
   try {
     let bytes: Uint8Array = new Uint8Array(await file.arrayBuffer());
     stage = "decode";
-    let picture = firstFrame(await decode(bytes));
+    const decoded = await decode(bytes);
+
+    // Owner's decision, 2026-10-01: no animations. A GIF with more than one frame is refused
+    // outright - recorded as blocked, so the person hears "can't be added" at once rather than
+    // waiting on a scan that will never clear it. (Screening frame one and hoping the rest
+    // matched was open problem CL27; refusing is the answer to it.)
+    if (decoded instanceof GIF && decoded.length > 1) {
+      stage = "record";
+      const flagged = await server.from("item_flags").upsert({
+        item_id: item.id,
+        scan_state: "blocked",
+        labels: { reason: "animated", frames: decoded.length },
+        scanned_at: new Date().toISOString(),
+      });
+      if (flagged.error) throw new Error(`could not record the block: ${flagged.error.message}`);
+      return { state: "blocked", keepOutOfFeatured: true };
+    }
+    let picture = firstFrame(decoded);
 
     // Step 1. The second look at the metadata. Re-encoding is what removes it, for the same
     // reason the phone redraws rather than editing tags: a decoded picture has no metadata to
@@ -104,7 +124,9 @@ export async function screenItem(
     const hash = fingerprint(pixels, picture.width, picture.height);
 
     const { data: removed } = await server.from("removed_image_fingerprints").select("image_hash");
-    const seenBefore = (removed ?? []).find((row) => distance(row.image_hash, hash) <= SAME_PICTURE);
+    const seenBefore = (removed ?? []).find(
+      (row) => distance(row.image_hash, hash) <= SAME_PICTURE,
+    );
     if (seenBefore) {
       stage = "record";
       const flagged = await server.from("item_flags").upsert({
@@ -115,7 +137,8 @@ export async function screenItem(
       });
       if (flagged.error) throw new Error(`could not record the block: ${flagged.error.message}`);
       const stamped = await server.from("items").update({ image_hash: hash }).eq("id", item.id);
-      if (stamped.error) throw new Error(`could not store the fingerprint: ${stamped.error.message}`);
+      if (stamped.error)
+        throw new Error(`could not store the fingerprint: ${stamped.error.message}`);
       return { state: "blocked", keepOutOfFeatured: true };
     }
 
@@ -166,10 +189,9 @@ export async function screenItem(
 }
 
 /**
- * An animation is screened by its first frame. A frame still has pixels; and the alternative -
- * refusing every GIF - would be a rule about file formats standing in for a rule about pictures.
- * (A first frame that is innocent while a later one is not is a known gap; it is noted in the
- * open problems and is not solved here.)
+ * A single-frame GIF is a still picture in a GIF wrapper and is screened like any other; an
+ * animation never reaches here (refused above, owner's decision 2026-10-01). This takes the one
+ * frame out of the wrapper.
  */
 function firstFrame(decoded: Image | GIF): Image | Frame {
   if (decoded instanceof GIF) {

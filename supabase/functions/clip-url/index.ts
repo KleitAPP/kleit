@@ -27,7 +27,12 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, type Frame, type Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 import { safeFetch, SafeFetchError, parsePublicUrl } from "../_shared/safe-fetch.ts";
-import { readProductPage, cleanSourceUrl, domainOf, looksLikeAShell } from "../_shared/product-page.ts";
+import {
+  readProductPage,
+  cleanSourceUrl,
+  domainOf,
+  looksLikeAShell,
+} from "../_shared/product-page.ts";
 import { screenItem, ScreenFailure, awsKeysFromEnv } from "../_shared/screen.ts";
 
 const CORS = {
@@ -74,7 +79,8 @@ Deno.serve(async (request) => {
   // through this same code from CI); the save never is - a clip is always somebody's.
   const authorization = request.headers.get("Authorization") ?? "";
   const bearer = authorization.replace(/^Bearer\s+/i, "");
-  const isServer = bearer.length > 0 && (bearer === serviceKey || (await canActAsServer(url, bearer)));
+  const isServer =
+    bearer.length > 0 && (bearer === serviceKey || (await canActAsServer(url, bearer)));
   let me: string | null = null;
   if (!isServer) {
     const asCaller = createClient(url, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
@@ -115,14 +121,21 @@ async function canActAsServer(url: string, bearer: string): Promise<boolean> {
 
 async function optedOut(server: SupabaseClient, hostname: string): Promise<boolean> {
   // The site itself and every parent: shop.brand.com is covered by brand.com.
-  const parts = hostname.replace(/^www\./, "").toLowerCase().split(".");
+  const parts = hostname
+    .replace(/^www\./, "")
+    .toLowerCase()
+    .split(".");
   const candidates: string[] = [];
   for (let i = 0; i < parts.length - 1; i++) candidates.push(parts.slice(i).join("."));
   const { data } = await server.from("optout_sites").select("domain").in("domain", candidates);
   return (data ?? []).length > 0;
 }
 
-async function readPage(server: SupabaseClient, rawUrl: string, diagnose: boolean): Promise<Response> {
+async function readPage(
+  server: SupabaseClient,
+  rawUrl: string,
+  diagnose: boolean,
+): Promise<Response> {
   let pageUrl: URL;
   try {
     pageUrl = parsePublicUrl(rawUrl);
@@ -142,7 +155,11 @@ async function readPage(server: SupabaseClient, rawUrl: string, diagnose: boolea
     const html = new TextDecoder("utf-8", { fatal: false }).decode(page.bytes);
     // A bot wall or an empty JavaScript shell is a refusal that did not say so.
     if (looksLikeAShell(html)) {
-      return reply(422, { problem: "refused", status: page.status, ...(diagnose ? { diagnostics: diagnostics(html, page) } : {}) });
+      return reply(422, {
+        problem: "refused",
+        status: page.status,
+        ...(diagnose ? { diagnostics: diagnostics(html, page) } : {}),
+      });
     }
     const read = readProductPage(html, page.url);
     const canonical = read.canonical ? safeCanonical(read.canonical, page.url) : null;
@@ -167,16 +184,31 @@ async function readPage(server: SupabaseClient, rawUrl: string, diagnose: boolea
 }
 
 /** What the probe prints for a thin page: size, title tag, whether it looks like a bot wall, where "price" shows up. */
-function diagnostics(html: string, page: { status: number; contentType: string; bytes: Uint8Array }) {
+function diagnostics(
+  html: string,
+  page: { status: number; contentType: string; bytes: Uint8Array },
+) {
   const titleTag = html.match(/<title[^>]*>([\s\S]{0,120}?)<\/title>/i)?.[1]?.trim() ?? null;
-  const botWall = /captcha|access denied|are you a human|bot detection|px-captcha|_incapsula_|akamai|cf-chl|challenge-platform|distil/i.test(html.slice(0, 20000));
+  const botWall =
+    /captcha|access denied|are you a human|bot detection|px-captcha|_incapsula_|akamai|cf-chl|challenge-platform|distil/i.test(
+      html.slice(0, 20000),
+    );
   const priceMentions = [...html.matchAll(/"price"\s*:\s*"?[\d.]+/gi)].slice(0, 3).map((m) => {
     const at = m.index ?? 0;
     return html.slice(Math.max(0, at - 60), at + 60).replace(/\s+/g, " ");
   });
   const metaCount = (html.match(/<meta\b/gi) ?? []).length;
   const ldCount = (html.match(/application\/ld\+json/gi) ?? []).length;
-  return { status: page.status, contentType: page.contentType, bytes: page.bytes.length, titleTag, botWall, metaCount, ldCount, priceMentions };
+  return {
+    status: page.status,
+    contentType: page.contentType,
+    bytes: page.bytes.length,
+    titleTag,
+    botWall,
+    metaCount,
+    ldCount,
+    priceMentions,
+  };
 }
 
 /** A canonical address is trusted only on the same site; a canonical pointing elsewhere is ignored. */
@@ -189,15 +221,26 @@ function safeCanonical(candidate: string, pageUrl: URL): URL | null {
   }
 }
 
-async function saveClip(server: SupabaseClient, me: string, body: Record<string, unknown>): Promise<Response> {
+async function saveClip(
+  server: SupabaseClient,
+  me: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
   const rawUrl = String(body["url"]);
   const imageUrl = typeof body["imageUrl"] === "string" ? body["imageUrl"] : "";
   const title = typeof body["title"] === "string" ? body["title"].trim().slice(0, 200) : "";
-  const priceCents = typeof body["priceCents"] === "number" && Number.isInteger(body["priceCents"]) && body["priceCents"] >= 0
-    ? body["priceCents"]
-    : null;
-  const currency = typeof body["currency"] === "string" && /^[A-Z]{3}$/.test(body["currency"]) ? body["currency"] : null;
-  const storeName = typeof body["storeName"] === "string" ? body["storeName"].trim().slice(0, 100) : "";
+  const priceCents =
+    typeof body["priceCents"] === "number" &&
+    Number.isInteger(body["priceCents"]) &&
+    body["priceCents"] >= 0
+      ? body["priceCents"]
+      : null;
+  const currency =
+    typeof body["currency"] === "string" && /^[A-Z]{3}$/.test(body["currency"])
+      ? body["currency"]
+      : null;
+  const storeName =
+    typeof body["storeName"] === "string" ? body["storeName"].trim().slice(0, 100) : "";
   const own = body["own"] === true;
   if (!imageUrl) return reply(400, { problem: "bad-request" });
 
@@ -222,6 +265,8 @@ async function saveClip(server: SupabaseClient, me: string, body: Record<string,
     const decoded = await decode(image.bytes);
     let picture: Image | Frame;
     if (decoded instanceof GIF) {
+      // No animations (owner's decision, 2026-10-01): a moving store picture is not clipped.
+      if (decoded.length > 1) return reply(422, { problem: "animated" });
       const frame = decoded[0];
       if (!frame) return reply(422, { problem: "image-unreadable" });
       picture = frame;
@@ -235,12 +280,17 @@ async function saveClip(server: SupabaseClient, me: string, body: Record<string,
     }
     bytes = await picture.encodeJPEG(86);
   } catch (problem) {
-    if (problem instanceof SafeFetchError) return reply(422, { problem: problem.problem === "not-public" ? "not-public" : "image-unreadable" });
+    if (problem instanceof SafeFetchError)
+      return reply(422, {
+        problem: problem.problem === "not-public" ? "not-public" : "image-unreadable",
+      });
     return reply(422, { problem: "image-unreadable" });
   }
 
   const imageId = `${me}/${crypto.randomUUID()}.jpg`;
-  const stored = await server.storage.from("item-images").upload(imageId, bytes, { contentType: "image/jpeg", upsert: false });
+  const stored = await server.storage
+    .from("item-images")
+    .upload(imageId, bytes, { contentType: "image/jpeg", upsert: false });
   if (stored.error) return reply(502, { problem: "store-failed" });
 
   const sourceUrl = cleanSourceUrl(pageUrl);
@@ -295,7 +345,11 @@ async function saveClip(server: SupabaseClient, me: string, body: Record<string,
   // If this does not finish, the sweeper does (migration 014).
   await server.rpc("count_scan_attempt", { p_item_id: item.id });
   try {
-    const verdict = await screenItem(server, { id: item.id, image_id: imageId, image_bucket: "item-images" }, awsKeysFromEnv());
+    const verdict = await screenItem(
+      server,
+      { id: item.id, image_id: imageId, image_bucket: "item-images" },
+      awsKeysFromEnv(),
+    );
     return reply(200, { itemId: item.id, kind, state: verdict.state });
   } catch (problem) {
     if (!(problem instanceof ScreenFailure)) console.error("[clip-url] screen", problem);

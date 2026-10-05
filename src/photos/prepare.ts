@@ -35,7 +35,7 @@ export type Prepared = {
   type: "image/webp" | "image/jpeg" | "image/png";
 };
 
-export type PrepareProblem = "not-an-image" | "unreadable" | "too-big";
+export type PrepareProblem = "not-an-image" | "unreadable" | "too-big" | "animated";
 
 /** Refused before we even decode it: a 25 MB file is not a garment photo, it is a mistake. */
 export const MAX_INPUT_BYTES = 10 * 1024 * 1024;
@@ -50,6 +50,10 @@ export async function prepareCanvas(
 ): Promise<{ ok: true; canvas: HTMLCanvasElement } | { ok: false; problem: PrepareProblem }> {
   if (!file.type.startsWith("image/")) return { ok: false, problem: "not-an-image" };
   if (file.size > MAX_INPUT_BYTES) return { ok: false, problem: "too-big" };
+  // No animations (owner's decision, 2026-10-01). Said here, before the upload, so the person
+  // hears it at once; the server refuses the same thing again, because this is the app being
+  // polite and the server being the lock.
+  if (await isAnimatedGif(file)) return { ok: false, problem: "animated" };
 
   let bitmap: ImageBitmap;
   try {
@@ -105,4 +109,27 @@ export async function preparePhoto(
 
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+/**
+ * Is this GIF a moving one? A still GIF has one picture inside; an animation has several, and
+ * nearly always the NETSCAPE loop block as well. This reads the bytes - a decoded bitmap cannot
+ * say how many frames it came from.
+ */
+export async function isAnimatedGif(file: Blob): Promise<boolean> {
+  if (file.type !== "image/gif") return false;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes.length < 6 || bytes[0] !== 0x47 || bytes[1] !== 0x49 || bytes[2] !== 0x46) return false;
+  let controls = 0;
+  for (let i = 0; i < bytes.length - 2; i++) {
+    if (bytes[i] !== 0x21) continue;
+    // 21 F9 04: one graphic control block per frame.
+    if (bytes[i + 1] === 0xf9 && bytes[i + 2] === 0x04 && ++controls > 1) return true;
+    // 21 FF 0B "NETSCAPE2.0": the loop block only an animation carries.
+    if (bytes[i + 1] === 0xff && bytes[i + 2] === 0x0b) {
+      const name = String.fromCharCode(...bytes.slice(i + 3, i + 14));
+      if (name === "NETSCAPE2.0") return true;
+    }
+  }
+  return false;
 }

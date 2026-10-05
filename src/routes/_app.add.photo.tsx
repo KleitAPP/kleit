@@ -48,6 +48,7 @@ type Stage =
 const PROBLEM_WORDS: Record<AddProblem, string> = {
   "too-big": t("photo.tooBig"),
   "not-an-image": t("photo.notAnImage"),
+  animated: t("photo.animated"),
   unreadable: t("photo.unreadable"),
   "upload-failed": t("photo.uploadFailed"),
   "save-failed": t("photo.saveFailed"),

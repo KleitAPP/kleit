@@ -500,6 +500,52 @@ try {
   );
   const { data: approved } = await a.rpc("approve_follow_request", { p_requester: victim.id });
   check(approved !== true, "attacker: cannot approve a request that was never made");
+
+  // ---------------------------------------------------------------------------
+  // 9. Discovery (M6): a search and the feeds, as the attacker, never show the victim's only-me
+  //    set; a follow fills the following feed; a mute empties it; a block empties everything.
+  // ---------------------------------------------------------------------------
+  const found = await a.rpc("search_sets", { q: "second" });
+  const foundIds = (found.data ?? []).map((s) => s.id);
+  check(
+    foundIds.includes(pub2.id) && !foundIds.includes(priv.id),
+    "attacker: search finds the public set and never the only-me one",
+    found.error?.message,
+  );
+  const foundPriv = await a.rpc("search_sets", { q: "private" });
+  check(
+    !(foundPriv.data ?? []).some((s) => s.id === priv.id),
+    "attacker: searching the only-me set's own words finds nothing",
+  );
+  const follow = await a
+    .from("follows")
+    .insert({ follower_id: attacker.id, followee_id: victim.id });
+  check(!follow.error, "attacker: can follow a public account", follow.error?.code);
+  const feed1 = await a.rpc("feed_following", {});
+  const feed1Ids = (feed1.data ?? []).map((s) => s.id);
+  check(
+    feed1Ids.includes(pub.id) && feed1Ids.includes(pub2.id) && !feed1Ids.includes(priv.id),
+    "attacker: the following feed has the public set, not the only-me one",
+    feed1.error?.message,
+  );
+  await a.from("mutes").insert({ muter_id: attacker.id, muted_id: victim.id });
+  const feed2 = await a.rpc("feed_following", {});
+  check(
+    !(feed2.data ?? []).some((s) => s.owner_id === victim.id),
+    "attacker: after muting, the feed is empty",
+  );
+  await a.from("mutes").delete().eq("muter_id", attacker.id);
+  const blocked = await victim.client
+    .from("blocks")
+    .insert({ blocker_id: victim.id, blocked_id: attacker.id });
+  check(!blocked.error, "victim: blocks the attacker", blocked.error?.code);
+  const feed3 = await a.rpc("feed_following", {});
+  const found3 = await a.rpc("search_sets", { q: "second" });
+  check(
+    !(feed3.data ?? []).some((s) => s.owner_id === victim.id) &&
+      !(found3.data ?? []).some((s) => s.owner_id === victim.id),
+    "attacker: once blocked, neither the feed nor search shows the victim's sets",
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
@@ -507,6 +553,9 @@ try {
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
   await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);
+  await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
+  await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
+  await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);
   await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);
   await admin.from("comments").delete().in("author_id", [victim.id, attacker.id]);
   await admin.from("likes").delete().in("user_id", [victim.id, attacker.id]);

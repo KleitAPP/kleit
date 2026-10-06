@@ -39,7 +39,7 @@ insert into contests (id, title, opens_at, closes_at, created_by) values ('cc000
 select pg_temp.act_as('c0c0c0c0-0000-4000-8000-000000000002');
 select is((select count(*)::int from contests where id::text like 'cc000000-%'), 2, 'entrant: sees both contests');
 select lives_ok($$ insert into contest_entries (contest_id, user_id, set_id) values ('cc000000-0000-4000-8000-000000000001', 'c0c0c0c0-0000-4000-8000-000000000002', 'ce000000-0000-4000-8000-000000000001') $$, 'entrant: enters with a public set');
-select throws_ok($$ insert into contest_entries (contest_id, user_id, set_id) values ('cc000000-0000-4000-8000-000000000001', 'c0c0c0c0-0000-4000-8000-000000000002', 'ce000000-0000-4000-8000-000000000003') $$, '23505', null, 'entrant: one entry per contest');
+select throws_ok($$ insert into contest_entries (contest_id, user_id, set_id) values ('cc000000-0000-4000-8000-000000000001', 'c0c0c0c0-0000-4000-8000-000000000002', 'ce000000-0000-4000-8000-000000000001') $$, '23505', null, 'entrant: one entry per contest');
 delete from contest_entries where contest_id = 'cc000000-0000-4000-8000-000000000001' and user_id = 'c0c0c0c0-0000-4000-8000-000000000002';
 select throws_ok($$ insert into contest_entries (contest_id, user_id, set_id) values ('cc000000-0000-4000-8000-000000000001', 'c0c0c0c0-0000-4000-8000-000000000002', 'ce000000-0000-4000-8000-000000000002') $$, '42501', null, 'entrant: a draft cannot be entered');
 select throws_ok($$ insert into contest_entries (contest_id, user_id, set_id) values ('cc000000-0000-4000-8000-000000000001', 'c0c0c0c0-0000-4000-8000-000000000002', 'ce000000-0000-4000-8000-000000000003') $$, '42501', null, 'entrant: an only-me set cannot be entered');

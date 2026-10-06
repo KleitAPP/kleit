@@ -46,6 +46,7 @@ import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings.l
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings.muted'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
 import { Route as AppStoreDomainRouteImport } from './routes/_app.store.$domain'
+import { Route as AppTagTagRouteImport } from './routes/_app.tag.$tag'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collections'
@@ -249,6 +250,11 @@ const AppStoreDomainRoute = AppStoreDomainRouteImport.update({
   path: '/store/$domain',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTagTagRoute = AppTagTagRouteImport.update({
+  id: '/tag/$tag',
+  path: '/tag/$tag',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUUsernameRoute = AppUUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/store/$domain': typeof AppStoreDomainRoute
+  '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
@@ -428,6 +435,7 @@ export interface FileRoutesByTo {
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/store/$domain': typeof AppStoreDomainRoute
+  '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
@@ -485,6 +493,7 @@ export interface FileRoutesById {
   '/_app/settings/muted': typeof AppSettingsMutedRoute
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/_app/store/$domain': typeof AppStoreDomainRoute
+  '/_app/tag/$tag': typeof AppTagTagRoute
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/collections': typeof AppYouCollectionsRoute
@@ -542,6 +551,7 @@ export interface FileRouteTypes {
     | '/settings/muted'
     | '/settings/privacy'
     | '/store/$domain'
+    | '/tag/$tag'
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
@@ -597,6 +607,7 @@ export interface FileRouteTypes {
     | '/settings/muted'
     | '/settings/privacy'
     | '/store/$domain'
+    | '/tag/$tag'
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
@@ -653,6 +664,7 @@ export interface FileRouteTypes {
     | '/_app/settings/muted'
     | '/_app/settings/privacy'
     | '/_app/store/$domain'
+    | '/_app/tag/$tag'
     | '/_app/u/$username'
     | '/_app/you_/closet'
     | '/_app/you_/collections'
@@ -947,6 +959,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStoreDomainRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/tag/$tag': {
+      id: '/_app/tag/$tag'
+      path: '/tag/$tag'
+      fullPath: '/tag/$tag'
+      preLoaderRoute: typeof AppTagTagRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/u/$username': {
       id: '/_app/u/$username'
       path: '/u/$username'
@@ -1114,6 +1133,7 @@ interface AppRouteChildren {
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppPollNewRoute: typeof AppPollNewRoute
   AppStoreDomainRoute: typeof AppStoreDomainRoute
+  AppTagTagRoute: typeof AppTagTagRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouCollectionsRoute: typeof AppYouCollectionsRoute
@@ -1152,6 +1172,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppPollNewRoute: AppPollNewRoute,
   AppStoreDomainRoute: AppStoreDomainRoute,
+  AppTagTagRoute: AppTagTagRoute,
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouCollectionsRoute: AppYouCollectionsRoute,

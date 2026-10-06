@@ -9,6 +9,7 @@ import {
   searchItems,
   searchPeople,
   searchSets,
+  popularTags,
   stores as loadStores,
   type SetHit,
   type Store,
@@ -25,12 +26,13 @@ export const Route = createFileRoute("/_app/search")({
   component: SearchTab,
 });
 
-type Tab = "items" | "sets" | "people" | "stores";
+type Tab = "items" | "sets" | "people" | "stores" | "tags";
 const TABS: readonly TabItem<Tab>[] = [
   { id: "items", label: t("search.items") },
   { id: "sets", label: t("search.sets") },
   { id: "people", label: t("search.people") },
   { id: "stores", label: t("search.stores") },
+  { id: "tags", label: t("search.tags") },
 ];
 const PRICE_CAPS = [5000, 10000, 25000] as const;
 
@@ -44,9 +46,11 @@ function SearchTab() {
   const [sets, setSets] = useState<SetHit[] | null>(null);
   const [people, setPeople] = useState<Person[] | null>(null);
   const [storeList, setStoreList] = useState<Store[] | null>(null);
+  const [tagList, setTagList] = useState<{ tag: string; sets: number }[] | null>(null);
 
   useEffect(() => {
     void loadStores().then(setStoreList);
+    void popularTags().then(setTagList);
   }, []);
 
   useEffect(() => {
@@ -212,34 +216,61 @@ function SearchTab() {
                 ))}
               </ul>
             )
-          ) : !storeList ? (
+          ) : tab === "stores" ? (
+            !storeList ? (
+              <div className="kl-skeleton mt-3 h-24 w-full rounded-md bg-surface-2" />
+            ) : storeList.length === 0 ? (
+              <div className="mt-3">
+                <EmptyState line={t("search.none")} />
+              </div>
+            ) : (
+              <ul className="mt-3 overflow-hidden rounded-md border border-line bg-surface">
+                {storeList
+                  .filter(
+                    (s) =>
+                      !q.trim() ||
+                      (s.store_name ?? s.domain).toLowerCase().includes(q.trim().toLowerCase()) ||
+                      s.domain.includes(q.trim().toLowerCase()),
+                  )
+                  .map((s) => (
+                    <li key={s.domain} className="border-b border-line last:border-b-0">
+                      <Link
+                        to="/store/$domain"
+                        params={{ domain: s.domain }}
+                        className="flex min-h-12 items-center justify-between px-4 py-3"
+                      >
+                        <span className="truncate text-base text-ink">
+                          {s.store_name || s.domain}
+                        </span>
+                        <span className="shrink-0 text-sm text-ink-soft">
+                          {t("search.products", { count: s.products })}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            )
+          ) : !tagList ? (
             <div className="kl-skeleton mt-3 h-24 w-full rounded-md bg-surface-2" />
-          ) : storeList.length === 0 ? (
+          ) : tagList.length === 0 ? (
             <div className="mt-3">
-              <EmptyState line={t("search.none")} />
+              <EmptyState line={t("search.noTags")} />
             </div>
           ) : (
-            <ul className="mt-3 overflow-hidden rounded-md border border-line bg-surface">
-              {storeList
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {tagList
                 .filter(
-                  (s) =>
-                    !q.trim() ||
-                    (s.store_name ?? s.domain).toLowerCase().includes(q.trim().toLowerCase()) ||
-                    s.domain.includes(q.trim().toLowerCase()),
+                  (x) => !q.trim() || x.tag.includes(q.trim().toLowerCase().replace(/^#/, "")),
                 )
-                .map((s) => (
-                  <li key={s.domain} className="border-b border-line last:border-b-0">
+                .map((x) => (
+                  <li key={x.tag}>
                     <Link
-                      to="/store/$domain"
-                      params={{ domain: s.domain }}
-                      className="flex min-h-12 items-center justify-between px-4 py-3"
+                      to="/tag/$tag"
+                      params={{ tag: x.tag }}
+                      className="inline-flex min-h-11 items-center gap-1 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
                     >
-                      <span className="truncate text-base text-ink">
-                        {s.store_name || s.domain}
-                      </span>
-                      <span className="shrink-0 text-sm text-ink-soft">
-                        {t("search.products", { count: s.products })}
-                      </span>
+                      #{x.tag}
+                      <span className="text-ink-soft">{x.sets}</span>
                     </Link>
                   </li>
                 ))}

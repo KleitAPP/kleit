@@ -5,6 +5,7 @@ import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshPreview, autoTitle, loadSet, type Placement, type SetSummary } from "@/sets/sets";
 import { t } from "@/i18n/en";
+import { parseTags } from "@/search/search";
 
 /**
  * S46 Publish and S47 Send, as one screen (design pack W10, W11; spec 5.2, 7.1; decision 5).
@@ -46,6 +47,7 @@ function SendSet() {
   const [copied, setCopied] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
+  const [tagText, setTagText] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +61,7 @@ function SendSet() {
       setSet(loaded.set);
       setPlacements(loaded.placements);
       setTitle(loaded.set.title || autoTitle(loaded.placements));
+      setTagText((loaded.set.tags ?? []).join(", "));
     })();
     return () => {
       cancelled = true;
@@ -98,6 +101,13 @@ function SendSet() {
     }
     setSet({ ...set, status: "published", title: title.trim() || autoTitle(placements) });
     refreshPreview(set.id);
+  }
+
+  async function saveTags() {
+    if (!set) return;
+    const tags = parseTags(tagText);
+    const { error } = await supabase.from("sets").update({ tags }).eq("id", set.id);
+    if (!error) setTagText(tags.join(", "));
   }
 
   async function saveAltText() {
@@ -154,6 +164,18 @@ function SendSet() {
           maxLength={80}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+        />
+      </label>
+
+      <label className="mt-4 block">
+        <span className="text-sm text-ink-soft">{t("send.tags")}</span>
+        <input
+          type="text"
+          value={tagText}
+          onChange={(e) => setTagText(e.target.value)}
+          onBlur={() => void saveTags()}
+          placeholder={t("send.tagsHint")}
           className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
         />
       </label>

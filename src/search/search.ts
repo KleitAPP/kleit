@@ -50,6 +50,38 @@ export async function searchSets(q: string): Promise<SetHit[]> {
   }));
 }
 
+export async function setsByTag(tag: string): Promise<SetHit[]> {
+  const { data } = await supabase.rpc("sets_by_tag", { p_tag: tag, p_limit: 60 });
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+    id: r["id"] as string,
+    title: r["title"] as string,
+    owner_id: r["owner_id"] as string,
+    preview_image_id: (r["preview_image_id"] as string | null) ?? null,
+    published_at: (r["published_at"] as string | null) ?? null,
+    layout: (r["layout"] as SetHit["layout"]) ?? null,
+  }));
+}
+
+export async function popularTags(): Promise<{ tag: string; sets: number }[]> {
+  const { data } = await supabase.rpc("popular_tags", { p_limit: 40 });
+  return (data ?? []) as { tag: string; sets: number }[];
+}
+
+/** Typed tags → the shape the database accepts: lowercase, letters/digits/hyphens, 1–30, unique, ≤20. */
+export function parseTags(text: string): string[] {
+  const out: string[] = [];
+  for (const raw of text.split(/[\s,#]+/)) {
+    const tag = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/^-+/, "")
+      .slice(0, 30);
+    if (tag && !out.includes(tag)) out.push(tag);
+    if (out.length === 20) break;
+  }
+  return out;
+}
+
 export async function searchPeople(q: string): Promise<Person[]> {
   const needle = q.trim().toLowerCase().replace(/^@/, "");
   if (needle.length < 2) return [];

@@ -1712,6 +1712,14 @@ export type Database = {
         }[]
       }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
+      sets_by_tag: {
+        Args: { p_tag: string; p_limit?: number };
+        Returns: Database["public"]["Tables"]["sets"]["Row"][];
+      };
+      popular_tags: {
+        Args: { p_limit?: number };
+        Returns: { tag: string; sets: number }[];
+      };
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {

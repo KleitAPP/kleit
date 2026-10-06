@@ -58,7 +58,7 @@ function AppShell() {
   if (allowed !== true) return <LaunchSplash />;
 
   const current: TabId =
-    pathname.startsWith("/search") || pathname.startsWith("/store/")
+    pathname.startsWith("/search") || pathname.startsWith("/store/") || pathname.startsWith("/tag/")
       ? "search"
       : pathname.startsWith("/inbox")
         ? "inbox"

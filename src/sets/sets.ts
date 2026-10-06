@@ -42,6 +42,7 @@ export type SetSummary = {
   status: "draft" | "published";
   visibility: "public" | "link" | "followers" | "friends" | "only_me";
   share_code: string;
+  tags: string[];
   layout: QuickLayout;
   updated_at: string;
   /** True for a Creative-mode set (layout version 2); its pieces sit at positions, not slots. */
@@ -106,7 +107,7 @@ export async function loadSet(
 ): Promise<{ set: SetSummary; placements: Placement[] } | null> {
   const { data: set } = await supabase
     .from("sets")
-    .select("id, title, status, visibility, share_code, layout, updated_at")
+    .select("id, title, status, visibility, share_code, tags, layout, updated_at")
     .eq("id", id)
     .maybeSingle();
   if (!set) return null;

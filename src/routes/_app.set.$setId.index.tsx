@@ -173,6 +173,20 @@ function SetPage() {
           {set.layout.caption ? (
             <p className="mt-1 text-base text-ink-soft">{set.layout.caption}</p>
           ) : null}
+          {set.tags?.length ? (
+            <p className="mt-1 flex flex-wrap gap-x-2 text-sm">
+              {set.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  to="/tag/$tag"
+                  params={{ tag }}
+                  className="text-ink-soft underline-offset-2 hover:underline"
+                >
+                  #{tag}
+                </Link>
+              ))}
+            </p>
+          ) : null}
           {set.status === "draft" ? (
             <p className="mt-1 text-sm text-ink-soft">{t("setpage.draft")}</p>
           ) : null}

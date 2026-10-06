@@ -256,7 +256,8 @@ jobs:
           grep -qi "^HTTP/.* 302" /tmp/buy-headers.txt || { echo "::error::Buy did not answer 302"; exit 1; }
           grep -qi "^location: https://example.com/ci-buy-check?x=1" /tmp/buy-headers.txt || { echo "::error::Buy did not point at the stored address"; exit 1; }
           # An address in the query must never be followed.
-          curl -sS -o /dev/null -w "%{http_code}\n" "$FN?item=$ITEM&url=https://evil.example" | grep -q "^302$"
+          CODE="$(curl -sS -o /dev/null -w "%{http_code}" "$FN?item=$ITEM&url=https://evil.example")"
+          test "$CODE" = "302" || { echo "::error::Buy with a smuggled url answered $CODE, not 302"; exit 1; }
           curl -sS -o /dev/null -w "%{http_code}\n" "$FN?item=00000000-0000-4000-8000-000000000000" | grep -q "^404$" || { echo "::error::an unknown item should be 404"; exit 1; }
           psql "$DSN" -v ON_ERROR_STOP=1 -c "select click_id, network, set_id, created_at from public.clicks where item_id = '$ITEM'"
           N="$(psql "$DSN" -tA -c "select count(*) from public.clicks where item_id = '$ITEM'")"

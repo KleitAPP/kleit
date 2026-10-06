@@ -208,6 +208,13 @@ export const en = {
   "vibes.count": "{n} picked",
 
   "feed.empty": "Follow someone, or start from a stylist set",
+  "feed.following": "Following",
+  "feed.featured": "Featured",
+  "feed.label": "Feed",
+  "feed.emptyFeatured": "Nothing featured yet. The first public sets will show up here.",
+  "feed.findPeople": "Find people",
+  "feed.untitled": "A set",
+  "feed.more": "Show more",
   "search.empty": "Type to search pieces, sets, people and stores",
   "search.box": "Search",
   "search.items": "Pieces",

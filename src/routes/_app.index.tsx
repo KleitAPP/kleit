@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { EmptyState, Toast } from "@/components/kleit";
+import { Toast } from "@/components/kleit";
+import { Feed } from "@/feed/Feed";
 import { t } from "@/i18n/en";
 
 /**
@@ -73,7 +74,9 @@ function Home() {
             <h2 id="starts" className="font-display text-xl text-ink">
               {t("start.heading")}
             </h2>
-            <p className="text-sm text-ink-soft">{t("start.progress", { done, total: cards.length })}</p>
+            <p className="text-sm text-ink-soft">
+              {t("start.progress", { done, total: cards.length })}
+            </p>
           </div>
 
           <ul className="mt-3 flex flex-col gap-3">
@@ -104,8 +107,8 @@ function Home() {
         </section>
       )}
 
-      <section aria-label="Feed" className="mt-8">
-        <EmptyState line={t("feed.empty")} />
+      <section aria-label={t("feed.label")} className="mt-8">
+        <Feed />
       </section>
 
       {nudge ? <Toast message={nudge} onDismiss={() => setNudge(null)} /> : null}

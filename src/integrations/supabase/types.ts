@@ -200,6 +200,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      points_ledger: {
+        Row: {
+          created_at: string;
+          id: number;
+          points: number;
+          reason: string;
+          ref: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: never;
+          points: number;
+          reason: string;
+          ref: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: never;
+          points?: number;
+          reason?: string;
+          ref?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      badges: {
+        Row: {
+          awarded_at: string;
+          badge: string;
+          user_id: string;
+        };
+        Insert: {
+          awarded_at?: string;
+          badge: string;
+          user_id: string;
+        };
+        Update: {
+          awarded_at?: string;
+          badge?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       blocked_identities: {
         Row: {
           created_at: string;
@@ -1050,6 +1095,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          points: number;
           age_confirmed_at: string;
           avatar_url: string | null;
           bio: string;
@@ -1069,6 +1115,7 @@ export type Database = {
           username: string;
         };
         Insert: {
+          points?: number;
           age_confirmed_at: string;
           avatar_url?: string | null;
           bio?: string;
@@ -1088,6 +1135,7 @@ export type Database = {
           username: string;
         };
         Update: {
+          points?: number;
           age_confirmed_at?: string;
           avatar_url?: string | null;
           bio?: string;
@@ -1642,6 +1690,11 @@ export type Database = {
           entered_at: string;
         }[];
       };
+      my_points: {
+        Args: Record<PropertyKey, never>;
+        Returns: { points: number; level: number; badges: string[] }[];
+      };
+      level_of: { Args: { p_points: number }; Returns: number };
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number };
         Returns: {

@@ -53,6 +53,7 @@ import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouFontsRouteImport } from './routes/_app.you_.fonts'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
 import { Route as AppYouPeopleRouteImport } from './routes/_app.you_.people'
+import { Route as AppYouPointsRouteImport } from './routes/_app.you_.points'
 import { Route as AppYouTemplatesRouteImport } from './routes/_app.you_.templates'
 import { Route as AppPollPollIdIndexRouteImport } from './routes/_app.poll.$pollId.index'
 import { Route as AppPollPollIdEditRouteImport } from './routes/_app.poll.$pollId.edit'
@@ -283,6 +284,11 @@ const AppYouPeopleRoute = AppYouPeopleRouteImport.update({
   path: '/you/people',
   getParentRoute: () => AppRoute,
 } as any)
+const AppYouPointsRoute = AppYouPointsRouteImport.update({
+  id: '/you_/points',
+  path: '/you/points',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppYouTemplatesRoute = AppYouTemplatesRouteImport.update({
   id: '/you_/templates',
   path: '/you/templates',
@@ -374,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
   '/you/people': typeof AppYouPeopleRoute
+  '/you/points': typeof AppYouPointsRoute
   '/you/templates': typeof AppYouTemplatesRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -428,6 +435,7 @@ export interface FileRoutesByTo {
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
   '/you/people': typeof AppYouPeopleRoute
+  '/you/points': typeof AppYouPointsRoute
   '/you/templates': typeof AppYouTemplatesRoute
   '/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -484,6 +492,7 @@ export interface FileRoutesById {
   '/_app/you_/fonts': typeof AppYouFontsRoute
   '/_app/you_/items': typeof AppYouItemsRoute
   '/_app/you_/people': typeof AppYouPeopleRoute
+  '/_app/you_/points': typeof AppYouPointsRoute
   '/_app/you_/templates': typeof AppYouTemplatesRoute
   '/_app/poll/$pollId/edit': typeof AppPollPollIdEditRoute
   '/_app/set/$setId/canvas': typeof AppSetSetIdCanvasRoute
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/you/fonts'
     | '/you/items'
     | '/you/people'
+    | '/you/points'
     | '/you/templates'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
@@ -594,6 +604,7 @@ export interface FileRouteTypes {
     | '/you/fonts'
     | '/you/items'
     | '/you/people'
+    | '/you/points'
     | '/you/templates'
     | '/poll/$pollId/edit'
     | '/set/$setId/canvas'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/_app/you_/fonts'
     | '/_app/you_/items'
     | '/_app/you_/people'
+    | '/_app/you_/points'
     | '/_app/you_/templates'
     | '/_app/poll/$pollId/edit'
     | '/_app/set/$setId/canvas'
@@ -984,6 +996,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouPeopleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/you_/points': {
+      id: '/_app/you_/points'
+      path: '/you/points'
+      fullPath: '/you/points'
+      preLoaderRoute: typeof AppYouPointsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/you_/templates': {
       id: '/_app/you_/templates'
       path: '/you/templates'
@@ -1102,6 +1121,7 @@ interface AppRouteChildren {
   AppYouFontsRoute: typeof AppYouFontsRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
   AppYouPeopleRoute: typeof AppYouPeopleRoute
+  AppYouPointsRoute: typeof AppYouPointsRoute
   AppYouTemplatesRoute: typeof AppYouTemplatesRoute
   AppPollPollIdEditRoute: typeof AppPollPollIdEditRoute
   AppSetSetIdCanvasRoute: typeof AppSetSetIdCanvasRoute
@@ -1139,6 +1159,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppYouFontsRoute: AppYouFontsRoute,
   AppYouItemsRoute: AppYouItemsRoute,
   AppYouPeopleRoute: AppYouPeopleRoute,
+  AppYouPointsRoute: AppYouPointsRoute,
   AppYouTemplatesRoute: AppYouTemplatesRoute,
   AppPollPollIdEditRoute: AppPollPollIdEditRoute,
   AppSetSetIdCanvasRoute: AppSetSetIdCanvasRoute,

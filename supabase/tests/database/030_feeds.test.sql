@@ -54,11 +54,12 @@ select is((select id from feed_following() limit 1), 'fe000000-0000-4000-8000-00
 select is((select count(*)::int from feed_following(p_before => now() - interval '150 minutes')), 1, 'following: paging by time works');
 
 -- Featured feed.
-select is((select count(*)::int from feed_featured()), 2, 'featured: the star''s and the friend''s public sets only');
-select ok(not exists (select 1 from feed_featured() where owner_id = 'fdfdfdfd-0000-4000-8000-000000000003'), 'featured: muted left out');
-select ok(not exists (select 1 from feed_featured() where owner_id = 'fdfdfdfd-0000-4000-8000-000000000004'), 'featured: nothing across a block');
-select ok(not exists (select 1 from feed_featured() where visibility <> 'public' or owner_id = 'fdfdfdfd-0000-4000-8000-000000000001'), 'featured: only public sets, never your own');
-select is((select id from feed_featured() limit 1), 'fe000000-0000-4000-8000-000000000006'::uuid, 'featured: this week''s most-loved set ranks first');
+-- The live project has other people's public sets too, so every count here is scoped to this test's own people.
+select is((select count(*)::int from feed_featured(0, 50) where owner_id::text like 'fdfdfdfd-%'), 2, 'featured: the star''s and the friend''s public sets only');
+select ok(not exists (select 1 from feed_featured(0, 50) where owner_id = 'fdfdfdfd-0000-4000-8000-000000000003'), 'featured: muted left out');
+select ok(not exists (select 1 from feed_featured(0, 50) where owner_id = 'fdfdfdfd-0000-4000-8000-000000000004'), 'featured: nothing across a block');
+select ok(not exists (select 1 from feed_featured(0, 50) where visibility <> 'public' or owner_id = 'fdfdfdfd-0000-4000-8000-000000000001'), 'featured: only public sets, never your own');
+select is((select id from (select id, row_number() over () as n from feed_featured(0, 50)) f where id::text like 'fe000000-%' order by n limit 1), 'fe000000-0000-4000-8000-000000000006'::uuid, 'featured: this week''s most-loved set ranks above the unloved one');
 
 -- Nobody picks their own set.
 select throws_ok($$ update sets set featured_at = now() where id = 'fe000000-0000-4000-8000-000000000007' $$, 'P0001', null, 'viewer: cannot stamp featured_at on their own set');

@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(12);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('d0d0d0d0-0000-4000-8000-000000000001', 'maker@test.kleit'),
@@ -49,6 +49,11 @@ delete from likes where user_id = 'd0d0d0d0-0000-4000-8000-000000000002';
 insert into likes (user_id, set_id) values ('d0d0d0d0-0000-4000-8000-000000000002', 'de000000-0000-4000-8000-000000000001');
 insert into follows (follower_id, followee_id) values ('d0d0d0d0-0000-4000-8000-000000000002', 'd0d0d0d0-0000-4000-8000-000000000001');
 select is(pg_temp.points_of('d0d0d0d0-0000-4000-8000-000000000001'), 13, 'maker: a like (2, once however often it is redone) and a follower (1)');
+-- Found on the way (migration 040): the second like within an hour bundles the notification, and
+-- that update used to be refused for a signed-in person - so the like itself was refused.
+select pg_temp.act_as('d0d0d0d0-0000-4000-8000-000000000001');
+select is((select bundled_count from notifications where user_id = 'd0d0d0d0-0000-4000-8000-000000000001' and kind = 'like'), 2, 'maker: the two likes bundled into one notification (a signed-in like could not bundle before 040)');
+select pg_temp.act_as('d0d0d0d0-0000-4000-8000-000000000002');
 select is((select count(*)::int from badges where user_id = 'd0d0d0d0-0000-4000-8000-000000000001'), 1, 'admirer: can see the maker''s badge on the profile');
 
 -- Entering a contest: 5 and a badge.

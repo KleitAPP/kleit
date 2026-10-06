@@ -1712,14 +1712,6 @@ export type Database = {
         }[]
       }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
-      sets_by_tag: {
-        Args: { p_tag: string; p_limit?: number };
-        Returns: Database["public"]["Tables"]["sets"]["Row"][];
-      };
-      popular_tags: {
-        Args: { p_limit?: number };
-        Returns: { tag: string; sets: number }[];
-      };
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -1833,6 +1825,13 @@ export type Database = {
         }[]
       }
       piece_is_shareable: { Args: { p_item_id: string }; Returns: boolean }
+      popular_tags: {
+        Args: { p_limit?: number }
+        Returns: {
+          sets: number
+          tag: string
+        }[]
+      }
       record_vote: {
         Args: {
           p_device_hash: string
@@ -1977,6 +1976,46 @@ export type Database = {
           my_reaction: string
           reactions: Json
         }[]
+      }
+      sets_by_tag: {
+        Args: { p_limit?: number; p_tag: string }
+        Returns: {
+          alt_text: string | null
+          caption: string
+          comments_mode: Database["public"]["Enums"]["comments_mode"]
+          comments_setting: string
+          created_at: string
+          deleted_at: string | null
+          description: string
+          featured_at: string | null
+          id: string
+          layout: Json
+          layout_version: number
+          owner_id: string
+          preview_image_id: string | null
+          published_at: string | null
+          remix_mode: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label: string | null
+          remixed_from_set_id: string | null
+          search: unknown
+          share_code: string
+          song_artist: string | null
+          song_cover_url: string | null
+          song_title: string | null
+          song_url: string | null
+          status: Database["public"]["Enums"]["set_status"]
+          tags: string[]
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["set_visibility"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       shared_poll: { Args: { p_code: string }; Returns: Json }
       shared_set: { Args: { p_code: string }; Returns: Json }

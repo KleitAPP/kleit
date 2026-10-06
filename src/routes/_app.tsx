@@ -57,13 +57,14 @@ function AppShell() {
 
   if (allowed !== true) return <LaunchSplash />;
 
-  const current: TabId = pathname.startsWith("/search")
-    ? "search"
-    : pathname.startsWith("/inbox")
-      ? "inbox"
-      : pathname.startsWith("/you")
-        ? "you"
-        : "home";
+  const current: TabId =
+    pathname.startsWith("/search") || pathname.startsWith("/store/")
+      ? "search"
+      : pathname.startsWith("/inbox")
+        ? "inbox"
+        : pathname.startsWith("/you")
+          ? "you"
+          : "home";
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">

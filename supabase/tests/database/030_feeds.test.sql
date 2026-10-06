@@ -32,7 +32,7 @@ insert into sets (id, owner_id, title, status, visibility, share_code, published
   ('fe000000-0000-4000-8000-000000000004', 'fdfdfdfd-0000-4000-8000-000000000003', 'noisy public', 'published', 'public', 'feednoisypub0004', now() - interval '1 hour'),
   ('fe000000-0000-4000-8000-000000000005', 'fdfdfdfd-0000-4000-8000-000000000004', 'enemy public', 'published', 'public', 'feedenemypub0005', now() - interval '1 hour'),
   ('fe000000-0000-4000-8000-000000000006', 'fdfdfdfd-0000-4000-8000-000000000005', 'star public', 'published', 'public', 'feedstarpub00006', now() - interval '5 days'),
-  ('fe000000-0000-4000-8000-000000000007', 'fdfdfdfd-0000-4000-8000-0000000000001', 'viewer own', 'published', 'public', 'feedviewerown007', now());
+  ('fe000000-0000-4000-8000-000000000007', 'fdfdfdfd-0000-4000-8000-000000000001', 'viewer own', 'published', 'public', 'feedviewerown007', now());
 -- The star's set is loved this week; the friend's older one is not.
 insert into likes (user_id, set_id) values ('fdfdfdfd-0000-4000-8000-000000000006', 'fe000000-0000-4000-8000-000000000006');
 insert into reactions (user_id, set_id, emoji) values ('fdfdfdfd-0000-4000-8000-000000000006', 'fe000000-0000-4000-8000-000000000006', '🔥');

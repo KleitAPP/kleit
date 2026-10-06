@@ -40,7 +40,10 @@ async function withPeople(rows: Record<string, unknown>[]): Promise<FeedSet[]> {
 }
 
 export async function followingFeed(before: string | null): Promise<FeedSet[]> {
-  const { data } = await supabase.rpc("feed_following", { p_before: before, p_limit: PAGE });
+  const { data } = await supabase.rpc("feed_following", {
+    ...(before ? { p_before: before } : {}),
+    p_limit: PAGE,
+  });
   return withPeople((data ?? []) as Record<string, unknown>[]);
 }
 

@@ -1661,7 +1661,7 @@ export type Database = {
         }
       }
       feed_following: {
-        Args: { p_before?: string | null; p_limit?: number };
+        Args: { p_before?: string; p_limit?: number };
         Returns: Database["public"]["Tables"]["sets"]["Row"][];
       };
       feed_featured: {

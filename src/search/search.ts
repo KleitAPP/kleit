@@ -27,8 +27,8 @@ export async function searchItems(
 ): Promise<ItemSummary[]> {
   const { data } = await supabase.rpc("search_items", {
     q,
-    p_store: store,
-    p_max_cents: maxCents,
+    ...(store ? { p_store: store } : {}),
+    ...(maxCents ? { p_max_cents: maxCents } : {}),
     p_limit: 40,
   });
   return ((data ?? []) as Record<string, unknown>[]).map((r) => {

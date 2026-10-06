@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Toast } from "@/components/kleit";
+import { ContestCard } from "@/contests/ContestCard";
 import { Feed } from "@/feed/Feed";
 import { t } from "@/i18n/en";
 
@@ -106,6 +107,8 @@ function Home() {
           </ul>
         </section>
       )}
+
+      <ContestCard />
 
       <section aria-label={t("feed.label")} className="mt-8">
         <Feed />

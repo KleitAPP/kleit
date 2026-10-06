@@ -14,6 +14,7 @@ import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppAsksRouteImport } from './routes/_app.asks'
+import { Route as AppContestsRouteImport } from './routes/_app.contests'
 import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
@@ -31,6 +32,7 @@ import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
 import { Route as AppAddPhotoRouteImport } from './routes/_app.add.photo'
 import { Route as AppAsksAskIdRouteImport } from './routes/_app.asks_.$askId'
 import { Route as AppCollectionCollectionIdRouteImport } from './routes/_app.collection.$collectionId'
+import { Route as AppContestsContestIdRouteImport } from './routes/_app.contests_.$contestId'
 import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$groupId'
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
@@ -83,6 +85,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppAsksRoute = AppAsksRouteImport.update({
   id: '/asks',
   path: '/asks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppContestsRoute = AppContestsRouteImport.update({
+  id: '/contests',
+  path: '/contests',
   getParentRoute: () => AppRoute,
 } as any)
 const AppGroupsRoute = AppGroupsRouteImport.update({
@@ -171,6 +178,11 @@ const AppCollectionCollectionIdRoute =
     path: '/collection/$collectionId',
     getParentRoute: () => AppRoute,
   } as any)
+const AppContestsContestIdRoute = AppContestsContestIdRouteImport.update({
+  id: '/contests_/$contestId',
+  path: '/contests/$contestId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGroupsGroupIdRoute = AppGroupsGroupIdRouteImport.update({
   id: '/groups_/$groupId',
   path: '/groups/$groupId',
@@ -323,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/asks': typeof AppAsksRoute
+  '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
@@ -340,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/add/photo': typeof AppAddPhotoRoute
   '/asks/$askId': typeof AppAsksAskIdRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/contests/$contestId': typeof AppContestsContestIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
@@ -374,6 +388,7 @@ export interface FileRoutesByTo {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/asks': typeof AppAsksRoute
+  '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
@@ -392,6 +407,7 @@ export interface FileRoutesByTo {
   '/add/photo': typeof AppAddPhotoRoute
   '/asks/$askId': typeof AppAsksAskIdRoute
   '/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/contests/$contestId': typeof AppContestsContestIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
@@ -428,6 +444,7 @@ export interface FileRoutesById {
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/_app/asks': typeof AppAsksRoute
+  '/_app/contests': typeof AppContestsRoute
   '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/search': typeof AppSearchRoute
@@ -446,6 +463,7 @@ export interface FileRoutesById {
   '/_app/add/photo': typeof AppAddPhotoRoute
   '/_app/asks_/$askId': typeof AppAsksAskIdRoute
   '/_app/collection/$collectionId': typeof AppCollectionCollectionIdRoute
+  '/_app/contests_/$contestId': typeof AppContestsContestIdRoute
   '/_app/groups_/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
@@ -483,6 +501,7 @@ export interface FileRouteTypes {
     | '/vibes'
     | '/welcome'
     | '/asks'
+    | '/contests'
     | '/groups'
     | '/inbox'
     | '/search'
@@ -500,6 +519,7 @@ export interface FileRouteTypes {
     | '/add/photo'
     | '/asks/$askId'
     | '/collection/$collectionId'
+    | '/contests/$contestId'
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
@@ -534,6 +554,7 @@ export interface FileRouteTypes {
     | '/vibes'
     | '/welcome'
     | '/asks'
+    | '/contests'
     | '/groups'
     | '/inbox'
     | '/search'
@@ -552,6 +573,7 @@ export interface FileRouteTypes {
     | '/add/photo'
     | '/asks/$askId'
     | '/collection/$collectionId'
+    | '/contests/$contestId'
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
@@ -587,6 +609,7 @@ export interface FileRouteTypes {
     | '/vibes'
     | '/welcome'
     | '/_app/asks'
+    | '/_app/contests'
     | '/_app/groups'
     | '/_app/inbox'
     | '/_app/search'
@@ -605,6 +628,7 @@ export interface FileRouteTypes {
     | '/_app/add/photo'
     | '/_app/asks_/$askId'
     | '/_app/collection/$collectionId'
+    | '/_app/contests_/$contestId'
     | '/_app/groups_/$groupId'
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
@@ -685,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/asks'
       fullPath: '/asks'
       preLoaderRoute: typeof AppAsksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/contests': {
+      id: '/_app/contests'
+      path: '/contests'
+      fullPath: '/contests'
+      preLoaderRoute: typeof AppContestsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/groups': {
@@ -804,6 +835,13 @@ declare module '@tanstack/react-router' {
       path: '/collection/$collectionId'
       fullPath: '/collection/$collectionId'
       preLoaderRoute: typeof AppCollectionCollectionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/contests_/$contestId': {
+      id: '/_app/contests_/$contestId'
+      path: '/contests/$contestId'
+      fullPath: '/contests/$contestId'
+      preLoaderRoute: typeof AppContestsContestIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/groups_/$groupId': {
@@ -1040,6 +1078,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAsksRoute: typeof AppAsksRoute
+  AppContestsRoute: typeof AppContestsRoute
   AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
   AppSearchRoute: typeof AppSearchRoute
@@ -1050,6 +1089,7 @@ interface AppRouteChildren {
   AppAddPhotoRoute: typeof AppAddPhotoRoute
   AppAsksAskIdRoute: typeof AppAsksAskIdRoute
   AppCollectionCollectionIdRoute: typeof AppCollectionCollectionIdRoute
+  AppContestsContestIdRoute: typeof AppContestsContestIdRoute
   AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
@@ -1075,6 +1115,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAsksRoute: AppAsksRoute,
+  AppContestsRoute: AppContestsRoute,
   AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
   AppSearchRoute: AppSearchRoute,
@@ -1085,6 +1126,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAddPhotoRoute: AppAddPhotoRoute,
   AppAsksAskIdRoute: AppAsksAskIdRoute,
   AppCollectionCollectionIdRoute: AppCollectionCollectionIdRoute,
+  AppContestsContestIdRoute: AppContestsContestIdRoute,
   AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,

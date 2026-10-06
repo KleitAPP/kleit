@@ -1225,6 +1225,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          featured_at: string | null
           id: string
           layout: Json
           layout_version: number
@@ -1255,6 +1256,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          featured_at?: string | null
           id?: string
           layout?: Json
           layout_version?: number
@@ -1285,6 +1287,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          featured_at?: string | null
           id?: string
           layout?: Json
           layout_version?: number
@@ -1582,6 +1585,86 @@ export type Database = {
         }[]
       }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
+      feed_featured: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          alt_text: string | null
+          caption: string
+          comments_mode: Database["public"]["Enums"]["comments_mode"]
+          comments_setting: string
+          created_at: string
+          deleted_at: string | null
+          description: string
+          featured_at: string | null
+          id: string
+          layout: Json
+          layout_version: number
+          owner_id: string
+          preview_image_id: string | null
+          published_at: string | null
+          remix_mode: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label: string | null
+          remixed_from_set_id: string | null
+          search: unknown
+          share_code: string
+          song_artist: string | null
+          song_cover_url: string | null
+          song_title: string | null
+          song_url: string | null
+          status: Database["public"]["Enums"]["set_status"]
+          tags: string[]
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["set_visibility"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      feed_following: {
+        Args: { p_before?: string; p_limit?: number }
+        Returns: {
+          alt_text: string | null
+          caption: string
+          comments_mode: Database["public"]["Enums"]["comments_mode"]
+          comments_setting: string
+          created_at: string
+          deleted_at: string | null
+          description: string
+          featured_at: string | null
+          id: string
+          layout: Json
+          layout_version: number
+          owner_id: string
+          preview_image_id: string | null
+          published_at: string | null
+          remix_mode: Database["public"]["Enums"]["remix_mode"]
+          remixed_from_label: string | null
+          remixed_from_set_id: string | null
+          search: unknown
+          share_code: string
+          song_artist: string | null
+          song_cover_url: string | null
+          song_title: string | null
+          song_url: string | null
+          status: Database["public"]["Enums"]["set_status"]
+          tags: string[]
+          takedown_state: Database["public"]["Enums"]["takedown_state"]
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["set_visibility"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       follow_counts: {
         Args: { p_user: string }
         Returns: {
@@ -1660,14 +1743,6 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      feed_following: {
-        Args: { p_before?: string; p_limit?: number };
-        Returns: Database["public"]["Tables"]["sets"]["Row"][];
-      };
-      feed_featured: {
-        Args: { p_offset?: number; p_limit?: number };
-        Returns: Database["public"]["Tables"]["sets"]["Row"][];
-      };
       search_sets: {
         Args: { p_limit?: number; q: string }
         Returns: {
@@ -1678,6 +1753,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          featured_at: string | null
           id: string
           layout: Json
           layout_version: number
@@ -1718,6 +1794,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          featured_at: string | null
           id: string
           layout: Json
           layout_version: number

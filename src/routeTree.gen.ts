@@ -43,6 +43,7 @@ import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.leg
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings.library'
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings.muted'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
+import { Route as AppStoreDomainRouteImport } from './routes/_app.store.$domain'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collections'
@@ -230,6 +231,11 @@ const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppStoreDomainRoute = AppStoreDomainRouteImport.update({
+  id: '/store/$domain',
+  path: '/store/$domain',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUUsernameRoute = AppUUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
@@ -346,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/store/$domain': typeof AppStoreDomainRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/store/$domain': typeof AppStoreDomainRoute
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
@@ -450,6 +458,7 @@ export interface FileRoutesById {
   '/_app/settings/library': typeof AppSettingsLibraryRoute
   '/_app/settings/muted': typeof AppSettingsMutedRoute
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/_app/store/$domain': typeof AppStoreDomainRoute
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/collections': typeof AppYouCollectionsRoute
@@ -503,6 +512,7 @@ export interface FileRouteTypes {
     | '/settings/library'
     | '/settings/muted'
     | '/settings/privacy'
+    | '/store/$domain'
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
@@ -554,6 +564,7 @@ export interface FileRouteTypes {
     | '/settings/library'
     | '/settings/muted'
     | '/settings/privacy'
+    | '/store/$domain'
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
@@ -606,6 +617,7 @@ export interface FileRouteTypes {
     | '/_app/settings/library'
     | '/_app/settings/muted'
     | '/_app/settings/privacy'
+    | '/_app/store/$domain'
     | '/_app/u/$username'
     | '/_app/you_/closet'
     | '/_app/you_/collections'
@@ -878,6 +890,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsPrivacyRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/store/$domain': {
+      id: '/_app/store/$domain'
+      path: '/store/$domain'
+      fullPath: '/store/$domain'
+      preLoaderRoute: typeof AppStoreDomainRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/u/$username': {
       id: '/_app/u/$username'
       path: '/u/$username'
@@ -1035,6 +1054,7 @@ interface AppRouteChildren {
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppPollNewRoute: typeof AppPollNewRoute
+  AppStoreDomainRoute: typeof AppStoreDomainRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouCollectionsRoute: typeof AppYouCollectionsRoute
@@ -1069,6 +1089,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppPollNewRoute: AppPollNewRoute,
+  AppStoreDomainRoute: AppStoreDomainRoute,
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouCollectionsRoute: AppYouCollectionsRoute,

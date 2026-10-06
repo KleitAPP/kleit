@@ -35,7 +35,14 @@ export function SetCard({
     <article className="overflow-hidden rounded-md bg-surface shadow-card">
       <button type="button" onClick={onOpen} className="block w-full" aria-label={imageAlt}>
         <div className="aspect-square w-full bg-surface-2">
-          <img src={imageSrc} alt={imageAlt} className="size-full object-contain" loading="lazy" />
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="size-full object-contain"
+              loading="lazy"
+            />
+          ) : null}
         </div>
       </button>
       <div className="flex items-center gap-2 px-3 pt-2">
@@ -44,7 +51,9 @@ export function SetCard({
         ) : (
           <span aria-hidden="true" className="size-8 rounded-pill bg-surface-2" />
         )}
-        <span className="min-w-0 flex-1 truncate text-sm text-ink-soft">{t("set.by", { username })}</span>
+        <span className="min-w-0 flex-1 truncate text-sm text-ink-soft">
+          {t("set.by", { username })}
+        </span>
         <button type="button" onClick={onMore} aria-label={t("set.options")} className={iconButton}>
           <MoreHorizontal className="size-5" aria-hidden="true" />
         </button>
@@ -54,7 +63,12 @@ export function SetCard({
         <button type="button" onClick={onLike} aria-label={t("set.like")} className={iconButton}>
           <Heart className="size-5" aria-hidden="true" />
         </button>
-        <button type="button" onClick={onComment} aria-label={t("set.comment")} className={iconButton}>
+        <button
+          type="button"
+          onClick={onComment}
+          aria-label={t("set.comment")}
+          className={iconButton}
+        >
           <MessageCircle className="size-5" aria-hidden="true" />
         </button>
         <span className="flex-1" />

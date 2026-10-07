@@ -25,7 +25,8 @@ end $$;
 select is((select count(*)::int from claim_purges() where id::text like 'e5000000-%'), 2, 'server: the taken-down picture and the 40-day-old deletion are due; the live one, the fresh deletion and the row with no picture are not');
 select ok((select keep_evidence from claim_purges() where id = 'e5000000-0000-4000-8000-000000000002'), 'server: the taken-down picture is kept as evidence first');
 select ok(not (select keep_evidence from claim_purges() where id = 'e5000000-0000-4000-8000-000000000004'), 'server: an ordinary deletion keeps no evidence');
-select is((select id from claim_purges(1) where id::text like 'e5000000-%'), 'e5000000-0000-4000-8000-000000000002'::uuid, 'server: the taken-down picture comes first in the batch');
+-- Ordering among the test's own rows only: the live project may hold other due pictures.
+select is((select x.id from (select id, row_number() over () as rn from claim_purges(100)) x where x.id::text like 'e5000000-%' order by x.rn limit 1), 'e5000000-0000-4000-8000-000000000002'::uuid, 'server: the taken-down picture comes before the old deletion');
 
 -- Marking, and the guard.
 select lives_ok($$ select mark_purged('e5000000-0000-4000-8000-000000000002') $$, 'server: marks the picture purged');

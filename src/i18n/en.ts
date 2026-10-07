@@ -1030,6 +1030,14 @@ export const en = {
   "maintenance.title": "Kleit is closed for a quick fix",
   "maintenance.body": "Nothing you made is lost. Try again in a few minutes.",
   "maintenance.action": "Try again",
+
+  // The help centre (M7.5): plain answers, open to anyone, signed in or not.
+  "help.title": "Help",
+  "help.why": "Short, plain answers. No account needed to read them.",
+  "help.all": "All help topics",
+  "help.contact": "Contact us",
+  "help.takedown": "Ask for something to be taken down",
+  "help.copyright": "Copyright",
 } as const;
 
 export type MessageKey = keyof typeof en;

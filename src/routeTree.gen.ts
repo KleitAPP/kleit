@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as DeletingRouteImport } from './routes/deleting'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
@@ -26,6 +27,7 @@ import { Route as AppYouRouteImport } from './routes/_app.you'
 import { Route as DevCanvasSpeedRouteImport } from './routes/dev.canvas-speed'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
+import { Route as HelpSlugRouteImport } from './routes/help.$slug'
 import { Route as JoinIndexRouteImport } from './routes/join.index'
 import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
@@ -81,6 +83,11 @@ const AppRoute = AppRouteImport.update({
 const DeletingRoute = DeletingRouteImport.update({
   id: '/deleting',
   path: '/deleting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuspendedRoute = SuspendedRouteImport.update({
@@ -157,6 +164,11 @@ const DevScreensRoute = DevScreensRouteImport.update({
   id: '/dev/screens',
   path: '/dev/screens',
   getParentRoute: () => rootRouteImport,
+} as any)
+const HelpSlugRoute = HelpSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => HelpRoute,
 } as any)
 const JoinIndexRoute = JoinIndexRouteImport.update({
   id: '/join/',
@@ -399,6 +411,7 @@ const AppTemplateTemplateIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/deleting': typeof DeletingRoute
+  '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -413,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
   '/join/name': typeof JoinNameRoute
@@ -463,6 +477,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/deleting': typeof DeletingRoute
+  '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -477,6 +492,7 @@ export interface FileRoutesByTo {
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
   '/join/name': typeof JoinNameRoute
@@ -530,6 +546,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/deleting': typeof DeletingRoute
+  '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -544,6 +561,7 @@ export interface FileRoutesById {
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
+  '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
   '/join/name': typeof JoinNameRoute
@@ -598,6 +616,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/deleting'
+    | '/help'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -612,6 +631,7 @@ export interface FileRouteTypes {
     | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
+    | '/help/$slug'
     | '/join/code'
     | '/join/email'
     | '/join/name'
@@ -662,6 +682,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/deleting'
+    | '/help'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -676,6 +697,7 @@ export interface FileRouteTypes {
     | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
+    | '/help/$slug'
     | '/join/code'
     | '/join/email'
     | '/join/name'
@@ -728,6 +750,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/deleting'
+    | '/help'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -742,6 +765,7 @@ export interface FileRouteTypes {
     | '/dev/canvas-speed'
     | '/dev/components'
     | '/dev/screens'
+    | '/help/$slug'
     | '/join/code'
     | '/join/email'
     | '/join/name'
@@ -795,6 +819,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   DeletingRoute: typeof DeletingRoute
+  HelpRoute: typeof HelpRouteWithChildren
   SuspendedRoute: typeof SuspendedRoute
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -822,6 +847,13 @@ declare module '@tanstack/react-router' {
       path: '/deleting'
       fullPath: '/deleting'
       preLoaderRoute: typeof DeletingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suspended': {
@@ -928,6 +960,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dev/screens'
       preLoaderRoute: typeof DevScreensRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/help/$slug': {
+      id: '/help/$slug'
+      path: '/$slug'
+      fullPath: '/help/$slug'
+      preLoaderRoute: typeof HelpSlugRouteImport
+      parentRoute: typeof HelpRoute
     }
     '/join/': {
       id: '/join/'
@@ -1371,9 +1410,20 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface HelpRouteChildren {
+  HelpSlugRoute: typeof HelpSlugRoute
+}
+
+const HelpRouteChildren: HelpRouteChildren = {
+  HelpSlugRoute: HelpSlugRoute,
+}
+
+const HelpRouteWithChildren = HelpRoute._addFileChildren(HelpRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   DeletingRoute: DeletingRoute,
+  HelpRoute: HelpRouteWithChildren,
   SuspendedRoute: SuspendedRoute,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,

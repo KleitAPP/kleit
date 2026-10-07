@@ -32,10 +32,11 @@ update sets set layout = '{"caption":"autumn layers"}' where id = 'ef000000-0000
 reset role;
 select set_config('request.jwt.claims', '', true);
 select is((select count(*)::int from text_checks where target_id in ('ef000000-0000-4000-8000-000000000011', 'efefefef-0000-4000-8000-000000000002', 'ef000000-0000-4000-8000-000000000001') and state = 'pending'), 3, 'server: the comment, the bio and the caption are queued');
-create temp table batch as select * from claim_text_checks(50);
+-- Scoped to the test's own rows: the live project queues real comments too.
+create temp table batch as select * from claim_text_checks(100);
 select ok((select count(*) from batch where target_id = 'ef000000-0000-4000-8000-000000000011') = 1, 'server: the batch holds the comment');
-select lives_ok($$ select record_text_check((select id from batch where kind = 'comment'), 'ok') $$, 'server: records ok');
-select lives_ok($$ select record_text_check((select id from batch where kind = 'caption'), 'flagged', '{"self-harm": true}'::jsonb) $$, 'server: records a flagged caption');
+select lives_ok($$ select record_text_check((select id from batch where target_id = 'ef000000-0000-4000-8000-000000000011'), 'ok') $$, 'server: records ok');
+select lives_ok($$ select record_text_check((select id from batch where target_id = 'ef000000-0000-4000-8000-000000000001'), 'flagged', '{"self-harm": true}'::jsonb) $$, 'server: records a flagged caption');
 select is((select held_at is null from comments where id = 'ef000000-0000-4000-8000-000000000011'), true, 'server: an ok comment is not held');
 select is((select count(*)::int from reports where target_type = 'set' and target_id = 'ef000000-0000-4000-8000-000000000001' and note = 'caption flagged by the moderation check' and reason = 'self_harm'), 1, 'server: the flagged caption is reported, with the reason read off the labels');
 

@@ -49,7 +49,7 @@ reset role; select set_config('request.jwt.claims', '', true);
 update account_deletions set final_at = now() - interval '1 minute' where user_id = 'f3f3f3f3-0000-4000-8000-000000000001';
 select is((select private.finalize_account_deletions()), 1, 'nightly: one account made final');
 select is((select count(*)::int from auth.users where id = 'f3f3f3f3-0000-4000-8000-000000000001'), 0, 'the account itself is gone, so the username is free');
-select is((select owner_id from items where id = 'f3000000-0000-4000-8000-000000000011'), null, 'the clipped store piece stays in the catalogue with no owner');
+select is((select owner_id is null from items where id = 'f3000000-0000-4000-8000-000000000011'), true, 'the clipped store piece stays in the catalogue with no owner');
 select is((select deleted_at is not null from items where id = 'f3000000-0000-4000-8000-000000000012'), true, 'their own photo is gone');
 select is((select remixed_from_label from sets where id = 'f3000000-0000-4000-8000-000000000002'), 'Remixed from a deleted account', 'the stayer''s remix stays, credited to a deleted account');
 

@@ -178,3 +178,34 @@ export async function reopenPoll(pollId: string): Promise<boolean> {
 export function pollLink(poll: Pick<PollSummary, "share_code">): string {
   return `${window.location.origin}/p/${poll.share_code}`;
 }
+
+/** One vote as the owner may see it (spec 7.3 #9): when, which, how it counted - never who. */
+export type PollVote = {
+  id: string;
+  option_id: string;
+  created_at: string;
+  weight: number;
+  hidden: boolean;
+  signed_in: boolean;
+  is_friend: boolean;
+};
+
+/** The owner's own poll's votes, newest first. Empty for anyone else. */
+export async function pollVotes(pollId: string): Promise<PollVote[]> {
+  const { data } = await supabase.rpc("my_poll_votes", { p_poll: pollId });
+  return ((data ?? []) as Array<Record<string, unknown>>).map((v) => ({
+    id: String(v["id"]),
+    option_id: String(v["option_id"]),
+    created_at: String(v["created_at"]),
+    weight: Number(v["weight"] ?? 1),
+    hidden: Boolean(v["hidden"]),
+    signed_in: Boolean(v["signed_in"]),
+    is_friend: Boolean(v["is_friend"]),
+  }));
+}
+
+/** Hide (or show again) one vote on your own poll; the totals follow at once. */
+export async function hideVote(voteId: string, hidden: boolean): Promise<boolean> {
+  const { error } = await supabase.rpc("hide_vote", { p_vote: voteId, p_hidden: hidden });
+  return !error;
+}

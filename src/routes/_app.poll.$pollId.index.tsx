@@ -6,13 +6,16 @@ import { t } from "@/i18n/en";
 import {
   closePoll,
   deletePoll,
+  hideVote,
   isClosed,
   loadPoll,
   pollLink,
+  pollVotes,
   reopenPoll,
   type PollOptionRow,
   type PollSummary,
   type PollTotal,
+  type PollVote,
 } from "@/polls/polls";
 import type { SetSummary } from "@/sets/sets";
 
@@ -36,6 +39,8 @@ function PollPage() {
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [totals, setTotals] = useState<PollTotal[]>([]);
   const [mine, setMine] = useState(false);
+  const [votes, setVotes] = useState<PollVote[] | null>(null);
+  const [voteBusy, setVoteBusy] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
   const [confirm, setConfirm] = useState<"reopen" | "delete" | null>(null);
   const [copied, setCopied] = useState(false);
@@ -52,6 +57,15 @@ function PollPage() {
     setSets(loaded.sets);
     setTotals(loaded.totals);
     setMine(loaded.mine);
+    if (loaded.mine && votes !== null) setVotes(await pollVotes(pollId));
+  }
+
+  async function toggleVote(v: PollVote) {
+    if (voteBusy) return;
+    setVoteBusy(v.id);
+    const ok = await hideVote(v.id, !v.hidden);
+    setVoteBusy(null);
+    if (ok) await refresh();
   }
 
   useEffect(() => {
@@ -183,6 +197,64 @@ function PollPage() {
           : `${rawSum === 1 ? t("poll.vote1") : t("poll.votes", { count: rawSum })} · ${t("pollpage.friends", { count: friends })}`}{" "}
         · {t("pollpage.totalsOnly")}
       </p>
+
+      {mine && rawSum > 0 ? (
+        <section className="mt-4">
+          <button
+            type="button"
+            onClick={() =>
+              void (votes === null ? pollVotes(pollId).then(setVotes) : setVotes(null))
+            }
+            className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+          >
+            {votes === null ? t("pollpage.lookAtVotes") : t("pollpage.hideVotes")}
+          </button>
+          {votes !== null ? (
+            <>
+              <p className="mt-2 text-sm text-ink-soft">{t("pollpage.votesWhy")}</p>
+              <ul className="mt-2 overflow-hidden rounded-md border border-line bg-surface">
+                {votes.map((v) => {
+                  const idx = options.findIndex((o) => o.id === v.option_id);
+                  const o = options[idx];
+                  const set = o ? sets.find((s) => s.id === o.set_id) : undefined;
+                  const label =
+                    o?.label.trim() || set?.title || t("pollbuilder.option", { n: idx + 1 });
+                  return (
+                    <li
+                      key={v.id}
+                      className={`flex items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0 ${v.hidden ? "opacity-60" : ""}`}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-base text-ink">{label}</p>
+                        <p className="text-sm text-ink-soft">
+                          {new Date(v.created_at).toLocaleString()} ·{" "}
+                          {v.is_friend
+                            ? t("pollpage.voteFriend")
+                            : v.signed_in
+                              ? t("pollpage.voteSignedIn")
+                              : t("pollpage.voteGuest")}
+                          {v.hidden ? ` · ${t("pollpage.voteHidden")}` : ""}
+                        </p>
+                        {v.weight < 1 ? (
+                          <p className="text-sm text-ink-soft">{t("pollpage.voteHalf")}</p>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={voteBusy !== null}
+                        onClick={() => void toggleVote(v)}
+                        className="min-h-11 shrink-0 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+                      >
+                        {v.hidden ? t("pollpage.unhideVote") : t("pollpage.hideVote")}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
       {mine ? (
         <>

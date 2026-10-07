@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
@@ -82,6 +82,14 @@ function ModQueue() {
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{t("mod.title")}</h1>
       <p className="mt-1 text-sm text-ink-soft">{t("mod.why")}</p>
+      <p className="mt-2 flex gap-4 text-sm">
+        <Link to="/mod/users" className="text-ink underline underline-offset-2">
+          {t("mod.users")}
+        </Link>
+        <Link to="/mod/switches" className="text-ink underline underline-offset-2">
+          {t("mod.switches")}
+        </Link>
+      </p>
 
       {items.length === 0 ? (
         <div className="mt-4">

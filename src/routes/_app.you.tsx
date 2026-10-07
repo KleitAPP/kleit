@@ -7,6 +7,7 @@ import { KleitMark } from "@/brand/KleitMark";
 import { createQuickDraft, myDrafts, mySets, type SetSummary } from "@/sets/sets";
 import { isClosed, myPolls, type PollSummary } from "@/polls/polls";
 import { t } from "@/i18n/en";
+import { myRoles } from "@/safety/moderation";
 
 /**
  * S12 — Your profile (design pack W15).
@@ -39,6 +40,10 @@ function YourProfile() {
   const [drafts, setDrafts] = useState<SetSummary[] | null>(null);
   const [sets, setSets] = useState<SetSummary[] | null>(null);
   const [polls, setPolls] = useState<PollSummary[] | null>(null);
+  const [moderator, setModerator] = useState(false);
+  useEffect(() => {
+    void myRoles().then((r) => setModerator(r.includes("admin") || r.includes("moderator")));
+  }, []);
 
   useEffect(() => {
     if (tab !== "polls" || polls !== null) return;
@@ -139,6 +144,14 @@ function YourProfile() {
         >
           {t("ask.title")}
         </Link>
+        {moderator ? (
+          <Link
+            to="/mod"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-ink bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("mod.title")}
+          </Link>
+        ) : null}
         <Link
           to="/you/points"
           className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"

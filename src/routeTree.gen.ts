@@ -38,6 +38,8 @@ import { Route as AppContestsContestIdRouteImport } from './routes/_app.contests
 import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$groupId'
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
+import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
+import { Route as AppModUsersRouteImport } from './routes/_app.mod_.users'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings_.account'
 import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings_.blocked'
@@ -212,6 +214,16 @@ const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
 const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
   id: '/item/$itemId',
   path: '/item/$itemId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModSwitchesRoute = AppModSwitchesRouteImport.update({
+  id: '/mod_/switches',
+  path: '/mod/switches',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModUsersRoute = AppModUsersRouteImport.update({
+  id: '/mod_/users',
+  path: '/mod/users',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPollNewRoute = AppPollNewRouteImport.update({
@@ -395,6 +407,8 @@ export interface FileRoutesByFullPath {
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/mod/switches': typeof AppModSwitchesRoute
+  '/mod/users': typeof AppModUsersRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/blocked': typeof AppSettingsBlockedRoute
@@ -455,6 +469,8 @@ export interface FileRoutesByTo {
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/mod/switches': typeof AppModSwitchesRoute
+  '/mod/users': typeof AppModUsersRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/blocked': typeof AppSettingsBlockedRoute
@@ -517,6 +533,8 @@ export interface FileRoutesById {
   '/_app/groups_/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
+  '/_app/mod_/switches': typeof AppModSwitchesRoute
+  '/_app/mod_/users': typeof AppModUsersRoute
   '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings_/account': typeof AppSettingsAccountRoute
   '/_app/settings_/blocked': typeof AppSettingsBlockedRoute
@@ -579,6 +597,8 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
+    | '/mod/switches'
+    | '/mod/users'
     | '/poll/new'
     | '/settings/account'
     | '/settings/blocked'
@@ -639,6 +659,8 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
+    | '/mod/switches'
+    | '/mod/users'
     | '/poll/new'
     | '/settings/account'
     | '/settings/blocked'
@@ -700,6 +722,8 @@ export interface FileRouteTypes {
     | '/_app/groups_/$groupId'
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
+    | '/_app/mod_/switches'
+    | '/_app/mod_/users'
     | '/_app/poll/new'
     | '/_app/settings_/account'
     | '/_app/settings_/blocked'
@@ -952,6 +976,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppItemItemIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mod_/switches': {
+      id: '/_app/mod_/switches'
+      path: '/mod/switches'
+      fullPath: '/mod/switches'
+      preLoaderRoute: typeof AppModSwitchesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mod_/users': {
+      id: '/_app/mod_/users'
+      path: '/mod/users'
+      fullPath: '/mod/users'
+      preLoaderRoute: typeof AppModUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/poll/new': {
       id: '/_app/poll/new'
       path: '/poll/new'
@@ -1183,6 +1221,8 @@ interface AppRouteChildren {
   AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
+  AppModSwitchesRoute: typeof AppModSwitchesRoute
+  AppModUsersRoute: typeof AppModUsersRoute
   AppPollNewRoute: typeof AppPollNewRoute
   AppSettingsAccountRoute: typeof AppSettingsAccountRoute
   AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
@@ -1233,6 +1273,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
+  AppModSwitchesRoute: AppModSwitchesRoute,
+  AppModUsersRoute: AppModUsersRoute,
   AppPollNewRoute: AppPollNewRoute,
   AppSettingsAccountRoute: AppSettingsAccountRoute,
   AppSettingsBlockedRoute: AppSettingsBlockedRoute,

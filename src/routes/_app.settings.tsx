@@ -31,6 +31,7 @@ function Settings() {
         <Later title={t("settings.notifications")} />
         <Row to="/settings/blocked" title={t("settings.blocked")} why={t("settings.blockedWhy")} />
         <Row to="/settings/reports" title={t("settings.reports")} why={t("settings.reportsWhy")} />
+        <Row to="/settings/strikes" title={t("settings.strikes")} why={t("settings.strikesWhy")} />
         <Row to="/settings/muted" title={t("settings.muted")} why={t("settings.mutedWhy")} />
       </ul>
 

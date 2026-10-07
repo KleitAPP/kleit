@@ -44,6 +44,10 @@ function AppShell() {
         void navigate({ to: "/welcome", replace: true });
         return;
       }
+      if (where === "suspended") {
+        void navigate({ to: "/suspended", replace: true });
+        return;
+      }
       if (where === "needs-username") {
         void navigate({ to: "/join/username", replace: true });
         return;

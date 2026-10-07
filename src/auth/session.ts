@@ -19,7 +19,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export type Landing = "signed-out" | "needs-username" | "ready";
+export type Landing = "signed-out" | "needs-username" | "ready" | "suspended";
 
 /** Same deadline idea as the launch check: never leave someone on a blank screen for ever. */
 const LOOKUP_TIMEOUT_MS = 4_000;
@@ -44,13 +44,14 @@ export async function whereDoIBelong(): Promise<Landing> {
   try {
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("user_id, deactivated_at")
+      .select("user_id, deactivated_at, banned_at")
       .eq("user_id", me)
       .abortSignal(controller.signal)
       .maybeSingle();
 
     // If we cannot tell, assume the profile exists (see the note at the top of the file).
     if (error) return "ready";
+    if (profile?.banned_at) return "suspended";
     return profile ? "ready" : "needs-username";
   } catch {
     return "ready";

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
@@ -17,6 +18,7 @@ import { Route as AppAsksRouteImport } from './routes/_app.asks'
 import { Route as AppContestsRouteImport } from './routes/_app.contests'
 import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
+import { Route as AppModRouteImport } from './routes/_app.mod'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppYouRouteImport } from './routes/_app.you'
@@ -46,6 +48,7 @@ import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings_.
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings_.muted'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings_.privacy'
 import { Route as AppSettingsReportsRouteImport } from './routes/_app.settings_.reports'
+import { Route as AppSettingsStrikesRouteImport } from './routes/_app.settings_.strikes'
 import { Route as AppStoreDomainRouteImport } from './routes/_app.store.$domain'
 import { Route as AppTagTagRouteImport } from './routes/_app.tag.$tag'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
@@ -68,6 +71,11 @@ import { Route as AppTemplateTemplateIdEditRouteImport } from './routes/_app.tem
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuspendedRoute = SuspendedRouteImport.update({
+  id: '/suspended',
+  path: '/suspended',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VibesRoute = VibesRouteImport.update({
@@ -103,6 +111,11 @@ const AppGroupsRoute = AppGroupsRouteImport.update({
 const AppInboxRoute = AppInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModRoute = AppModRouteImport.update({
+  id: '/mod',
+  path: '/mod',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSearchRoute = AppSearchRouteImport.update({
@@ -251,6 +264,11 @@ const AppSettingsReportsRoute = AppSettingsReportsRouteImport.update({
   path: '/settings/reports',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsStrikesRoute = AppSettingsStrikesRouteImport.update({
+  id: '/settings_/strikes',
+  path: '/settings/strikes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppStoreDomainRoute = AppStoreDomainRouteImport.update({
   id: '/store/$domain',
   path: '/store/$domain',
@@ -350,12 +368,14 @@ const AppTemplateTemplateIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/asks': typeof AppAsksRoute
   '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
+  '/mod': typeof AppModRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
@@ -385,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/settings/reports': typeof AppSettingsReportsRoute
+  '/settings/strikes': typeof AppSettingsStrikesRoute
   '/store/$domain': typeof AppStoreDomainRoute
   '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
@@ -406,12 +427,14 @@ export interface FileRoutesByFullPath {
   '/set/$setId/': typeof AppSetSetIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/asks': typeof AppAsksRoute
   '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
+  '/mod': typeof AppModRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
@@ -442,6 +465,7 @@ export interface FileRoutesByTo {
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/settings/reports': typeof AppSettingsReportsRoute
+  '/settings/strikes': typeof AppSettingsStrikesRoute
   '/store/$domain': typeof AppStoreDomainRoute
   '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
@@ -465,12 +489,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
   '/_app/asks': typeof AppAsksRoute
   '/_app/contests': typeof AppContestsRoute
   '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
+  '/_app/mod': typeof AppModRoute
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/you': typeof AppYouRoute
@@ -501,6 +527,7 @@ export interface FileRoutesById {
   '/_app/settings_/muted': typeof AppSettingsMutedRoute
   '/_app/settings_/privacy': typeof AppSettingsPrivacyRoute
   '/_app/settings_/reports': typeof AppSettingsReportsRoute
+  '/_app/settings_/strikes': typeof AppSettingsStrikesRoute
   '/_app/store/$domain': typeof AppStoreDomainRoute
   '/_app/tag/$tag': typeof AppTagTagRoute
   '/_app/u/$username': typeof AppUUsernameRoute
@@ -525,12 +552,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/suspended'
     | '/vibes'
     | '/welcome'
     | '/asks'
     | '/contests'
     | '/groups'
     | '/inbox'
+    | '/mod'
     | '/search'
     | '/settings'
     | '/you'
@@ -560,6 +589,7 @@ export interface FileRouteTypes {
     | '/settings/muted'
     | '/settings/privacy'
     | '/settings/reports'
+    | '/settings/strikes'
     | '/store/$domain'
     | '/tag/$tag'
     | '/u/$username'
@@ -581,12 +611,14 @@ export interface FileRouteTypes {
     | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/suspended'
     | '/vibes'
     | '/welcome'
     | '/asks'
     | '/contests'
     | '/groups'
     | '/inbox'
+    | '/mod'
     | '/search'
     | '/settings'
     | '/you'
@@ -617,6 +649,7 @@ export interface FileRouteTypes {
     | '/settings/muted'
     | '/settings/privacy'
     | '/settings/reports'
+    | '/settings/strikes'
     | '/store/$domain'
     | '/tag/$tag'
     | '/u/$username'
@@ -639,12 +672,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/suspended'
     | '/vibes'
     | '/welcome'
     | '/_app/asks'
     | '/_app/contests'
     | '/_app/groups'
     | '/_app/inbox'
+    | '/_app/mod'
     | '/_app/search'
     | '/_app/settings'
     | '/_app/you'
@@ -675,6 +710,7 @@ export interface FileRouteTypes {
     | '/_app/settings_/muted'
     | '/_app/settings_/privacy'
     | '/_app/settings_/reports'
+    | '/_app/settings_/strikes'
     | '/_app/store/$domain'
     | '/_app/tag/$tag'
     | '/_app/u/$username'
@@ -698,6 +734,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  SuspendedRoute: typeof SuspendedRoute
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
   DevCanvasSpeedRoute: typeof DevCanvasSpeedRoute
@@ -717,6 +754,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suspended': {
+      id: '/suspended'
+      path: '/suspended'
+      fullPath: '/suspended'
+      preLoaderRoute: typeof SuspendedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vibes': {
@@ -766,6 +810,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mod': {
+      id: '/_app/mod'
+      path: '/mod'
+      fullPath: '/mod'
+      preLoaderRoute: typeof AppModRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/search': {
@@ -971,6 +1022,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings_/strikes': {
+      id: '/_app/settings_/strikes'
+      path: '/settings/strikes'
+      fullPath: '/settings/strikes'
+      preLoaderRoute: typeof AppSettingsStrikesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/store/$domain': {
       id: '/_app/store/$domain'
       path: '/store/$domain'
@@ -1112,6 +1170,7 @@ interface AppRouteChildren {
   AppContestsRoute: typeof AppContestsRoute
   AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
+  AppModRoute: typeof AppModRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppYouRoute: typeof AppYouRoute
@@ -1134,6 +1193,7 @@ interface AppRouteChildren {
   AppSettingsMutedRoute: typeof AppSettingsMutedRoute
   AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
   AppSettingsReportsRoute: typeof AppSettingsReportsRoute
+  AppSettingsStrikesRoute: typeof AppSettingsStrikesRoute
   AppStoreDomainRoute: typeof AppStoreDomainRoute
   AppTagTagRoute: typeof AppTagTagRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
@@ -1160,6 +1220,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppContestsRoute: AppContestsRoute,
   AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
+  AppModRoute: AppModRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppYouRoute: AppYouRoute,
@@ -1182,6 +1243,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsMutedRoute: AppSettingsMutedRoute,
   AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
   AppSettingsReportsRoute: AppSettingsReportsRoute,
+  AppSettingsStrikesRoute: AppSettingsStrikesRoute,
   AppStoreDomainRoute: AppStoreDomainRoute,
   AppTagTagRoute: AppTagTagRoute,
   AppUUsernameRoute: AppUUsernameRoute,
@@ -1207,6 +1269,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  SuspendedRoute: SuspendedRoute,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,
   DevCanvasSpeedRoute: DevCanvasSpeedRoute,

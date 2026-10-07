@@ -75,6 +75,7 @@ export const ARTICLES: Article[] = [
     title: "Which one? polls",
     body: [
       "Pick two to four of your sets and send one link. Anyone with the link votes with two taps and no account; one vote per device. You see totals only - never who voted what. Polls close after seven days unless you pick another time.",
+      "If a result looks off, open the poll and tap Look at the votes: each vote shows when it came, which set, and whether it was counted at half (that happens when many votes come from one network). Nobody is named. Hide a vote and the totals change at once; you can put it back any time.",
     ],
   },
   {
@@ -99,6 +100,7 @@ export const ARTICLES: Article[] = [
     title: "Messages and message requests",
     body: [
       "Followers can message you (you choose who, in Settings > Privacy). A first message from someone you don't follow back lands in Message requests, text only, with no read receipts, until you accept. New accounts can't send links for their first week.",
+      "You can send a photo with the + button once a conversation is open (not into a request). It is checked the same way as every picture on Kleit, and the other person sees it blurred until they tap it. Taking a message back takes its photo with it.",
       "Messages aren't end-to-end encrypted. If you report a conversation, the last ten messages go with the report so a person can read what was said.",
     ],
   },

@@ -555,6 +555,9 @@ try {
     })
     .select("id")
     .single();
+  // The attacker's setting is "followers": the victim must follow them to write at all, and the
+  // attacker already follows the victim, so the conversation opens as a normal one.
+  await victim.client.from("follows").insert({ follower_id: victim.id, followee_id: attacker.id });
   const sentPhoto = await victim.client.rpc("send_message", {
     p_to: attacker.id,
     p_body: "",

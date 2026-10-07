@@ -41,6 +41,7 @@ select pg_temp.act_as('e2e2e2e2-0000-4000-8000-000000000002');
 select throws_ok($$ select takedown_resolve('e2000000-0000-4000-8000-000000000011', 'removed') $$, '42501', null, 'copier: cannot resolve a takedown');
 select pg_temp.act_as('e2e2e2e2-0000-4000-8000-000000000003');
 select is((select takedown_resolve('e2000000-0000-4000-8000-000000000011', 'removed', 'confirmed', 'e2000000-0000-4000-8000-000000000001')), 2, 'moderator: removing the picture removed both stored copies');
+reset role; select set_config('request.jwt.claims', '', true);
 select is((select takedown_state::text from items where id = 'e2000000-0000-4000-8000-000000000003'), 'none', 'the different picture is untouched');
 select is((select count(*)::int from removed_image_fingerprints where image_hash = 'deadbeefdeadbeef'), 1, 'the fingerprint is on the never-again list');
 set role anon;

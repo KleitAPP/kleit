@@ -705,6 +705,93 @@ try {
     "attacker: the strike has ended and the appeal reads overturned",
   );
 
+  // The rest of the moderator's doors, walked the same way: a lookup with a reason that lands
+  // in the audit log; a suspension that refuses the attacker's next write and is lifted; a
+  // takedown request resolved as removed, taking the picture with it; a contact message closed.
+  const lookup = await mod.rpc("admin_user_lookup", {
+    p_username: "attackvictim",
+    p_reason: "attack test (ignore)",
+  });
+  check(
+    !lookup.error && (lookup.data ?? []).length === 1,
+    "moderator: looks a person up with a reason",
+    lookup.error?.code,
+  );
+  const { data: audit } = await admin
+    .from("admin_audit_log")
+    .select("id")
+    .eq("reason", "attack test (ignore)")
+    .limit(1);
+  check((audit ?? []).length === 1, "server: the lookup is in the audit log with its reason");
+  const suspended = await mod.rpc("set_suspended", {
+    p_user: attacker.id,
+    p_on: true,
+    p_reason: "attack test (ignore)",
+  });
+  check(!suspended.error, "moderator: suspends the attacker", suspended.error?.code);
+  const whileSuspended = await a
+    .from("comments")
+    .insert({ set_id: pub.id, author_id: attacker.id, body: "still here?" });
+  check(
+    !!whileSuspended.error,
+    "attacker: cannot write while suspended",
+    whileSuspended.error?.code ?? "no error",
+  );
+  const lifted = await mod.rpc("set_suspended", {
+    p_user: attacker.id,
+    p_on: false,
+    p_reason: "attack test (ignore)",
+  });
+  check(!lifted.error, "moderator: lifts it", lifted.error?.code);
+  const { data: tdRow } = await admin
+    .from("takedown_requests")
+    .insert({
+      request_ref: `T-ATK${Date.now().toString(36).toUpperCase().slice(-5)}`,
+      kind: "intimate",
+      name: "attack test (ignore)",
+      email: "attack-test@example.com",
+      urls: [`${SITE}/item/${photoItem?.id}`],
+      details: "attack test (ignore)",
+    })
+    .select("id")
+    .single();
+  const resolved = await mod.rpc("takedown_resolve", {
+    p_id: tdRow?.id,
+    p_outcome: "removed",
+    p_note: "attack test",
+    p_item: photoItem?.id,
+  });
+  check(!resolved.error, "moderator: resolves a takedown request as removed", resolved.error?.code);
+  const { data: removedItem } = await admin
+    .from("items")
+    .select("takedown_state")
+    .eq("id", photoItem?.id ?? "")
+    .maybeSingle();
+  check(
+    removedItem?.takedown_state === "removed",
+    "server: the picture is marked removed",
+    removedItem?.takedown_state,
+  );
+  const readRemoved = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  check(!readRemoved.data?.signedUrl, "attacker: a taken-down message photo can no longer be read");
+  const { data: ctRow } = await admin
+    .from("contact_messages")
+    .insert({
+      request_ref: `C-ATK${Date.now().toString(36).toUpperCase().slice(-5)}`,
+      topic: "other",
+      name: "attack test (ignore)",
+      email: "attack-test@example.com",
+      message: "attack test (ignore)",
+    })
+    .select("id")
+    .single();
+  const closedMsg = await mod.rpc("contact_resolve", {
+    p_id: ctRow?.id,
+    p_outcome: "closed",
+    p_note: "attack test",
+  });
+  check(!closedMsg.error, "moderator: closes a contact message", closedMsg.error?.code);
+
   await a.from("mutes").insert({ muter_id: attacker.id, muted_id: victim.id });
   const feed2 = await a.rpc("feed_following", {});
   check(
@@ -818,6 +905,9 @@ try {
   await admin.from("strikes").delete().eq("user_id", attacker.id);
   await admin.from("moderation_actions").delete().eq("moderator_id", moderator.id);
   await admin.from("reports").delete().in("reporter_id", [victim.id, attacker.id]);
+  await admin.from("takedown_requests").delete().eq("name", "attack test (ignore)");
+  await admin.from("contact_messages").delete().eq("name", "attack test (ignore)");
+  await admin.from("admin_audit_log").delete().eq("reason", "attack test (ignore)");
   await admin.from("profiles").update({ banned_at: null }).eq("user_id", attacker.id);
   await admin.from("comments").delete().in("author_id", [victim.id, attacker.id]);
   await admin.from("likes").delete().in("user_id", [victim.id, attacker.id]);

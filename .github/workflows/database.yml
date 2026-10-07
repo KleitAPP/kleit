@@ -141,11 +141,19 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
             "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
             "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
             "SWEEP_SECRET=$SWEEP_SECRET"
+          # The OpenAI key (OW18) is the owner's GitHub secret; absent, the text check waits (it never fails).
+          if [ -n "$OPENAI_API_KEY" ]; then
+            supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "OPENAI_API_KEY=$OPENAI_API_KEY"
+            echo "OpenAI key: present"
+          else
+            echo "OpenAI key: not set yet (OW18) - screen-text will wait"
+          fi
       - name: Deploy ingest-image
         run: supabase functions deploy ingest-image --project-ref "$SUPABASE_PROJECT_REF"
       # The sweeper is called by the database, which holds no user token, so the gateway's JWT
@@ -181,6 +189,9 @@ jobs:
       # through pg_net with the sweep secret (migration 057), never by a person.
       - name: Deploy purge-files
         run: supabase functions deploy purge-files --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # The outside text check (migration 071); called by pg_cron with the sweep secret.
+      - name: Deploy screen-text
+        run: supabase functions deploy screen-text --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

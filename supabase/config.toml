@@ -122,3 +122,7 @@ verify_jwt = false
 # at the gateway; the function checks the secret itself.
 [functions.purge-files]
 verify_jwt = false
+
+# screen-text is called by the database (pg_net) with the sweep secret: no token at the gateway.
+[functions.screen-text]
+verify_jwt = false

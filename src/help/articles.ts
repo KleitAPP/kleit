@@ -141,7 +141,7 @@ export const ARTICLES: Article[] = [
     title: "Deleting your account",
     body: [
       "Settings > Delete account hides everything at once and deletes it for good after seven days; sign in during those days and press Undo to keep it. What stays: other people's remixes of your sets (credited to a deleted account), your votes in poll totals without your name, store pieces you clipped (with no name), and messages you sent, which show as unavailable.",
-      "If you can't sign in, the page at /delete-account explains how to do it by email code.",
+      "If you can't sign in, the page at /delete-account explains how to ask us to do it for you.",
     ],
   },
   {

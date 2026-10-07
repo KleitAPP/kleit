@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { ReportButton } from "@/safety/ReportButton";
+import { MessagePhoto } from "@/social/MessagePhoto";
 import { me } from "@/social/follows";
 import {
   acceptRequest,
@@ -13,6 +14,8 @@ import {
   messagesOf,
   send,
   takeBack,
+  uploadMessagePhoto,
+  withPhotoPaths,
   type Conversation,
   type Message,
   type SendProblem,
@@ -37,6 +40,10 @@ function ConversationScreen() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<SendProblem | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const bottom = useRef<HTMLLIElement>(null);
 
@@ -53,15 +60,17 @@ function ConversationScreen() {
       setConv(c);
       setMessages(list);
     })();
-    const stop = listen(conversationId, (m) =>
-      setMessages((list) => {
-        const i = list.findIndex((x) => x.id === m.id);
-        if (i === -1) return [...list, m];
-        const next = [...list];
-        next[i] = m;
-        return next;
-      }),
-    );
+    const stop = listen(conversationId, (m) => {
+      void withPhotoPaths([m]).then(([filled]) =>
+        setMessages((list) => {
+          const i = list.findIndex((x) => x.id === m.id);
+          if (i === -1) return [...list, filled ?? m];
+          const next = [...list];
+          next[i] = filled ?? m;
+          return next;
+        }),
+      );
+    });
     return () => {
       cancelled = true;
       stop();
@@ -82,17 +91,28 @@ function ConversationScreen() {
   }
   const name = conv.other.display_name?.trim() ? conv.other.display_name : conv.other.username;
 
+  async function attach(file: File | undefined) {
+    if (!file || photoBusy) return;
+    setPhotoBusy(true);
+    setPhotoFailed(false);
+    const result = await uploadMessagePhoto(file);
+    setPhotoBusy(false);
+    if (result.ok) setPhoto(result.itemId);
+    else setPhotoFailed(true);
+  }
+
   async function submit() {
-    if (!conv || !draft.trim() || busy) return;
+    if (!conv || (!draft.trim() && !photo) || busy) return;
     setBusy(true);
     setProblem(null);
-    const result = await send(conv.other.user_id, draft);
+    const result = await send(conv.other.user_id, draft, photo);
     setBusy(false);
     if (!result.ok) {
       setProblem(result.problem);
       return;
     }
     setDraft("");
+    setPhoto(null);
     // The live channel brings the row; refresh once in case it was slower than we are.
     setMessages(await messagesOf(conversationId));
     if (conv.state === "request" && conv.waitingOnMe)
@@ -174,9 +194,14 @@ function ConversationScreen() {
                   mine ? "bg-brand text-brand-ink" : "border border-line bg-surface text-ink"
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words">
-                  {m.deleted_at ? <em>{t("inbox.unavailable")}</em> : m.body}
-                </p>
+                {m.body || m.deleted_at ? (
+                  <p className="whitespace-pre-wrap break-words">
+                    {m.deleted_at ? <em>{t("inbox.unavailable")}</em> : m.body}
+                  </p>
+                ) : null}
+                {!m.deleted_at && m.photo_path ? (
+                  <MessagePhoto path={m.photo_path} mine={mine} />
+                ) : null}
                 {mine && !m.deleted_at ? (
                   <button
                     type="button"
@@ -198,6 +223,20 @@ function ConversationScreen() {
           {words[problem]}
         </p>
       ) : null}
+      {photo || photoBusy || photoFailed ? (
+        <p className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
+          {photoBusy ? t("loading") : photoFailed ? t("dm.photoFailed") : t("dm.photoReady")}
+          {photo ? (
+            <button
+              type="button"
+              onClick={() => setPhoto(null)}
+              className="underline underline-offset-2"
+            >
+              {t("dm.removePhoto")}
+            </button>
+          ) : null}
+        </p>
+      ) : null}
       <form
         className="mt-3 flex gap-2"
         onSubmit={(e) => {
@@ -205,6 +244,28 @@ function ConversationScreen() {
           void submit();
         }}
       >
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            void attach(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        {conv.state === "normal" ? (
+          <button
+            type="button"
+            disabled={photoBusy}
+            onClick={() => fileInput.current?.click()}
+            aria-label={t("dm.addPhoto")}
+            title={t("dm.addPhoto")}
+            className="min-h-12 rounded-pill border border-line bg-surface px-4 text-base text-ink disabled:opacity-40"
+          >
+            +
+          </button>
+        ) : null}
         <input
           type="text"
           value={draft}
@@ -216,7 +277,7 @@ function ConversationScreen() {
         />
         <button
           type="submit"
-          disabled={busy || !draft.trim()}
+          disabled={busy || (!draft.trim() && !photo)}
           className="min-h-12 rounded-pill bg-brand px-5 text-base font-medium text-brand-ink disabled:opacity-40"
         >
           {t("dm.send")}

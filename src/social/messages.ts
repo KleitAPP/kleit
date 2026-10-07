@@ -30,6 +30,9 @@ export type Message = {
   body: string;
   created_at: string;
   deleted_at: string | null;
+  photo_item_id: string | null;
+  /** The stored file's path, for the signed-URL read (filled in by `messagesOf`). */
+  photo_path?: string | null;
 };
 
 export type SendProblem = "refused" | "no_links_yet" | "too_many" | "failed";
@@ -92,18 +95,77 @@ export async function conversation(id: string): Promise<Conversation | null> {
 export async function messagesOf(conversationId: string): Promise<Message[]> {
   const { data } = await supabase
     .from("messages")
-    .select("id, sender_id, body, created_at, deleted_at")
+    .select("id, sender_id, body, created_at, deleted_at, photo_item_id")
     .eq("conversation_id", conversationId)
     .order("created_at")
     .limit(500);
-  return (data ?? []) as Message[];
+  const list = (data ?? []) as Message[];
+  return withPhotoPaths(list);
+}
+
+/** Looks up the stored path of every photo in the list - the items table says where the file is. */
+export async function withPhotoPaths(list: Message[]): Promise<Message[]> {
+  const ids = [...new Set(list.map((m) => m.photo_item_id).filter((x): x is string => !!x))];
+  if (ids.length === 0) return list;
+  const { data } = await supabase.from("items").select("id, image_id").in("id", ids);
+  const paths = new Map((data ?? []).map((i) => [i.id, i.image_id] as const));
+  return list.map((m) =>
+    m.photo_item_id ? { ...m, photo_path: paths.get(m.photo_item_id) ?? null } : m,
+  );
+}
+
+/**
+ * Puts a photo of the sender's own into storage and the items table (kind "own", no closet row,
+ * so it never shows in the closet), asks the scan to look at it, and returns the item id to send.
+ * Same path as adding a piece: EXIF stripped by the redraw before anything leaves the phone.
+ */
+export async function uploadMessagePhoto(
+  file: Blob,
+): Promise<{ ok: true; itemId: string } | { ok: false }> {
+  const { preparePhoto } = await import("@/photos/prepare");
+  const prepared = await preparePhoto(file);
+  if (!prepared.ok) return { ok: false };
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return { ok: false };
+  const ready = prepared.photo;
+  const extension =
+    ready.type === "image/png" ? "png" : ready.type === "image/webp" ? "webp" : "jpg";
+  const path = `${me}/messages/${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await supabase.storage
+    .from("closet-photos")
+    .upload(path, ready.blob, { contentType: ready.type, upsert: false });
+  if (uploadError) return { ok: false };
+  const { data: item, error: saveError } = await supabase
+    .from("items")
+    .insert({
+      owner_id: me,
+      kind: "own",
+      image_bucket: "closet-photos",
+      image_id: path,
+      title: "Photo in a message",
+    })
+    .select("id")
+    .single();
+  if (saveError || !item) return { ok: false };
+  try {
+    await supabase.functions.invoke("ingest-image", { body: { itemId: item.id } });
+  } catch {
+    // Unscanned stays invisible to the other person; the sweeper picks it up.
+  }
+  return { ok: true, itemId: item.id };
 }
 
 export async function send(
   to: string,
   body: string,
+  photoItemId?: string | null,
 ): Promise<{ ok: true; id: string } | { ok: false; problem: SendProblem }> {
-  const { data, error } = await supabase.rpc("send_message", { p_to: to, p_body: body });
+  const { data, error } = await supabase.rpc("send_message", {
+    p_to: to,
+    p_body: body,
+    ...(photoItemId ? { p_photo: photoItemId } : {}),
+  });
   if (error) {
     const code = (error as { code?: string }).code;
     const problem: SendProblem =

@@ -1052,6 +1052,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          photo_item_id: string | null
           sender_id: string | null
         }
         Insert: {
@@ -1060,6 +1061,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          photo_item_id?: string | null
           sender_id?: string | null
         }
         Update: {
@@ -1068,6 +1070,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          photo_item_id?: string | null
           sender_id?: string | null
         }
         Relationships: [
@@ -2422,7 +2425,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      send_message: { Args: { p_body: string; p_to: string }; Returns: string }
+      send_message: { Args: { p_body: string; p_photo?: string; p_to: string }; Returns: string }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {

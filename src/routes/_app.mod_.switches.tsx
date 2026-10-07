@@ -49,6 +49,14 @@ function Switches() {
     });
   }, []);
 
+  // The log row needs a target id; for a switch that is the admin's own account.
+  async function logged(reason: string) {
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    if (me)
+      await supabase.rpc("log_private_view", { p_what: "switch", p_target: me, p_reason: reason });
+  }
+
   async function flip(key: Key) {
     if (busy) return;
     setBusy(key);

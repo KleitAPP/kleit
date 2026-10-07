@@ -153,6 +153,17 @@ export function ReportSheet({
           {type === "conversation" ? (
             <p className="text-sm text-ink-soft">{t("report.dmNote")}</p>
           ) : null}
+          {reason === "intimate_image" || reason === "copyright" ? (
+            <p className="text-sm text-ink-soft">
+              {reason === "intimate_image" ? t("report.intimateHint") : t("report.copyrightHint")}{" "}
+              <a
+                href={reason === "intimate_image" ? "/takedown" : "/copyright"}
+                className="underline underline-offset-2"
+              >
+                {reason === "intimate_image" ? t("report.intimateLink") : t("report.copyrightLink")}
+              </a>
+            </p>
+          ) : null}
           {problem ? (
             <p role="alert" className="text-sm text-danger">
               {problem}

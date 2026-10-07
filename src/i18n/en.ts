@@ -119,6 +119,12 @@ export const en = {
   "report.send": "Send report",
   "report.done": "Done",
   "report.ref": "Your reference:",
+  "report.intimateHint":
+    "If this is an image of you, the removal form works without an account and is answered within 48 hours - every identical copy comes down with it:",
+  "report.intimateLink": "Remove an intimate image",
+  "report.copyrightHint":
+    "If the work is yours, a copyright notice gets a 72-hour answer and takes identical copies down:",
+  "report.copyrightLink": "Report a copyright problem",
   "report.next":
     "A person reviews it - within a day for anything about a child, an intimate image or a threat, within three days for the rest. You won't hear who, and the other person isn't told it was you.",
   "report.where": "You can see where it got to under Settings > Your reports.",

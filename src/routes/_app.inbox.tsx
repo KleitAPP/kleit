@@ -165,6 +165,12 @@ function NoteRow({ n }: { n: Notification }) {
         {inner}
       </Link>
     );
+  else if (n.ref_type === "contest" && n.ref_id)
+    link = (
+      <Link to="/contests/$contestId" params={{ contestId: n.ref_id }} className={cls}>
+        {inner}
+      </Link>
+    );
   else if (n.ref_type === "group" && n.ref_id)
     link = (
       <Link to="/groups/$groupId" params={{ groupId: n.ref_id }} className={cls}>

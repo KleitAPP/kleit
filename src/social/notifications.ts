@@ -15,13 +15,14 @@ export type NotificationKind =
   | "message"
   | "group_invite"
   | "ask_answer"
-  | "ask_chosen";
+  | "ask_chosen"
+  | "contest_results";
 
 export type Notification = {
   id: string;
   kind: NotificationKind;
   actor: Person | null;
-  ref_type: "set" | "poll" | "conversation" | "profile" | "group" | "ask" | null;
+  ref_type: "set" | "poll" | "conversation" | "profile" | "group" | "ask" | "contest" | null;
   ref_id: string | null;
   bundled_count: number;
   updated_at: string;

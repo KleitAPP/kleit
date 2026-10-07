@@ -246,6 +246,7 @@ export const en = {
   "notify.someone": "someone",
   "notify.markRead": "Mark all read",
   "notify.group_invite": "@{name} invited you to a group",
+  "notify.contest_results": "The results are in for a challenge you entered",
   "groups.title": "Groups",
   "groups.new": "New group",
   "groups.name": "Name",

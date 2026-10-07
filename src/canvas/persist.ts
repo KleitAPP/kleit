@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { imageUrlFor, type ItemSummary } from "@/items/items";
-import { commentsDefault, refreshPreview } from "@/sets/sets";
+import { commentsDefault, refreshPreview, lastSaveProblem } from "@/sets/sets";
 
 import {
   changedLayers,
@@ -168,6 +168,7 @@ export async function saveDiff(
       p_set_id: setId,
       p_layout: layoutOf(after),
     });
+    lastSaveProblem.code = error ? ((error as { code?: string }).code ?? null) : null;
     if (error) ok = false;
   }
   if (ok && published) refreshPreview(setId);

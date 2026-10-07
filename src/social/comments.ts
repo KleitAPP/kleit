@@ -28,6 +28,8 @@ export type Comment = {
   edited_at: string | null;
   deleted_at: string | null;
   deleted_by: string | null;
+  /** Set when the word list held it (migration 062): the author sees it, nobody else yet. */
+  held_at?: string | null;
 };
 
 export async function social(setId: string): Promise<Social> {
@@ -70,7 +72,7 @@ export async function react(setId: string, emoji: Reaction | null): Promise<bool
 export async function comments(setId: string): Promise<Comment[]> {
   const { data } = await supabase
     .from("comments")
-    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by")
+    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by, held_at")
     .eq("set_id", setId)
     .order("created_at");
   const rows = data ?? [];
@@ -85,14 +87,18 @@ export async function comments(setId: string): Promise<Comment[]> {
   return rows.map((r) => ({ ...r, author: byId.get(r.author_id) ?? null }));
 }
 
+/** Why the last comment was not posted: the server's one named refusal, or anything else. */
+export const lastCommentProblem: { code: string | null } = { code: null };
+
 export async function addComment(setId: string, body: string): Promise<Comment | null> {
   const my = await me();
   if (!my) return null;
   const { data, error } = await supabase
     .from("comments")
     .insert({ set_id: setId, author_id: my, body: body.trim() })
-    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by")
+    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by, held_at")
     .single();
+  lastCommentProblem.code = error ? ((error as { code?: string }).code ?? null) : null;
   if (error || !data) return null;
   const { data: p } = await supabase
     .from("profiles")

@@ -5,6 +5,7 @@ import { t } from "@/i18n/en";
 import { ReportButton } from "@/safety/ReportButton";
 import {
   addComment,
+  lastCommentProblem,
   comments as loadComments,
   EDIT_WINDOW_MS,
   editComment,
@@ -39,7 +40,7 @@ export function SocialBar({
   const [list, setList] = useState<Comment[] | null>(null);
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
-  const [refused, setRefused] = useState(false);
+  const [refused, setRefused] = useState<false | "cant" | "contact">(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +81,7 @@ export function SocialBar({
     setRefused(false);
     const c = await addComment(setId, draft);
     if (!c) {
-      setRefused(true);
+      setRefused(lastCommentProblem.code === "P0006" ? "contact" : "cant");
       return;
     }
     setDraft("");
@@ -175,6 +176,7 @@ export function SocialBar({
                   <p className="text-sm text-ink-soft">
                     @{c.author?.username ?? "…"}
                     {c.edited_at && !c.deleted_at ? ` · ${t("social.edited")}` : ""}
+                    {c.held_at && !c.deleted_at ? ` · ${t("social.held")}` : ""}
                   </p>
                   {c.deleted_at ? (
                     <p className="text-base text-ink-soft">
@@ -280,7 +282,7 @@ export function SocialBar({
         ) : null}
         {refused ? (
           <p role="alert" className="mt-2 text-sm text-danger">
-            {t("social.cantComment")}
+            {refused === "contact" ? t("screen.noContact") : t("social.cantComment")}
           </p>
         ) : null}
       </Sheet>

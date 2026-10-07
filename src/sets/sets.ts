@@ -140,9 +140,25 @@ export async function loadSet(
 
 /** Autosave: the server writes the set and a version together, and trims (migration 017). */
 export async function saveLayout(setId: string, layout: QuickLayout): Promise<boolean> {
-  const { error } = await supabase.rpc("save_set_layout", { p_set_id: setId, p_layout: layout });
-  return !error;
+  return (await saveLayoutResult(setId, layout)) === "saved";
 }
+
+/**
+ * The same save, with the one refusal told apart from a failure: "refused" is the server saying
+ * the caption carries a phone number or an address (migration 062, P0006) - retrying will not
+ * help and the screen should say why; "failed" is anything else and worth a retry.
+ */
+export async function saveLayoutResult(
+  setId: string,
+  layout: QuickLayout,
+): Promise<"saved" | "refused" | "failed"> {
+  const { error } = await supabase.rpc("save_set_layout", { p_set_id: setId, p_layout: layout });
+  if (!error) return "saved";
+  return (error as { code?: string }).code === "P0006" ? "refused" : "failed";
+}
+
+/** Last refusal seen by the creative autosave, so the canvas can say why (set by saveDiff). */
+export const lastSaveProblem: { code: string | null } = { code: null };
 
 /**
  * Asks the server to redraw the picture a group chat shows next to this set's link (CL30).

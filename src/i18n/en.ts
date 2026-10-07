@@ -304,6 +304,8 @@ export const en = {
   "social.none": "No comments yet.",
   "social.off": "Comments are off for this set.",
   "social.cantComment": "You can't comment on this set.",
+  "social.held": "Being looked at - only you can see this for now",
+  "screen.noContact": "Phone numbers and addresses can't go in captions, bios or comments.",
   "social.setting": "Comments",
   "social.setting.everyone": "Everyone",
   "social.setting.following": "People I follow",

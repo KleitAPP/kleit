@@ -47,6 +47,7 @@ import { LibraryDrawer } from "@/library/LibraryDrawer";
 import { loadCatalogue, type Catalogue, type LibraryAsset } from "@/library/library";
 import { Chip, EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { lastSaveProblem } from "@/sets/sets";
 import type { ItemSummary } from "@/items/items";
 import { ItemPicker } from "@/sets/ItemPicker";
 import { SWATCHES } from "@/sets/swatches";
@@ -101,7 +102,7 @@ function CanvasScreen() {
   const [exportProblem, setExportProblem] = useState(false);
   const [title, setTitle] = useState("");
   const [missing, setMissing] = useState(false);
-  const [saveState, setSaveState] = useState<"saved" | "saving" | "failed">("saved");
+  const [saveState, setSaveState] = useState<"saved" | "saving" | "failed" | "refused">("saved");
   const [notice, setNotice] = useState<string | null>(null);
   const [scale, setScale] = useState(0.3);
   const published = useRef(false);
@@ -164,6 +165,9 @@ function CanvasScreen() {
       if (ok) {
         lastSaved.current = doc;
         setSaveState("saved");
+      } else if (lastSaveProblem.code === "P0006") {
+        // The caption carries a phone number or an address (spec 13.2 #4): no retry, say why.
+        setSaveState("refused");
       } else {
         setSaveState("failed");
         saveTimer.current = window.setTimeout(attempt, 4000);
@@ -462,7 +466,9 @@ function CanvasScreen() {
             ? t("canvas.saved")
             : saveState === "saving"
               ? t("canvas.saving")
-              : t("canvas.notSaved")}
+              : saveState === "refused"
+                ? t("screen.noContact")
+                : t("canvas.notSaved")}
         </p>
       </div>
 

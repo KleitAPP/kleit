@@ -11,6 +11,7 @@ import {
   placeItem,
   priceTotal,
   saveLayout,
+  saveLayoutResult,
   templates,
   type Placement,
   type QuickLayout,
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/_app/set/$setId/edit")({
   component: QuickBuilder,
 });
 
-type SaveState = "idle" | "saved" | "failed";
+type SaveState = "idle" | "saved" | "failed" | "refused";
 
 function QuickBuilder() {
   const { setId } = Route.useParams();
@@ -107,11 +108,14 @@ function QuickBuilder() {
       saveTimer.current = window.setTimeout(async function attempt() {
         const toSave = pending.current;
         if (!toSave) return;
-        const ok = await saveLayout(setId, toSave);
-        if (ok) {
+        const result = await saveLayoutResult(setId, toSave);
+        if (result === "saved") {
           if (pending.current === toSave) pending.current = null;
           setSaveState("saved");
           if (published.current) refreshPreview(setId);
+        } else if (result === "refused") {
+          // The caption carries a phone number or an address (spec 13.2 #4): no retry, say why.
+          setSaveState("refused");
         } else {
           setSaveState("failed");
           saveTimer.current = window.setTimeout(attempt, 4000);
@@ -275,7 +279,13 @@ function QuickBuilder() {
           />
         ))}
         <p className="ml-auto self-center text-sm text-ink-soft" role="status">
-          {saveState === "saved" ? t("saved") : saveState === "failed" ? t("notSaved") : ""}
+          {saveState === "saved"
+            ? t("saved")
+            : saveState === "failed"
+              ? t("notSaved")
+              : saveState === "refused"
+                ? t("screen.noContact")
+                : ""}
         </p>
       </div>
 

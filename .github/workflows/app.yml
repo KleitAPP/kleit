@@ -49,6 +49,8 @@ jobs:
         run: bun scripts/check-risky.mjs
       # Every picture in the decoration library has a licence row, and the catalogue the drawer
       # reads matches the records (artwork pack gap A9).
+      - name: The held-phrase list in the database is the help card's list (M7.1)
+        run: node scripts/check-held-phrases.mjs
       - name: Every decoration has its licence recorded
         run: node scripts/build-library.mjs --check
       - name: Type check

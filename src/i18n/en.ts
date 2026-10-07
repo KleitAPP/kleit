@@ -26,6 +26,7 @@ export const en = {
 
   "poll.vote": "Vote for {label}",
   "poll.votes": "{count} votes",
+  "poll.votes.one": "1 vote",
   "poll.vote1": "1 vote",
   "poll.oneVote": "One vote per device",
   "poll.privacy": "Votes are anonymous. Privacy",
@@ -75,7 +76,9 @@ export const en = {
   "profile.cancelRequest": "Cancel request",
   "profile.followsYou": "Follows you",
   "profile.followers": "{count} followers",
+  "profile.followers.one": "1 follower",
   "profile.followingN": "{count} following",
+  "profile.followingN.one": "1 following",
   "profile.people": "People",
   "profile.privateHint":
     "Ask to follow. @{name} decides, and you're not told either way until they do.",
@@ -109,9 +112,11 @@ export const en = {
   "social.like": "Like",
   "social.liked": "Liked",
   "social.likes": "{count} likes",
+  "social.likes.one": "1 like",
   "social.react": "React",
   "social.comments": "Comments",
   "social.commentsN": "{count} comments",
+  "social.commentsN.one": "1 comment",
   "social.write": "Write a comment",
   "social.post": "Post",
   "social.edit": "Edit",
@@ -228,21 +233,26 @@ export const en = {
   "search.under": "Under {price}",
   "search.productsOnly": "Store pieces only. Your own photos stay yours.",
   "search.products": "{count} pieces",
+  "search.products.one": "1 piece",
   "store.title": "Store",
   "store.pieces": "{count} pieces people have clipped",
+  "store.pieces.one": "1 piece people have clipped",
   "store.none": "Nothing clipped from here yet.",
   "inbox.empty": "Nothing yet. When someone votes on your set, it lands here",
   "inbox.notifications": "Notifications",
   "notify.vote": "{count} new votes on your poll",
+  "notify.vote.one": "1 new vote on your poll",
   "notify.voteOne": "A new vote on your poll",
   "notify.comment": "@{name} commented on your set",
   "notify.like": "@{name} liked your set",
   "notify.likeMore": "@{name} and {count} others liked your set",
+  "notify.likeMore.one": "@{name} and 1 other liked your set",
   "notify.follow": "@{name} started following you",
   "notify.follow_request": "@{name} asked to follow you",
   "notify.message_request": "@{name} sent you a message request",
   "notify.message": "@{name} sent you a message",
   "notify.messageMore": "{count} new messages from @{name}",
+  "notify.messageMore.one": "1 new message from @{name}",
   "notify.someone": "someone",
   "notify.markRead": "Mark all read",
   "notify.group_invite": "@{name} invited you to a group",
@@ -284,6 +294,7 @@ export const en = {
   "contest.title": "Contests",
   "tag.none": "Nothing under this tag yet.",
   "tag.count": "{count} sets",
+  "tag.count.one": "1 set",
   "search.tags": "Tags",
   "search.noTags": "No tags yet. Add some to your next set.",
   "send.tags": "Tags",
@@ -291,7 +302,9 @@ export const en = {
   "points.title": "Your points",
   "points.level": "Level {level}",
   "points.count": "{count} points",
+  "points.count.one": "1 point",
   "points.toNext": "{count} more to level {level}",
+  "points.toNext.one": "1 more to level {level}",
   "points.top": "Top level",
   "points.how":
     "Points come from publishing sets, likes and followers you receive, and entering challenges. Nobody can edit them, including you.",
@@ -323,7 +336,9 @@ export const en = {
   "contest.past": "Past weeks",
   "contest.closed": "Closed",
   "contest.closesDays": "Closes in {count} days",
+  "contest.closesDays.one": "Closes in 1 day",
   "contest.closesHours": "Closes in {count} hours",
+  "contest.closesHours.one": "Closes in 1 hour",
   "contest.badgesOnly": "Badges only",
   "contest.notFound": "That challenge isn't here.",
   "contest.enterWith": "Enter with one of your public sets",
@@ -334,6 +349,7 @@ export const en = {
   "contest.results": "Results",
   "contest.noEntries": "No entries yet. Yours could be first.",
   "contest.likes": "{count} likes",
+  "contest.likes.one": "1 like",
   "contest.homeCard": "This week's challenge",
   "ask.new": "Ask a style question",
   "ask.newWhy": "People answer with sets. You pick a favourite.",
@@ -341,6 +357,7 @@ export const en = {
   "ask.post": "Ask",
   "ask.none": "No questions yet. Ask one.",
   "ask.answers": "{count} answers",
+  "ask.answers.one": "1 answer",
   "ask.open": "Open",
   "ask.closed": "Closed",
   "ask.answerWith": "Answer with one of your public sets",
@@ -355,6 +372,7 @@ export const en = {
   "ask.notFound": "We couldn't find that question",
   "notify.ask_answer": "@{name} answered your question",
   "notify.ask_answerMore": "{count} new answers to your question",
+  "notify.ask_answerMore.one": "1 new answer to your question",
   "notify.ask_chosen": "@{name} picked your set as the favourite",
   "create.ask": "Ask a question",
   "create.askWhy": "A style question people answer with sets.",
@@ -430,6 +448,7 @@ export const en = {
   "pollpage.until": "Open until {when}",
   "pollpage.noVotes": "No votes yet. Share the link again?",
   "pollpage.friends": "{count} friends voted",
+  "pollpage.friends.one": "1 friend voted",
   "pollpage.totalsOnly": "Totals only, never names",
   "pollpage.close": "Close the poll now",
   "pollpage.changeSets": "Change the sets",
@@ -562,6 +581,7 @@ export const en = {
   "library.search": "Search the library",
   "library.allPacks": "All packs",
   "library.pieces": "{count} pieces",
+  "library.pieces.one": "1 piece",
   "library.empty": "Nothing matches that",
   "library.cutout": "Museum photograph, public domain (CC0)",
   "library.drawn": "Drawn for Kleit",
@@ -841,7 +861,10 @@ export type MessageKey = keyof typeof en;
 
 /** t("piece.buyAt", { store: "Zara" }) → "Buy at Zara" */
 export function t(key: MessageKey, vars?: Record<string, string | number>): string {
-  let text: string = en[key];
+  // One of something reads as one: "1 follower", never "1 followers" (CL34). A key with a
+  // `.one` twin uses it when count is exactly 1.
+  const one = `${key}.one` as MessageKey;
+  let text: string = vars?.["count"] === 1 && one in en ? en[one] : en[key];
   if (vars) {
     for (const [name, value] of Object.entries(vars)) {
       text = text.split(`{${name}}`).join(String(value));

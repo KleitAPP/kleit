@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(12);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('ebebebeb-0000-4000-8000-000000000001', 'rv-victim@test.kleit'),
@@ -45,8 +45,14 @@ select is((select count(*)::int from strikes where user_id = 'ebebebeb-0000-4000
 
 -- 3. A suspension is remembered; lifting it forgets.
 select lives_ok($$ select set_suspended('ebebebeb-0000-4000-8000-000000000002', true, 'review test') $$, 'moderator: suspends');
+reset role;
+select set_config('request.jwt.claims', '', true);
 select is((select count(*)::int from blocked_identities where reason = 'ban: review test'), 1, 'server: the suspension remembered the identity');
-select lives_ok($$ select set_suspended('ebebebeb-0000-4000-8000-000000000002', false, 'review test') $$, 'moderator: lifts it (the identity row goes with it)');
+select pg_temp.act_as('ebebebeb-0000-4000-8000-000000000003');
+select lives_ok($$ select set_suspended('ebebebeb-0000-4000-8000-000000000002', false, 'review test') $$, 'moderator: lifts it');
+reset role;
+select set_config('request.jwt.claims', '', true);
+select is((select count(*)::int from blocked_identities where reason = 'ban: review test'), 0, 'server: and the identity row went with it');
 
 select * from finish();
 rollback;

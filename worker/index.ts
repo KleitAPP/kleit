@@ -27,6 +27,13 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   TURNSTILE_SITE_KEY?: string;
+  // "on" only on the live site (M10): lets search engines index Public set pages and serves the
+  // sitemap. Anything else keeps every page noindex (the test site, security plan #21).
+  INDEXING?: string;
+}
+
+function indexable(env: Env, visibility: string): boolean {
+  return env.INDEXING === "on" && visibility === "public";
 }
 
 // Cloudflare's published always-passes test key, until Kleit has keys of its own (the same one
@@ -137,6 +144,7 @@ export default {
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
     if (url.pathname === "/takedown" || url.pathname === "/copyright")
       return takedownFormPage(request, env);
+    if (url.pathname === "/sitemap.xml") return sitemap(request, env);
     if (url.pathname === "/contact") return contactPage(request, env);
     if (url.pathname === "/delete-account") return deleteAccountPage();
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
@@ -159,7 +167,7 @@ export default {
         "content-type": "text/html; charset=utf-8",
         // A link-only set must never be indexed; a public one may be, later, when the test site
         // is no longer noindex everywhere (M10).
-        "x-robots-tag": set.visibility === "public" ? "noindex, nofollow" : "noindex, nofollow",
+        "x-robots-tag": indexable(env, set.visibility) ? "index, follow" : "noindex, nofollow",
         "cache-control": "no-store",
         "x-kleit-surface": "share-worker",
       },
@@ -652,6 +660,62 @@ function deleteAccountPage(): Response {
   });
 }
 
+
+// Search-engine data for a Public set page (spec 8.4 #5: structured data, CreativeWork). Only
+// what the page already shows; the JSON goes through esc-free serialisation with "<" escaped.
+function structuredData(set: SharedSet, title: string, who: string, pageUrl: string, preview: string | null): string {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: title,
+    url: pageUrl,
+    author: { "@type": "Person", name: who },
+    ...(set.published_at ? { datePublished: set.published_at } : {}),
+    ...(preview ? { image: preview } : {}),
+    ...(set.caption ? { description: set.caption } : {}),
+  };
+  return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
+}
+
+// The sitemap (spec 8.4 #5): every Public set page, from the database's one question. Empty
+// (but well-formed) when indexing is off or the public-links switch is down.
+async function sitemap(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const base = `${url.protocol}//${url.host}`;
+  let rows: { share_code: string; published_at: string | null }[] = [];
+  if (env.INDEXING === "on" && (await publicLinksOpen(env))) {
+    try {
+      const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/public_set_codes`, {
+        method: "POST",
+        headers: {
+          apikey: env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ p_limit: 5000 }),
+      });
+      if (r.ok) rows = (await r.json()) as typeof rows;
+    } catch {
+      rows = [];
+    }
+  }
+  const entries = rows
+    .filter((r) => CODE.test(r.share_code))
+    .map(
+      (r) =>
+        `<url><loc>${base}/s/${r.share_code}</loc>${r.published_at ? `<lastmod>${esc(r.published_at.slice(0, 10))}</lastmod>` : ""}</url>`,
+    )
+    .join("");
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries}</urlset>`;
+  return new Response(xml, {
+    headers: {
+      "content-type": "application/xml; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
+
 function notAvailable(status = 404): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -724,7 +788,7 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="${indexable(env, set.visibility) ? "index, follow" : "noindex, nofollow"}">
 <title>${esc(title)} · Kleit</title>
 <meta name="description" content="${esc(description)}">
 <meta property="og:type" content="article">
@@ -742,6 +806,7 @@ ${
 }
 <meta name="twitter:card" content="${preview ? "summary_large_image" : "summary"}">
 <link rel="canonical" href="${esc(pageUrl)}">
+${indexable(env, set.visibility) ? structuredData(set, title, who, pageUrl, preview) : ""}
 ${STYLE}</head>
 <body>
 <header class="wrap top"><a class="mark" href="/welcome" aria-label="Kleit">Kleit</a></header>

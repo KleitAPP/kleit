@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(8);
+select plan(12);
 
 insert into auth.users (id, email) values ('e4e4e4e4-0000-4000-8000-000000000001', 'hidden-owner@test.kleit');
 insert into profiles (user_id, username, age_confirmed_at, terms_version) values
@@ -32,6 +32,12 @@ select set_config('request.jwt.claims', '', true);
 set role anon;
 select is(shared_set('hiddenset0000001') ->> 'title', 'left', 'guest: the set page works while the owner is live');
 select is(shared_poll('hiddenpoll000001') ->> 'question', 'Which one?', 'guest: the poll page works while the owner is live');
+select is((select count(*)::int from public_set_codes() where share_code like 'hiddenset%'), 2, 'guest: both public sets are in the sitemap list');
+reset role;
+update sets set visibility = 'link' where id = 'e4000000-0000-4000-8000-000000000002';
+set role anon;
+select is((select count(*)::int from public_set_codes() where share_code like 'hiddenset%'), 1, 'guest: a link-only set leaves the sitemap list (its page still opens by code)');
+select is(shared_set('hiddenset0000002') ->> 'title', 'right', 'guest: the link-only page still opens by code');
 reset role;
 
 -- On a break: both go dark.
@@ -39,6 +45,7 @@ update profiles set deactivated_at = now() where user_id = 'e4e4e4e4-0000-4000-8
 set role anon;
 select is(shared_set('hiddenset0000001'), null, 'guest: the set page is gone while the owner is on a break (or deleting)');
 select is(shared_poll('hiddenpoll000001'), null, 'guest: the poll page is gone too');
+select is((select count(*)::int from public_set_codes() where share_code like 'hiddenset%'), 0, 'guest: and nothing of theirs is in the sitemap list');
 reset role;
 
 -- Back: both return.

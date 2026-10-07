@@ -278,6 +278,57 @@ jobs:
       # AWS call from here), its fingerprint is put on the never-again list, the same picture is
       # uploaded again, and the sweeper must block it and leave it invisible. Both runs go through
       # the deployed sweeper with this deploy's own secret.
+      # CL42: a taken-down picture leaves its bucket (kept in `evidence` first), a 30-day-old
+      # deletion leaves it with no copy, and a live picture is untouched. Read back from storage
+      # and the row, not from the function's reply (L24).
+      - name: Prove the purge
+        run: |
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          KEY="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys?reveal=true" \
+            | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          test -n "$KEY" -a "$KEY" != "null" || { echo "::error::could not read the service key"; exit 1; }
+          echo "::add-mask::$KEY"
+          BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
+          OWNER="$(psql "$DSN" -tAq -c "select id from auth.users order by created_at limit 1")"
+          psql "$DSN" -q -c "delete from public.items where title like 'CI purge %'"
+          python3 -m pip install -q pillow
+          python3 -c "from PIL import Image; Image.new('RGB',(48,48),(90,160,90)).save('/tmp/purge.jpg','JPEG',quality=85)"
+          P_DOWN="$OWNER/ci-purge-down.jpg"; P_OLD="$OWNER/ci-purge-old.jpg"; P_LIVE="$OWNER/ci-purge-live.jpg"
+          for P in "$P_DOWN" "$P_OLD" "$P_LIVE"; do
+            curl -sS -o /dev/null -w "upload $P: %{http_code}\n" -X POST "$BASE/storage/v1/object/closet-photos/$P" \
+              -H "Authorization: Bearer $KEY" -H "Content-Type: image/jpeg" -H "x-upsert: true" --data-binary @/tmp/purge.jpg
+          done
+          DOWN="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, takedown_state) values ('$OWNER', 'own', 'CI purge down', 'closet-photos', '$P_DOWN', 'removed') returning id" | head -1)"
+          OLD="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id, deleted_at) values ('$OWNER', 'own', 'CI purge old', 'closet-photos', '$P_OLD', now() - interval '40 days') returning id" | head -1)"
+          LIVE="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.items (owner_id, kind, title, image_bucket, image_id) values ('$OWNER', 'own', 'CI purge live', 'closet-photos', '$P_LIVE') returning id" | head -1)"
+          # The purge takes twenty at a time; the test project may hold other due rows, so loop.
+          for round in $(seq 1 10); do
+            curl -sS -o /tmp/purge.json -X POST "$BASE/functions/v1/purge-files" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
+            LEFT="$(psql "$DSN" -tAq -c "select count(*) from public.items where id in ('$DOWN','$OLD') and purged_at is null")"
+            echo "  round $round: $(head -c 120 /tmp/purge.json) ... left=$LEFT"
+            test "$LEFT" = "0" && break
+          done
+          object_status() { curl -sS -o /dev/null -w "%{http_code}" "$BASE/storage/v1/object/$1" -H "Authorization: Bearer $KEY"; }
+          S_DOWN="$(object_status "closet-photos/$P_DOWN")"; S_OLD="$(object_status "closet-photos/$P_OLD")"; S_LIVE="$(object_status "closet-photos/$P_LIVE")"
+          S_EVIDENCE="$(object_status "evidence/takedowns/$DOWN")"
+          PURGED="$(psql "$DSN" -tAq -c "select count(*) from public.items where id in ('$DOWN','$OLD') and purged_at is not null")"
+          LIVE_PURGED="$(psql "$DSN" -tAq -c "select purged_at is not null from public.items where id = '$LIVE'")"
+          echo "down=$S_DOWN old=$S_OLD live=$S_LIVE evidence=$S_EVIDENCE purged_rows=$PURGED live_purged=$LIVE_PURGED"
+          test "$S_DOWN" = "400" -o "$S_DOWN" = "404" || { echo "::error::the taken-down picture is still in its bucket ($S_DOWN)"; exit 1; }
+          test "$S_OLD" = "400" -o "$S_OLD" = "404" || { echo "::error::the 40-day-old deletion's picture is still in its bucket ($S_OLD)"; exit 1; }
+          test "$S_LIVE" = "200" || { echo "::error::the live picture was touched ($S_LIVE)"; exit 1; }
+          test "$S_EVIDENCE" = "200" || { echo "::error::no evidence copy of the taken-down picture ($S_EVIDENCE)"; exit 1; }
+          test "$PURGED" = "2" || { echo "::error::purged_at not set on both rows ($PURGED)"; exit 1; }
+          test "$LIVE_PURGED" = "f" || { echo "::error::the live row was marked purged"; exit 1; }
+          psql "$DSN" -q -c "delete from public.items where id in ('$DOWN','$OLD','$LIVE')"
+          curl -sS -o /dev/null -X DELETE "$BASE/storage/v1/object/closet-photos/$P_LIVE" -H "Authorization: Bearer $KEY"
+          curl -sS -o /dev/null -X DELETE "$BASE/storage/v1/object/evidence/takedowns/$DOWN" -H "Authorization: Bearer $KEY"
       - name: Prove a removed picture stays removed
         run: |
           export PGPASSWORD="$SUPABASE_DB_PASSWORD"

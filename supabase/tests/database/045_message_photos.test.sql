@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(12);
+select plan(14);
 
 insert into auth.users (id, email) values
   ('e7e7e7e7-0000-4000-8000-000000000001', 'mp-sender@test.kleit'),
@@ -61,6 +61,13 @@ select ok(pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.j
 select ok(not pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/pending.jpg'), 'friend: cannot read the file of a photo still being checked');
 select pg_temp.act_as('e7e7e7e7-0000-4000-8000-000000000003');
 select ok(not pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.jpg'), 'stranger: cannot read it');
+
+-- A block ends it: the friend blocks the sender, the file is gone for them; unblocked, it is back.
+select pg_temp.act_as('e7e7e7e7-0000-4000-8000-000000000002');
+insert into blocks (blocker_id, blocked_id) values ('e7e7e7e7-0000-4000-8000-000000000002', 'e7e7e7e7-0000-4000-8000-000000000001');
+select ok(not pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.jpg'), 'friend: after blocking the sender, the file is gone for them');
+delete from blocks where blocker_id = 'e7e7e7e7-0000-4000-8000-000000000002';
+select ok(pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.jpg'), 'friend: unblocked, it is back');
 
 -- Taking the message back takes the file with it.
 select pg_temp.act_as('e7e7e7e7-0000-4000-8000-000000000001');

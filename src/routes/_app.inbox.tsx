@@ -183,6 +183,18 @@ function NoteRow({ n }: { n: Notification }) {
         {inner}
       </Link>
     );
+  else if (n.ref_type === "report")
+    link = (
+      <Link to="/settings/reports" className={cls}>
+        {inner}
+      </Link>
+    );
+  else if (n.ref_type === "strike")
+    link = (
+      <Link to="/settings/strikes" className={cls}>
+        {inner}
+      </Link>
+    );
   else if (n.ref_type === "profile" && n.actor)
     link = (
       <Link to="/u/$username" params={{ username: n.actor.username }} className={cls}>

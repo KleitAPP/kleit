@@ -63,11 +63,7 @@ function Switches() {
     const next = !(values[key] ?? false);
     const { error } = await supabase.from("app_settings").update({ value: next }).eq("key", key);
     if (!error) {
-      await supabase.rpc("log_private_view", {
-        p_what: "switch",
-        p_target: null,
-        p_reason: `${key} → ${next}`,
-      });
+      await logged(`${key} → ${next}`);
       await refresh();
     }
     setBusy(null);
@@ -80,12 +76,7 @@ function Switches() {
       .from("app_settings")
       .update({ value: version })
       .eq("key", "min_app_version");
-    if (!error)
-      await supabase.rpc("log_private_view", {
-        p_what: "switch",
-        p_target: null,
-        p_reason: `min_app_version → ${version}`,
-      });
+    if (!error) await logged(`min_app_version → ${version}`);
     setBusy(null);
   }
 

@@ -45,7 +45,7 @@ select matches((select file_report('profile', 'a7a7a7a7-0000-4000-8000-000000000
 select matches((select file_report('conversation', (select id from conversations limit 1), 'harassment')), '^K-', 'reporter: a conversation can be reported');
 select throws_ok($$ select file_report('set', 'a7000000-0000-4000-8000-000000000002', 'spam') $$, 'P0002', null, 'reporter: a set they cannot see is "not found"');
 select throws_ok($$ select file_report('set', 'a7000000-0000-4000-8000-000000000003', 'spam') $$, 'P0001', null, 'reporter: cannot report their own set');
-select throws_ok($$ select file_report('set', 'a7000000-0000-4000-8000-000000000001', 'rubbish') $$, '23514', null, 'reporter: an unknown reason is refused by the table');
+select throws_ok($$ select file_report('profile', 'a7a7a7a7-0000-4000-8000-000000000004', 'rubbish') $$, '23514', null, 'reporter: an unknown reason is refused by the table (a fresh target - the same target again just returns the old reference)');
 select is((select count(*)::int from my_reports()), 4, 'reporter: sees four of their own reports, state open');
 
 -- A bystander cannot report the conversation they are not in.

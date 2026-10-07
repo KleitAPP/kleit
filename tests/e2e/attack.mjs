@@ -168,6 +168,7 @@ try {
   );
 
   // 2. Reading across accounts.
+  const end0 = new Date().toISOString();
   const a = attacker.client;
   const { data: seesPriv } = await a.from("sets").select("id").eq("id", priv.id);
   check((seesPriv ?? []).length === 0, "attacker: cannot read the victim's only-me set");
@@ -546,9 +547,78 @@ try {
       !(found3.data ?? []).some((s) => s.owner_id === victim.id),
     "attacker: once blocked, neither the feed nor search shows the victim's sets",
   );
+
+  // M7.5: the contact form and its inbox (migration 053), and the hidden-account share links
+  // (migration 055), attacked on the live site.
+  const inbox = await a.from("contact_messages").select("id").limit(1);
+  check(
+    (inbox.data ?? []).length === 0,
+    "attacker: cannot read the contact inbox",
+    inbox.error?.code ?? `${(inbox.data ?? []).length} rows`,
+  );
+  const td = await a.from("takedown_requests").select("id").limit(1);
+  check(
+    (td.data ?? []).length === 0,
+    "attacker: cannot read the takedown requests",
+    td.error?.code ?? `${(td.data ?? []).length} rows`,
+  );
+  const resolve = await a.rpc("contact_resolve", {
+    p_id: "00000000-0000-4000-8000-000000000000",
+    p_outcome: "answered",
+  });
+  check(
+    resolve.error?.code === "42501",
+    "attacker: cannot mark a message answered",
+    resolve.error?.code ?? "no error",
+  );
+  const contactNoToken = await fetch(`${FN}/contact-form`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: ANON },
+    body: JSON.stringify({ topic: "spam", name: "x", email: "x@example.com", message: "no token" }),
+  });
+  check(
+    contactNoToken.status === 400 || contactNoToken.status === 403,
+    "stranger: the contact door refuses a message with a bad topic or no bot check",
+    String(contactNoToken.status),
+  );
+  const wrongVerb = await fetch(`${FN}/contact-form`, { headers: { apikey: ANON } });
+  check(
+    wrongVerb.status === 405,
+    "stranger: the contact door answers GET with 405",
+    String(wrongVerb.status),
+  );
+  const sitemap = await fetch(`${SITE}/sitemap.xml`);
+  const sitemapBody = await sitemap.text();
+  check(
+    sitemap.status === 200 && sitemapBody.includes("<urlset") && !sitemapBody.includes("<loc>"),
+    "stranger: the sitemap is well-formed and empty while indexing is off on the test site",
+    String(sitemap.status),
+  );
+  const pageLive = await fetch(`${SITE}/s/${pub.share_code}`);
+  check(
+    pageLive.status === 200,
+    "stranger: the victim's public share page opens",
+    String(pageLive.status),
+  );
+  await admin.from("profiles").update({ deactivated_at: end0 }).eq("user_id", victim.id);
+  const pageDark = await fetch(`${SITE}/s/${pub.share_code}`);
+  check(
+    pageDark.status === 404,
+    "stranger: the share page goes dark while the victim is on a break",
+    String(pageDark.status),
+  );
+  await admin.from("profiles").update({ deactivated_at: null }).eq("user_id", victim.id);
+  const pageBack = await fetch(`${SITE}/s/${pub.share_code}`);
+  check(
+    pageBack.status === 200,
+    "stranger: and comes back when the victim does",
+    String(pageBack.status),
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
+  // The victim is never left on a break by a run that stopped halfway.
+  await admin.from("profiles").update({ deactivated_at: null }).eq("user_id", victim.id);
   const end = new Date().toISOString();
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).

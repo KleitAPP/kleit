@@ -58,7 +58,7 @@ Deno.serve(async (request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !serviceKey) return reply(500, { error: "not_configured" });
 
-  let body: { topic?: string; name?: string; email?: string; message?: string; token?: string };
+  let body: { topic?: string; name?: string; email?: string; message?: string; client?: string; token?: string };
   try {
     body = await request.json();
   } catch {
@@ -68,6 +68,7 @@ Deno.serve(async (request) => {
   const name = String(body.name ?? "").trim().slice(0, 120);
   const email = String(body.email ?? "").trim().toLowerCase();
   const message = String(body.message ?? "").trim().slice(0, 4000);
+  const client = String(body.client ?? "").trim().slice(0, 300);
   if (!topic || !name || !EMAIL.test(email) || !message) return reply(400, { error: "incomplete" });
 
   const address = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
@@ -90,7 +91,7 @@ Deno.serve(async (request) => {
     if ((count ?? 0) >= 5) return reply(429, { error: "too_many" });
   }
   const request_ref = ref();
-  const { error } = await admin.from("contact_messages").insert({ request_ref, topic, name, email, message, user_id: userId, ip_hash: ipHash });
+  const { error } = await admin.from("contact_messages").insert({ request_ref, topic, name, email, message, client, user_id: userId, ip_hash: ipHash });
   if (error) return reply(500, { error: "failed" });
   return reply(200, { ok: true, ref: request_ref });
 });

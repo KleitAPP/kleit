@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { APP_VERSION } from "@/app/version";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { t } from "@/i18n/en";
 
@@ -47,7 +48,7 @@ function HelpAndLegal() {
         </li>
         <li className="border-b border-line">
           <a
-            href="/contact"
+            href={`/contact?v=${APP_VERSION}`}
             className="flex min-h-12 w-full items-center px-4 py-3 text-base text-ink"
           >
             {t("help.contactUs")}

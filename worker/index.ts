@@ -562,8 +562,10 @@ const TAKEDOWN_SCRIPT = `(function(){
 function contactPage(request: Request, env: Env): Response {
   const url = new URL(request.url);
   const topic = url.searchParams.get("topic") ?? "";
+  const version = (url.searchParams.get("v") ?? "").slice(0, 20);
   const config = JSON.stringify({
     fn: `${env.SUPABASE_URL}/functions/v1/contact-form`,
+    version,
     anon: env.SUPABASE_ANON_KEY,
     siteKey: env.TURNSTILE_SITE_KEY || TURNSTILE_TEST_SITE_KEY,
   });
@@ -610,7 +612,8 @@ const CONTACT_SCRIPT = `(function(){
   f.addEventListener('submit',function(e){
     e.preventDefault(); if(busy) return;
     var d=new FormData(f);
-    var body={topic:d.get('topic'),name:d.get('name'),email:d.get('email'),message:d.get('message')};
+    var client=((C.version?'app '+C.version+' · ':'')+navigator.userAgent).slice(0,300);
+    var body={topic:d.get('topic'),name:d.get('name'),email:d.get('email'),message:d.get('message'),client:client};
     if(!body.name||!body.email||!body.message){ msg.textContent='Please fill in every box.'; return; }
     busy=true; msg.textContent='Sending…';
     turnstileToken().then(function(tok){ body.token=tok||undefined;

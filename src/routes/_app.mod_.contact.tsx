@@ -25,6 +25,7 @@ type Row = {
   name: string;
   email: string;
   message: string;
+  client: string;
   user_id: string | null;
   created_at: string;
 };
@@ -39,7 +40,7 @@ function ContactInbox() {
   async function refresh() {
     const { data } = await supabase
       .from("contact_messages")
-      .select("id, request_ref, topic, name, email, message, user_id, created_at")
+      .select("id, request_ref, topic, name, email, message, client, user_id, created_at")
       .eq("state", "open")
       .order("created_at");
     setRows((data ?? []) as Row[]);
@@ -93,6 +94,7 @@ function ContactInbox() {
                 {r.name} <span className="text-ink-soft">{r.email}</span>
               </p>
               <p className="mt-1 text-sm text-ink whitespace-pre-wrap">{r.message}</p>
+              {r.client ? <p className="mt-1 text-sm text-ink-soft break-all">{r.client}</p> : null}
               <input
                 type="text"
                 value={note[r.id] ?? ""}

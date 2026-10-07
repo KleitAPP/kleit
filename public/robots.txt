@@ -1,3 +1,7 @@
+# Search engines may read the public pages (only public shared sets are ever indexable; spec 8.4).
+# AI-training crawlers may not (spec 8.4 #3). The test site also sends noindex on every page
+# through _headers until the live site at M10.
+
 User-agent: Googlebot
 Allow: /
 
@@ -9,6 +13,51 @@ Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: omgili
+Disallow: /
 
 User-agent: *
 Allow: /

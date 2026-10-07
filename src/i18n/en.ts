@@ -173,6 +173,13 @@ export const en = {
     "Your sets, profile and messages are hidden, and nothing new can be posted from this account.",
   "suspended.rules":
     "This happens after three community strikes in a year, or at once for anything involving a child, an intimate image or a threat. You can appeal each strike below; a different person reviews it within seven days.",
+  "safety.title": "You're not alone",
+  "safety.body":
+    "If food, weight or your body feel hard right now, people who understand are a call away, any time, free, and nobody here will know you called.",
+  "safety.alliance": "1-866-662-1235",
+  "safety.allianceWho": "National Alliance for Eating Disorders - call or text",
+  "safety.lifeline": "988",
+  "safety.lifelineWho": "Suicide and Crisis Lifeline - call or text, 24/7",
   "mod.title": "Review queue",
   "mod.usersWhy": "Every lookup needs a reason and goes in the audit log before anything is shown.",
   "mod.username": "Username",

@@ -45,6 +45,8 @@ jobs:
         run: bun scripts/check-canvas-doc.ts
       - name: Every shipped font has its licence recorded
         run: node scripts/check-fonts.mjs
+      - name: A risky search shows the help card; a clothes search does not (M7.6)
+        run: bun scripts/check-risky.mjs
       # Every picture in the decoration library has a licence row, and the catalogue the drawer
       # reads matches the records (artwork pack gap A9).
       - name: Every decoration has its licence recorded

@@ -14,6 +14,8 @@ import {
   type SetHit,
   type Store,
 } from "@/search/search";
+import { isRiskySearch } from "@/safety/risky";
+import { SafetyHelp } from "@/safety/SafetyHelp";
 import type { Person } from "@/social/follows";
 
 /**
@@ -89,6 +91,7 @@ function SearchTab() {
         aria-label={t("search.box")}
         className="mt-3 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
       />
+      {isRiskySearch(q) ? <SafetyHelp /> : null}
       <div className="mt-3">
         <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.search")}>
           {tab === "items" ? (

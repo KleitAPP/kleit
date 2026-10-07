@@ -45,6 +45,7 @@ import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.leg
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings.library'
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings.muted'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
+import { Route as AppSettingsReportsRouteImport } from './routes/_app.settings.reports'
 import { Route as AppStoreDomainRouteImport } from './routes/_app.store.$domain'
 import { Route as AppTagTagRouteImport } from './routes/_app.tag.$tag'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
@@ -245,6 +246,11 @@ const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsReportsRoute = AppSettingsReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppStoreDomainRoute = AppStoreDomainRouteImport.update({
   id: '/store/$domain',
   path: '/store/$domain',
@@ -378,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/settings/reports': typeof AppSettingsReportsRoute
   '/store/$domain': typeof AppStoreDomainRoute
   '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
@@ -434,6 +441,7 @@ export interface FileRoutesByTo {
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/settings/reports': typeof AppSettingsReportsRoute
   '/store/$domain': typeof AppStoreDomainRoute
   '/tag/$tag': typeof AppTagTagRoute
   '/u/$username': typeof AppUUsernameRoute
@@ -492,6 +500,7 @@ export interface FileRoutesById {
   '/_app/settings/library': typeof AppSettingsLibraryRoute
   '/_app/settings/muted': typeof AppSettingsMutedRoute
   '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
+  '/_app/settings/reports': typeof AppSettingsReportsRoute
   '/_app/store/$domain': typeof AppStoreDomainRoute
   '/_app/tag/$tag': typeof AppTagTagRoute
   '/_app/u/$username': typeof AppUUsernameRoute
@@ -550,6 +559,7 @@ export interface FileRouteTypes {
     | '/settings/library'
     | '/settings/muted'
     | '/settings/privacy'
+    | '/settings/reports'
     | '/store/$domain'
     | '/tag/$tag'
     | '/u/$username'
@@ -606,6 +616,7 @@ export interface FileRouteTypes {
     | '/settings/library'
     | '/settings/muted'
     | '/settings/privacy'
+    | '/settings/reports'
     | '/store/$domain'
     | '/tag/$tag'
     | '/u/$username'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '/_app/settings/library'
     | '/_app/settings/muted'
     | '/_app/settings/privacy'
+    | '/_app/settings/reports'
     | '/_app/store/$domain'
     | '/_app/tag/$tag'
     | '/_app/u/$username'
@@ -952,6 +964,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsPrivacyRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/reports': {
+      id: '/_app/settings/reports'
+      path: '/reports'
+      fullPath: '/settings/reports'
+      preLoaderRoute: typeof AppSettingsReportsRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/store/$domain': {
       id: '/_app/store/$domain'
       path: '/store/$domain'
@@ -1097,6 +1116,7 @@ interface AppSettingsRouteChildren {
   AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
   AppSettingsMutedRoute: typeof AppSettingsMutedRoute
   AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
+  AppSettingsReportsRoute: typeof AppSettingsReportsRoute
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
@@ -1108,6 +1128,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsLibraryRoute: AppSettingsLibraryRoute,
   AppSettingsMutedRoute: AppSettingsMutedRoute,
   AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
+  AppSettingsReportsRoute: AppSettingsReportsRoute,
 }
 
 const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(

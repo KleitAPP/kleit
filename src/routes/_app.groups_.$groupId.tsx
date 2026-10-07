@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Chip, EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { ReportButton } from "@/safety/ReportButton";
 import { findPeople, me as whoAmI, type Person } from "@/social/follows";
 import {
   accept,
@@ -111,7 +112,10 @@ function GroupPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
-      <h1 className="font-display text-2xl text-ink">{g.name}</h1>
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="font-display text-2xl text-ink">{g.name}</h1>
+        <ReportButton type="group" id={groupId} />
+      </div>
       {g.description ? <p className="mt-1 text-base text-ink">{g.description}</p> : null}
       <p className="mt-1 text-sm text-ink-soft">
         {g.visibility === "public" ? t("groups.public") : t("groups.private")} ·{" "}

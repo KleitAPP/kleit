@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { ReportButton } from "@/safety/ReportButton";
 import {
   addComment,
   comments as loadComments,
@@ -236,6 +237,13 @@ export function SocialBar({
                         >
                           {t("social.remove")}
                         </button>
+                      ) : null}
+                      {c.author_id !== me ? (
+                        <ReportButton
+                          type="comment"
+                          id={c.id}
+                          className="underline underline-offset-2 text-ink"
+                        />
                       ) : null}
                     </div>
                   ) : null}

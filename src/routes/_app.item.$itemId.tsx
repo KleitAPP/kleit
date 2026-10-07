@@ -12,6 +12,7 @@ import {
   type ScanState,
 } from "@/items/items";
 import { t } from "@/i18n/en";
+import { ReportButton } from "@/safety/ReportButton";
 
 /**
  * S40 — Item page (design pack §2.2): the photo, the price and where it came from, and Buy.
@@ -100,7 +101,10 @@ function ItemPage() {
         ) : null}
       </div>
 
-      <h1 className="mt-4 font-display text-2xl text-ink">{name}</h1>
+      <div className="mt-4 flex items-start justify-between gap-3">
+        <h1 className="font-display text-2xl text-ink">{name}</h1>
+        <ReportButton type="item" id={itemId} />
+      </div>
       {item.kind === "own" ? (
         <p className="mt-1 text-xs font-semibold tracking-wide text-ink-soft">{t("item.own")}</p>
       ) : (

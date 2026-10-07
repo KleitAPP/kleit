@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { ReportButton } from "@/safety/ReportButton";
 import { me } from "@/social/follows";
 import {
   acceptRequest,
@@ -111,13 +112,20 @@ function ConversationScreen() {
         <h1 className="truncate font-display text-xl text-ink">
           {name} <span className="text-base text-ink-soft">@{conv.other.username}</span>
         </h1>
-        <button
-          type="button"
-          onClick={() => setConfirmLeave(true)}
-          className="min-h-11 shrink-0 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
-        >
-          {t("dm.leave")}
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <ReportButton
+            type="conversation"
+            id={conversationId}
+            className="min-h-11 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
+          />
+          <button
+            type="button"
+            onClick={() => setConfirmLeave(true)}
+            className="min-h-11 shrink-0 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
+          >
+            {t("dm.leave")}
+          </button>
+        </div>
       </div>
 
       {conv.state === "request" ? (

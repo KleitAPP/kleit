@@ -5,12 +5,14 @@ import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { block, haveBlocked, haveMuted, mute, unblock, unmute } from "@/social/blocks";
 import type { Person } from "@/social/follows";
+import { ReportSheet } from "@/safety/ReportButton";
 
 /** Block / Unblock on someone's profile, with the plain warning first (spec 10.4; G6). */
 export function BlockButton({ them, me }: { them: Person; me: string | null }) {
   const navigate = useNavigate();
   const [blocked, setBlocked] = useState<boolean | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [muted, setMuted] = useState<boolean | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +59,29 @@ export function BlockButton({ them, me }: { them: Person; me: string | null }) {
       >
         {blocked ? t("block.unblock") : t("block.block")}
       </button>
+      {!blocked ? (
+        <button
+          type="button"
+          onClick={() => setReporting(true)}
+          className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+        >
+          {t("block.andReport")}
+        </button>
+      ) : null}
+      {/* Block and report in one step (spec 10.4 #4): the report goes first, then the block. */}
+      <ReportSheet
+        type="profile"
+        id={them.user_id}
+        open={reporting}
+        onOpenChange={(o) => {
+          setReporting(o);
+        }}
+        onDone={() =>
+          void block(them.user_id).then((ok) => {
+            setBlocked(ok || blocked);
+          })
+        }
+      />
       <Sheet
         open={confirm}
         onOpenChange={setConfirm}

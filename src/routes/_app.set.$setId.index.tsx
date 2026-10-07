@@ -17,6 +17,7 @@ import { inkFor } from "@/sets/swatches";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
+import { ReportButton } from "@/safety/ReportButton";
 import { setCommentsSetting, type CommentsSetting } from "@/social/comments";
 import { SocialBar } from "@/social/SocialBar";
 import { TemplateDressing } from "@/templates/TemplateDressing";
@@ -200,7 +201,9 @@ function SetPage() {
           >
             …
           </button>
-        ) : null}
+        ) : (
+          <ReportButton type="set" id={setId} />
+        )}
       </div>
 
       {set.creative ? (

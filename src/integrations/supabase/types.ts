@@ -1709,6 +1709,21 @@ export type Database = {
         }[];
       };
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined };
+      file_report: {
+        Args: { p_type: string; p_id: string; p_reason: string; p_note?: string };
+        Returns: string;
+      };
+      my_reports: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          request_ref: string;
+          target_type: string;
+          reason: string;
+          state: string;
+          created_at: string;
+          resolved_at: string | null;
+        }[];
+      };
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number };
         Returns: {

@@ -485,6 +485,34 @@ try {
     "attacker: cannot comment on the victim's only-me set",
     privComment.error?.code,
   );
+  // Text screening (migration 062): a phone number is refused outright; an eating-disorder
+  // phrase is saved for its author only, and the set's owner never sees it.
+  const phoneComment = await a
+    .from("comments")
+    .insert({ set_id: pub.id, author_id: attacker.id, body: "text me 555-123-4567" });
+  check(
+    phoneComment.error?.code === "P0006",
+    "attacker: a phone number in a comment is refused",
+    phoneComment.error?.code ?? "no error",
+  );
+  const heldComment = await a
+    .from("comments")
+    .insert({ set_id: pub.id, author_id: attacker.id, body: "attack-test thinspo (ignore)" })
+    .select("id, held_at")
+    .single();
+  check(
+    !!heldComment.data?.held_at,
+    "attacker: a risky comment is saved as held",
+    heldComment.error?.code,
+  );
+  const ownerSees = await victim.client
+    .from("comments")
+    .select("id")
+    .eq("id", heldComment.data?.id ?? "00000000-0000-4000-8000-000000000000");
+  check(
+    (ownerSees.data ?? []).length === 0,
+    "victim: does not see the held comment on their own set",
+  );
   const privLike = await a.from("likes").insert({ user_id: attacker.id, set_id: priv.id });
   check(!!privLike.error, "attacker: cannot like the victim's only-me set", privLike.error?.code);
   await victim.client.from("profiles").update({ dm_setting: "nobody" }).eq("user_id", victim.id);
@@ -702,6 +730,11 @@ try {
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);
   await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);
+  await admin
+    .from("reports")
+    .delete()
+    .in("reporter_id", [victim.id, attacker.id])
+    .eq("note", "held by the word list");
   await admin.from("comments").delete().in("author_id", [victim.id, attacker.id]);
   await admin.from("likes").delete().in("user_id", [victim.id, attacker.id]);
   await admin

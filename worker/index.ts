@@ -162,11 +162,35 @@ export default {
   },
 };
 
+// The emergency switch for every public page (spec 22.2; M7.3): when `public_links_open` is
+// off, every share and poll page answers "not available", read fresh on each request so the
+// switch bites within a second of being flipped. Unreadable counts as open: a database blip
+// must not take every shared link down with it.
+async function publicLinksOpen(env: Env): Promise<boolean> {
+  try {
+    const r = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/app_settings?select=value&key=eq.public_links_open`,
+      {
+        headers: {
+          apikey: env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+        },
+      },
+    );
+    if (!r.ok) return true;
+    const rows = (await r.json()) as { value: unknown }[];
+    return rows[0]?.value !== false && rows[0]?.value !== "false";
+  } catch {
+    return true;
+  }
+}
+
 async function askDatabase<T extends { id: string }>(
   env: Env,
   fn: string,
   code: string,
 ): Promise<T | null> {
+  if (!(await publicLinksOpen(env))) return null;
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
     headers: {

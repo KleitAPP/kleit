@@ -88,6 +88,11 @@ async function call(fn, token, body, extraHeaders = {}) {
 
 const victim = await person("attack-victim@test.kleit", "attackvictim");
 const attacker = await person("attack-attacker@test.kleit", "attackattacker");
+// A third account wears the moderator role for the length of the run (written with the service
+// key - a person can never write user_roles - and removed in `finally`). It is the only way the
+// moderator path is exercised at all while nobody human has the role (OW16).
+const moderator = await person("attack-reviewer@test.kleit", "attackreviewer");
+await admin.from("user_roles").upsert({ user_id: moderator.id, role: "moderator" });
 const stamp = new Date().toISOString();
 await admin
   .from("sets")
@@ -623,6 +628,83 @@ try {
     stolenPhoto.error?.code,
   );
 
+  // The moderator path (M7.2), walked by a machine: the queue holds the word list's report on
+  // the held comment; a dismiss lets the comment show; a strike on a report about the attacker
+  // reaches their own strikes; an appeal; an overturn ends the strike. A member is refused
+  // every door on the way (checked above).
+  const mod = moderator.client;
+  const queue = await mod.rpc("moderation_queue", {});
+  const heldReport = (queue.data ?? []).find((r) => r.target_id === heldComment.data?.id);
+  check(
+    !!heldReport,
+    "moderator: the held comment's report is in the queue",
+    queue.error?.code ?? `${(queue.data ?? []).length} rows`,
+  );
+  const dismissed = await mod.rpc("moderate", {
+    p_report: heldReport?.id,
+    p_action: "dismiss",
+    p_note: "attack test: a wardrobe",
+  });
+  check(!dismissed.error, "moderator: dismisses it", dismissed.error?.code);
+  const ownerSeesNow = await victim.client
+    .from("comments")
+    .select("id")
+    .eq("id", heldComment.data?.id ?? "00000000-0000-4000-8000-000000000000");
+  check((ownerSeesNow.data ?? []).length === 1, "victim: sees the comment once it is dismissed");
+  const reportRef = await victim.client.rpc("file_report", {
+    p_type: "profile",
+    p_id: attacker.id,
+    p_reason: "harassment",
+    p_note: "attack test (ignore)",
+  });
+  check(
+    typeof reportRef.data === "string" && /^K-/.test(reportRef.data),
+    "victim: reports the attacker's profile and gets a K- reference",
+    reportRef.error?.code,
+  );
+  const { data: reportRow } = await admin
+    .from("reports")
+    .select("id")
+    .eq("request_ref", reportRef.data ?? "")
+    .maybeSingle();
+  const struck = await mod.rpc("moderate", {
+    p_report: reportRow?.id,
+    p_action: "strike",
+    p_note: "attack test strike (ignore)",
+  });
+  check(!struck.error, "moderator: strikes", struck.error?.code);
+  const myStrikes = await a.rpc("my_strikes", {});
+  const strike = (myStrikes.data ?? []).find((x) => x.reason === "attack test strike (ignore)");
+  check(!!strike, "attacker: sees the strike under their own strikes", myStrikes.error?.code);
+  const appeal = await a
+    .from("appeals")
+    .insert({ strike_id: strike?.id, user_id: attacker.id, body: "attack test appeal (ignore)" })
+    .select("id")
+    .single();
+  check(!appeal.error, "attacker: appeals once", appeal.error?.code);
+  const appealTwice = await a
+    .from("appeals")
+    .insert({ strike_id: strike?.id, user_id: attacker.id, body: "again" });
+  check(
+    !!appealTwice.error,
+    "attacker: cannot appeal the same strike twice",
+    appealTwice.error?.code,
+  );
+  const overturned = await mod.rpc("decide_appeal", {
+    p_appeal: appeal.data?.id,
+    p_outcome: "overturned",
+    p_note: "attack test",
+  });
+  check(!overturned.error, "moderator: overturns the appeal", overturned.error?.code);
+  const strikesAfter = await a.rpc("my_strikes", {});
+  const ended = (strikesAfter.data ?? []).find((x) => x.id === strike?.id);
+  check(
+    !!ended &&
+      new Date(ended.expires_at).getTime() <= Date.now() + 5000 &&
+      ended.appeal_state === "overturned",
+    "attacker: the strike has ended and the appeal reads overturned",
+  );
+
   await a.from("mutes").insert({ muter_id: attacker.id, muted_id: victim.id });
   const feed2 = await a.rpc("feed_following", {});
   check(
@@ -730,11 +812,13 @@ try {
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);
   await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);
-  await admin
-    .from("reports")
-    .delete()
-    .in("reporter_id", [victim.id, attacker.id])
-    .eq("note", "held by the word list");
+  // The moderator role goes every run, with everything the walk made (strikes, appeals, reports, log rows).
+  await admin.from("user_roles").delete().eq("user_id", moderator.id);
+  await admin.from("appeals").delete().eq("user_id", attacker.id);
+  await admin.from("strikes").delete().eq("user_id", attacker.id);
+  await admin.from("moderation_actions").delete().eq("moderator_id", moderator.id);
+  await admin.from("reports").delete().in("reporter_id", [victim.id, attacker.id]);
+  await admin.from("profiles").update({ banned_at: null }).eq("user_id", attacker.id);
   await admin.from("comments").delete().in("author_id", [victim.id, attacker.id]);
   await admin.from("likes").delete().in("user_id", [victim.id, attacker.id]);
   await admin

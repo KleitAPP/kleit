@@ -1081,6 +1081,13 @@ export type Database = {
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_photo_item_id_fkey"
+            columns: ["photo_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
         ]
       }
       moderation_actions: {
@@ -2425,7 +2432,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      send_message: { Args: { p_body: string; p_photo?: string; p_to: string }; Returns: string }
+      send_message: {
+        Args: { p_body: string; p_photo?: string; p_to: string }
+        Returns: string
+      }
       set_by_share_code: {
         Args: { p_code: string }
         Returns: {

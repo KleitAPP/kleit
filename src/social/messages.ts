@@ -7,6 +7,13 @@ import { me, type Person } from "@/social/follows";
  * let the two members see, and listens for new rows in the open conversation.
  */
 
+export const DELETED: Person = {
+  user_id: "",
+  username: "deleted",
+  display_name: "Deleted account",
+  is_private: false,
+};
+
 export type Conversation = {
   id: string;
   other: Person;
@@ -37,7 +44,9 @@ export async function myConversations(): Promise<Conversation[]> {
     .select("id, user_a, user_b, state, requested_by, last_message_at")
     .order("last_message_at", { ascending: false });
   const rows = data ?? [];
-  const otherIds = rows.map((r) => (r.user_a === my ? r.user_b : r.user_a));
+  const otherIds = rows
+    .map((r) => (r.user_a === my ? r.user_b : r.user_a))
+    .filter((x): x is string => !!x);
   const { data: people } = otherIds.length
     ? await supabase.from("profiles").select(PERSON).in("user_id", otherIds)
     : { data: [] };
@@ -59,8 +68,8 @@ export async function myConversations(): Promise<Conversation[]> {
     if (!lastBy.has(m.conversation_id)) lastBy.set(m.conversation_id, m.deleted_at ? "" : m.body);
   const out: Conversation[] = [];
   for (const r of rows) {
-    const other = byId.get(r.user_a === my ? r.user_b : r.user_a);
-    if (!other) continue;
+    // A deleted member reads as "Deleted account"; the thread stays (spec 3.7 #7).
+    const other = byId.get((r.user_a === my ? r.user_b : r.user_a) ?? "") ?? DELETED;
     const c: Conversation = {
       id: r.id,
       other,

@@ -340,6 +340,37 @@ jobs:
           psql "$DSN" -q -c "delete from public.items where id in ('$DOWN','$OLD','$LIVE')"
           curl -sS -o /dev/null -X DELETE "$BASE/storage/v1/object/closet-photos/$P_LIVE" -H "Authorization: Bearer $KEY"
           curl -sS -o /dev/null -X DELETE "$BASE/storage/v1/object/evidence/takedowns/$DOWN" -H "Authorization: Bearer $KEY"
+      - name: Prove the text check
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        # OW18: the outside second opinion (OpenAI moderation) really runs. Two throwaway rows go
+        # straight into the queue with no author, so nothing is held and no report is filed; the
+        # function is called the way the five-minute timer calls it; the states are read back.
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then echo "OpenAI key not set yet; the text check waits (OW18)"; exit 0; fi
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
+          psql "$DSN" -q -c "delete from public.text_checks where author_id is null and body like 'CI text check:%'"
+          OK_ID="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.text_checks (kind, target_id, author_id, body) values ('comment', gen_random_uuid(), null, 'CI text check: lovely coat, where is it from?') returning id" | head -1)"
+          BAD_ID="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "insert into public.text_checks (kind, target_id, author_id, body) values ('comment', gen_random_uuid(), null, 'CI text check: I know where you live and I will come and kill you tonight') returning id" | head -1)"
+          # Twenty at a time; the live queue may hold other rows, so loop.
+          for round in $(seq 1 10); do
+            curl -sS -o /tmp/screen.json -w "  http %{http_code}\n" -X POST "$BASE/functions/v1/screen-text" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
+            LEFT="$(psql "$DSN" -tAq -c "select count(*) from public.text_checks where id in ($OK_ID, $BAD_ID) and state = 'pending'")"
+            echo "  round $round: $(head -c 160 /tmp/screen.json) ... pending=$LEFT"
+            test "$LEFT" = "0" && break
+          done
+          S_OK="$(psql "$DSN" -tAq -c "select state from public.text_checks where id = $OK_ID")"
+          S_BAD="$(psql "$DSN" -tAq -c "select state || ' ' || coalesce(labels::text, '') from public.text_checks where id = $BAD_ID")"
+          echo "benign=$S_OK threat=$S_BAD"
+          psql "$DSN" -q -c "delete from public.text_checks where id in ($OK_ID, $BAD_ID)"
+          test "$S_OK" = "ok" || { echo "::error::the benign line was not marked ok ($S_OK)"; exit 1; }
+          case "$S_BAD" in flagged*) ;; *) echo "::error::the threat was not flagged ($S_BAD)"; exit 1;; esac
       - name: Prove a removed picture stays removed
         run: |
           export PGPASSWORD="$SUPABASE_DB_PASSWORD"

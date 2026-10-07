@@ -112,3 +112,8 @@ verify_jwt = false
 # the function checks Turnstile and a daily limit per network itself.
 [functions.takedown-request]
 verify_jwt = false
+
+# The contact form works with no account: no token at the gateway; the function checks
+# Turnstile and a daily limit per network itself (a signed-in sender's token is optional).
+[functions.contact-form]
+verify_jwt = false

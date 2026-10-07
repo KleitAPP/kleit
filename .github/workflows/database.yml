@@ -175,6 +175,8 @@ jobs:
       # The takedown forms' door: no account, so no token; Turnstile and a daily limit inside.
       - name: Deploy takedown-request
         run: supabase functions deploy takedown-request --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Deploy contact-form
+        run: supabase functions deploy contact-form --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

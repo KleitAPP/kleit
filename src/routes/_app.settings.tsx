@@ -8,8 +8,7 @@ import { t } from "@/i18n/en";
  *
  * Take a break and Delete account sit at the very bottom, below a separator (design pack gap G14):
  * the two look alike and sit together, and one of them is undoable while the other is not. Take a
- * break works from M1.12. Delete is not built, so it is dimmed and marked "Later" rather than
- * dressed in danger red - red on a row that does nothing is a promise the screen cannot keep.
+ * break works from M1.12; Delete account from M7.3 (S24), with seven days of Undo.
  */
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings" }, { name: "robots", content: "noindex, nofollow" }] }),

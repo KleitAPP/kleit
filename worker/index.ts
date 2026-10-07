@@ -137,6 +137,8 @@ export default {
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
     if (url.pathname === "/takedown" || url.pathname === "/copyright")
       return takedownFormPage(request, env);
+    if (url.pathname === "/contact") return contactPage(request, env);
+    if (url.pathname === "/delete-account") return deleteAccountPage();
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
 
     const code = url.pathname.slice(3).replace(/\/+$/, "");
@@ -323,7 +325,7 @@ ${STYLE}${POLL_STYLE}</head>
   </section>
 </main>
 <footer class="wrap foot">
-  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
+  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 <script>window.KLEIT_POLL=${config.replace(/</g, "\\u003c")};</script>
 <script>${POLL_SCRIPT}</script>
@@ -517,9 +519,8 @@ ${line ? `<p>${esc(line)}</p>` : ""}
   });
 }
 
-const TAKEDOWN_SCRIPT = `(function(){
-  var C=window.KLEIT_TD; var f=document.getElementById('f'); var msg=document.getElementById('msg'); var busy=false;
-  var tsReady=null;
+// The Turnstile loader both no-account forms use: resolves a token, or null if it never came.
+const TURNSTILE_JS = `  var tsReady=null;
   function turnstileToken(){
     if(!tsReady){ tsReady=new Promise(function(res){
       var giveUp=setTimeout(function(){res(null);},8000);
@@ -534,6 +535,11 @@ const TAKEDOWN_SCRIPT = `(function(){
       try { t.render(host,{sitekey:C.siteKey,appearance:'interaction-only',callback:function(tok){clearTimeout(done);res(tok);},'error-callback':function(){clearTimeout(done);res(null);}}); }
       catch(e){ clearTimeout(done); res(null); } }); });
   }
+`;
+
+const TAKEDOWN_SCRIPT = `(function(){
+  var C=window.KLEIT_TD; var f=document.getElementById('f'); var msg=document.getElementById('msg'); var busy=false;
+  ${TURNSTILE_JS}
   f.addEventListener('submit',function(e){
     e.preventDefault(); if(busy) return;
     var d=new FormData(f); var urls=String(d.get('urls')||'').split(/\\s+/).filter(Boolean);
@@ -548,6 +554,100 @@ const TAKEDOWN_SCRIPT = `(function(){
     .then(function(){ busy=false; });
   });
 })();`;
+
+// ---------------------------------------------------------------------------
+// Contact (M7.5): one form, no account needed. Posts to the contact-form function with a
+// Turnstile token; a signed-in sender's session goes along so moderators see who wrote.
+// ---------------------------------------------------------------------------
+function contactPage(request: Request, env: Env): Response {
+  const url = new URL(request.url);
+  const topic = url.searchParams.get("topic") ?? "";
+  const config = JSON.stringify({
+    fn: `${env.SUPABASE_URL}/functions/v1/contact-form`,
+    anon: env.SUPABASE_ANON_KEY,
+    siteKey: env.TURNSTILE_SITE_KEY || TURNSTILE_TEST_SITE_KEY,
+  });
+  const option = (value: string, label: string) =>
+    `<option value="${value}"${topic === value ? " selected" : ""}>${label}</option>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Contact us · Kleit</title>${STYLE}
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
+input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:120px}
+.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+<body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
+<h1>Contact us</h1><p>A question, a bug, something about your account - write it here. No account needed. A person reads every message and answers by email, usually within two days.</p>
+<p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, or your work used without permission: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a>.</p>
+<form id="f" novalidate>
+<label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("safety", "Safety")}${option("other", "Something else")}</select></label>
+<label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>
+<label>Your email (where the answer goes)<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
+<label>Your message<textarea name="message" maxlength="4000" required></textarea></label>
+<div id="turnstile" class="turnstile"></div>
+<button class="button" type="submit">Send</button>
+<p id="msg" class="note" role="status" aria-live="polite"></p>
+</form>
+<section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note">Keep it in case you write again about the same thing. The answer comes to the email you gave.</p></section>
+<footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+</main>
+<script>window.KLEIT_CT=${config.replace(/</g, "\\u003c")};</script>
+<script>${CONTACT_SCRIPT}</script>
+</body></html>`;
+  return new Response(html, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "x-robots-tag": "noindex, nofollow",
+      "cache-control": "no-store",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
+
+const CONTACT_SCRIPT = `(function(){
+  var C=window.KLEIT_CT; var f=document.getElementById('f'); var msg=document.getElementById('msg'); var busy=false;
+  ${TURNSTILE_JS}
+  function sessionToken(){ try { for (var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)){ var v=JSON.parse(localStorage.getItem(k)||'null'); if(v&&v.access_token) return v.access_token; } } } catch(e){} return null; }
+  f.addEventListener('submit',function(e){
+    e.preventDefault(); if(busy) return;
+    var d=new FormData(f);
+    var body={topic:d.get('topic'),name:d.get('name'),email:d.get('email'),message:d.get('message')};
+    if(!body.name||!body.email||!body.message){ msg.textContent='Please fill in every box.'; return; }
+    busy=true; msg.textContent='Sending…';
+    turnstileToken().then(function(tok){ body.token=tok||undefined;
+      var h={'Content-Type':'application/json',apikey:C.anon}; var s=sessionToken(); if(s) h.Authorization='Bearer '+s;
+      return fetch(C.fn,{method:'POST',headers:h,body:JSON.stringify(body)}).then(function(r){return r.json();}); })
+    .then(function(j){ if(j&&j.ok){ f.hidden=true; document.getElementById('ref').textContent=j.ref; document.getElementById('done').hidden=false; }
+      else { msg.textContent= j&&j.error==='too_many' ? 'That is a lot of messages from one place today. Try again tomorrow.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : 'Something was missing or did not go through. Check the boxes and try again.'; } })
+    .catch(function(){ msg.textContent='That did not go through. Try again in a moment.'; })
+    .then(function(){ busy=false; });
+  });
+})();`;
+
+// How to delete your account (M7.5; the page app stores ask for): the steps, and a way in for
+// someone who can't sign in any more.
+function deleteAccountPage(): Response {
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Delete your account · Kleit</title>${STYLE}
+<style>ol{padding-left:20px;line-height:1.6}.note{font-size:14px;color:#5f5a52}</style></head>
+<body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
+<h1>Delete your account</h1>
+<p>You can delete your Kleit account yourself, from inside the app, in under a minute.</p>
+<ol><li>Open Kleit and sign in.</li><li>Go to <strong>You</strong>, then <strong>Settings</strong>, then <strong>Delete account</strong>.</li><li>Read what goes and what stays, then confirm once.</li></ol>
+<p>Your account closes straight away and is deleted for good after seven days. If you sign in during those seven days you can undo it with one tap. After that, your sets, closet, pictures, messages and profile are gone and cannot be brought back.</p>
+<p class="note">Can't sign in any more? <a href="/contact?topic=account">Write to us</a> from the email address on the account and we'll do it for you.</p>
+<p><a class="button" href="/settings/delete">Open Delete account</a></p>
+<footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+</main></body></html>`;
+  return new Response(html, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "x-robots-tag": "noindex, nofollow",
+      "cache-control": "no-store",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
 
 function notAvailable(status = 404): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -659,7 +759,7 @@ ${STYLE}</head>
   ${sources.length ? `<section class="sources"><h2>Sources</h2><ul>${sources.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : ""}
 </main>
 <footer class="wrap foot">
-  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
+  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 </body></html>`;
 }

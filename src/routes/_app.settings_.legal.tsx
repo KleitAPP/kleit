@@ -37,6 +37,25 @@ function HelpAndLegal() {
       <p className="mt-2 text-sm text-ink-soft">{t("legal.draftNote")}</p>
 
       <ul className="mt-6 overflow-hidden rounded-md border border-line bg-surface">
+        <li className="border-b border-line">
+          <Link
+            to="/help"
+            className="flex min-h-12 w-full items-center px-4 py-3 text-base text-ink"
+          >
+            {t("help.centre")}
+          </Link>
+        </li>
+        <li className="border-b border-line">
+          <a
+            href="/contact"
+            className="flex min-h-12 w-full items-center px-4 py-3 text-base text-ink"
+          >
+            {t("help.contactUs")}
+          </a>
+        </li>
+      </ul>
+
+      <ul className="mt-4 overflow-hidden rounded-md border border-line bg-surface">
         {DOCS.map(({ key, title }) => (
           <li key={key} className="border-b border-line last:border-b-0">
             <button

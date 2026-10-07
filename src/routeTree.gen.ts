@@ -41,6 +41,7 @@ import { Route as AppContestsContestIdRouteImport } from './routes/_app.contests
 import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$groupId'
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
+import { Route as AppModContactRouteImport } from './routes/_app.mod_.contact'
 import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
 import { Route as AppModTakedownsRouteImport } from './routes/_app.mod_.takedowns'
 import { Route as AppModUsersRouteImport } from './routes/_app.mod_.users'
@@ -234,6 +235,11 @@ const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
 const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
   id: '/item/$itemId',
   path: '/item/$itemId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModContactRoute = AppModContactRouteImport.update({
+  id: '/mod_/contact',
+  path: '/mod/contact',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModSwitchesRoute = AppModSwitchesRouteImport.update({
@@ -440,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/mod/contact': typeof AppModContactRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
+  '/mod/contact': typeof AppModContactRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
@@ -576,6 +584,7 @@ export interface FileRoutesById {
   '/_app/groups_/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
+  '/_app/mod_/contact': typeof AppModContactRoute
   '/_app/mod_/switches': typeof AppModSwitchesRoute
   '/_app/mod_/takedowns': typeof AppModTakedownsRoute
   '/_app/mod_/users': typeof AppModUsersRoute
@@ -645,6 +654,7 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
+    | '/mod/contact'
     | '/mod/switches'
     | '/mod/takedowns'
     | '/mod/users'
@@ -712,6 +722,7 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/inbox/$conversationId'
     | '/item/$itemId'
+    | '/mod/contact'
     | '/mod/switches'
     | '/mod/takedowns'
     | '/mod/users'
@@ -780,6 +791,7 @@ export interface FileRouteTypes {
     | '/_app/groups_/$groupId'
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
+    | '/_app/mod_/contact'
     | '/_app/mod_/switches'
     | '/_app/mod_/takedowns'
     | '/_app/mod_/users'
@@ -1059,6 +1071,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppItemItemIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mod_/contact': {
+      id: '/_app/mod_/contact'
+      path: '/mod/contact'
+      fullPath: '/mod/contact'
+      preLoaderRoute: typeof AppModContactRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/mod_/switches': {
       id: '/_app/mod_/switches'
       path: '/mod/switches'
@@ -1318,6 +1337,7 @@ interface AppRouteChildren {
   AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
+  AppModContactRoute: typeof AppModContactRoute
   AppModSwitchesRoute: typeof AppModSwitchesRoute
   AppModTakedownsRoute: typeof AppModTakedownsRoute
   AppModUsersRoute: typeof AppModUsersRoute
@@ -1372,6 +1392,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
+  AppModContactRoute: AppModContactRoute,
   AppModSwitchesRoute: AppModSwitchesRoute,
   AppModTakedownsRoute: AppModTakedownsRoute,
   AppModUsersRoute: AppModUsersRoute,

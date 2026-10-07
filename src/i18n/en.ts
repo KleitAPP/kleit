@@ -1038,6 +1038,24 @@ export const en = {
   "help.contact": "Contact us",
   "help.takedown": "Ask for something to be taken down",
   "help.copyright": "Copyright",
+  "help.centre": "Help centre",
+  "help.contactUs": "Contact us",
+
+  // Messages from the contact form (moderators).
+  "mod.contact": "Messages",
+  "contact.title": "Messages",
+  "contact.why": "What came in through the contact form. Answer by email, then mark it here.",
+  "contact.topic.question": "Question",
+  "contact.topic.bug": "Something broken",
+  "contact.topic.account": "Account",
+  "contact.topic.safety": "Safety",
+  "contact.topic.other": "Other",
+  "contact.signedIn": "signed in",
+  "contact.answered": "Answered by email",
+  "contact.close": "Nothing to do",
+  "notFound.title": "There's nothing here",
+  "notFound.body": "The link may be wrong, or the page may have moved.",
+  "notFound.home": "Open Kleit",
 } as const;
 
 export type MessageKey = keyof typeof en;

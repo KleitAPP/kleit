@@ -134,6 +134,9 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/p/")) return pollPage(request, env);
+    if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
+    if (url.pathname === "/takedown" || url.pathname === "/copyright")
+      return takedownFormPage(request, env);
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
 
     const code = url.pathname.slice(3).replace(/\/+$/, "");
@@ -320,7 +323,7 @@ ${STYLE}${POLL_STYLE}</head>
   </section>
 </main>
 <footer class="wrap foot">
-  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/settings/legal">Copyright</a>
+  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 <script>window.KLEIT_POLL=${config.replace(/</g, "\\u003c")};</script>
 <script>${POLL_SCRIPT}</script>
@@ -400,6 +403,151 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
     .join("");
   return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${bgPicture}${layers}</section>`;
 }
+
+// ---------------------------------------------------------------------------
+// The takedown forms (M7.4; spec 13.3 #3–#4): TAKE IT DOWN and DMCA, with no account. The page
+// posts to the takedown-request function with a Turnstile token and shows the reference back.
+// ---------------------------------------------------------------------------
+function takedownFormPage(request: Request, env: Env): Response {
+  const url = new URL(request.url);
+  const copyright = url.pathname === "/copyright";
+  const config = JSON.stringify({
+    fn: `${env.SUPABASE_URL}/functions/v1/takedown-request`,
+    anon: env.SUPABASE_ANON_KEY,
+    siteKey: env.TURNSTILE_SITE_KEY || TURNSTILE_TEST_SITE_KEY,
+    kind: copyright ? "copyright" : "intimate",
+  });
+  const title = copyright ? "Report a copyright problem" : "Remove an intimate image";
+  const intro = copyright
+    ? "If a picture on Kleit uses your work without permission, tell us here (a DMCA notice). No account needed. We answer within 72 hours, and the picture - and every identical copy - comes down if the notice is complete and in good faith."
+    : "If an intimate image of you is on Kleit without your consent, tell us here. No account needed, and you don't have to say anything you'd rather not. We remove it, and every identical copy, within 48 hours. You get a reference to check on.";
+  const dmcaFields = copyright
+    ? `<label>The work that's yours<textarea name="work" maxlength="1000" required placeholder="What the original is and where it can be seen"></textarea></label>
+<label class="check"><input type="checkbox" name="statements" required> I have a good-faith belief this use isn't authorised by the owner, its agent or the law; the information here is accurate; and, under penalty of perjury, I am the owner or authorised to act for them.</label>
+<label>Your signature (type your full name)<input name="signature" maxlength="120" required></label>`
+    : "";
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>${title} · Kleit</title>${STYLE}
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
+input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
+.check{flex-direction:row;align-items:flex-start;gap:8px;color:#1f1d1a}.check input{margin-top:3px}
+.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+<body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
+<h1>${title}</h1><p>${intro}</p>
+<form id="f" novalidate>
+<label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>
+<label>Your email (for updates on this request)<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
+<label>Where the picture is - one link per line (a kleit link, like /s/… or /item/…)<textarea name="urls" required placeholder="https://…"></textarea></label>
+<label>Anything else that helps (optional)<textarea name="details" maxlength="2000"></textarea></label>
+${dmcaFields}
+<div id="turnstile" class="turnstile"></div>
+<p class="note">${copyright ? "A false notice can carry liability under US law." : "Nobody else is told who asked. If you're under 18, tell us in the box above and we'll treat it as urgent."}</p>
+<button class="button" type="submit">Send</button>
+<p id="msg" class="note" role="status" aria-live="polite"></p>
+</form>
+<section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note" id="hours"></p><p class="note">Keep it. You can check on it any time at <a href="/takedown/status">kleit's takedown status page</a>.</p></section>
+<footer class="wrap foot"><a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+</main>
+<script>window.KLEIT_TD=${config.replace(/</g, "\\u003c")};</script>
+<script>${TAKEDOWN_SCRIPT}</script>
+</body></html>`;
+  return new Response(html, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "x-robots-tag": "noindex, nofollow",
+      "cache-control": "no-store",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
+
+async function takedownStatusPage(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const ref = (url.searchParams.get("ref") ?? "").trim().toUpperCase().slice(0, 20);
+  let line = "";
+  if (ref) {
+    try {
+      const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/takedown_status`, {
+        method: "POST",
+        headers: {
+          apikey: env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ p_ref: ref }),
+      });
+      const rows = (await r.json()) as {
+        kind: string;
+        state: string;
+        created_at: string;
+        resolved_at: string | null;
+      }[];
+      const row = Array.isArray(rows) ? rows[0] : undefined;
+      if (!row) line = "No request with that reference. Check the letters and try again.";
+      else if (row.state === "open")
+        line =
+          "Received and waiting for a person to look at it. We answer within 48 hours for an intimate image, 72 for copyright.";
+      else if (row.state === "removed")
+        line = "Done: the picture and any identical copies were removed.";
+      else
+        line =
+          "Reviewed: we couldn't act on this request as sent. Reply to the email we sent if you have more to add.";
+    } catch {
+      line = "We couldn't check right now. Try again in a minute.";
+    }
+  }
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Takedown status · Kleit</title>${STYLE}
+<style>form{display:flex;gap:8px;margin-top:12px}input{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;flex:1;min-width:0}</style></head>
+<body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
+<h1>Where your request got to</h1>
+<form method="get" action="/takedown/status"><input name="ref" value="${esc(ref)}" placeholder="T-XXXXXXXX" aria-label="Your reference" maxlength="20" required><button class="button" type="submit">Check</button></form>
+${line ? `<p>${esc(line)}</p>` : ""}
+<footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a></footer>
+</main></body></html>`;
+  return new Response(html, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "x-robots-tag": "noindex, nofollow",
+      "cache-control": "no-store",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
+
+const TAKEDOWN_SCRIPT = `(function(){
+  var C=window.KLEIT_TD; var f=document.getElementById('f'); var msg=document.getElementById('msg'); var busy=false;
+  var tsReady=null;
+  function turnstileToken(){
+    if(!tsReady){ tsReady=new Promise(function(res){
+      var giveUp=setTimeout(function(){res(null);},8000);
+      function ready(){ if(window.turnstile&&typeof window.turnstile.render==='function'){clearTimeout(giveUp);res(window.turnstile);return true;} return false; }
+      if(ready()) return;
+      window.__kleitTurnstileReady=ready;
+      var s=document.createElement('script');
+      s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__kleitTurnstileReady'; s.async=true;
+      s.onload=function(){ var tries=0; (function poll(){ if(ready()) return; if(++tries<40) setTimeout(poll,200); })(); };
+      s.onerror=function(){clearTimeout(giveUp);res(null);}; document.head.appendChild(s); }); }
+    return tsReady.then(function(t){ if(!t) return null; return new Promise(function(res){ var done=setTimeout(function(){res(null);},8000); var host=document.getElementById('turnstile'); host.innerHTML='';
+      try { t.render(host,{sitekey:C.siteKey,appearance:'interaction-only',callback:function(tok){clearTimeout(done);res(tok);},'error-callback':function(){clearTimeout(done);res(null);}}); }
+      catch(e){ clearTimeout(done); res(null); } }); });
+  }
+  f.addEventListener('submit',function(e){
+    e.preventDefault(); if(busy) return;
+    var d=new FormData(f); var urls=String(d.get('urls')||'').split(/\\s+/).filter(Boolean);
+    var body={kind:C.kind,name:d.get('name'),email:d.get('email'),urls:urls,details:d.get('details')||'',work:d.get('work')||'',signature:d.get('signature')||'',statements:!!d.get('statements')};
+    if(!body.name||!body.email||!urls.length||(C.kind==='copyright'&&(!body.work||!body.signature||!body.statements))){ msg.textContent='Please fill in every box with a line under it.'; return; }
+    busy=true; msg.textContent='Sending…';
+    turnstileToken().then(function(tok){ body.token=tok||undefined;
+      return fetch(C.fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:C.anon},body:JSON.stringify(body)}).then(function(r){return r.json();}); })
+    .then(function(j){ if(j&&j.ok){ f.hidden=true; document.getElementById('ref').textContent=j.ref; document.getElementById('hours').textContent='We answer within '+j.hours+' hours.'; document.getElementById('done').hidden=false; }
+      else { msg.textContent= j&&j.error==='too_many' ? 'That is a lot of requests from one place today. Try again tomorrow, or email us.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : 'Something was missing or did not go through. Check the boxes and try again.'; } })
+    .catch(function(){ msg.textContent='That did not go through. Try again in a moment.'; })
+    .then(function(){ busy=false; });
+  });
+})();`;
 
 function notAvailable(status = 404): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -511,7 +659,7 @@ ${STYLE}</head>
   ${sources.length ? `<section class="sources"><h2>Sources</h2><ul>${sources.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : ""}
 </main>
 <footer class="wrap foot">
-  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/settings/legal">Copyright</a>
+  <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 </body></html>`;
 }

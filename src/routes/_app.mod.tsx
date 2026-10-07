@@ -89,6 +89,9 @@ function ModQueue() {
         <Link to="/mod/switches" className="text-ink underline underline-offset-2">
           {t("mod.switches")}
         </Link>
+        <Link to="/mod/takedowns" className="text-ink underline underline-offset-2">
+          {t("mod.takedowns")}
+        </Link>
       </p>
 
       {items.length === 0 ? (

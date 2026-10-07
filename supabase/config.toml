@@ -107,3 +107,8 @@ verify_jwt = false
 # world may see.
 [functions.text-image]
 verify_jwt = false
+
+# The TAKE IT DOWN and DMCA forms work with no account (spec 13.3 #3): no token at the gateway;
+# the function checks Turnstile and a daily limit per network itself.
+[functions.takedown-request]
+verify_jwt = false

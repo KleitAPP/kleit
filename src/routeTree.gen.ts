@@ -39,6 +39,7 @@ import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$gro
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
+import { Route as AppModTakedownsRouteImport } from './routes/_app.mod_.takedowns'
 import { Route as AppModUsersRouteImport } from './routes/_app.mod_.users'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings_.account'
@@ -219,6 +220,11 @@ const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
 const AppModSwitchesRoute = AppModSwitchesRouteImport.update({
   id: '/mod_/switches',
   path: '/mod/switches',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModTakedownsRoute = AppModTakedownsRouteImport.update({
+  id: '/mod_/takedowns',
+  path: '/mod/takedowns',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModUsersRoute = AppModUsersRouteImport.update({
@@ -408,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/switches': typeof AppModSwitchesRoute
+  '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/switches': typeof AppModSwitchesRoute
+  '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
   '/poll/new': typeof AppPollNewRoute
   '/settings/account': typeof AppSettingsAccountRoute
@@ -534,6 +542,7 @@ export interface FileRoutesById {
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/mod_/switches': typeof AppModSwitchesRoute
+  '/_app/mod_/takedowns': typeof AppModTakedownsRoute
   '/_app/mod_/users': typeof AppModUsersRoute
   '/_app/poll/new': typeof AppPollNewRoute
   '/_app/settings_/account': typeof AppSettingsAccountRoute
@@ -598,6 +607,7 @@ export interface FileRouteTypes {
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/mod/switches'
+    | '/mod/takedowns'
     | '/mod/users'
     | '/poll/new'
     | '/settings/account'
@@ -660,6 +670,7 @@ export interface FileRouteTypes {
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/mod/switches'
+    | '/mod/takedowns'
     | '/mod/users'
     | '/poll/new'
     | '/settings/account'
@@ -723,6 +734,7 @@ export interface FileRouteTypes {
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
     | '/_app/mod_/switches'
+    | '/_app/mod_/takedowns'
     | '/_app/mod_/users'
     | '/_app/poll/new'
     | '/_app/settings_/account'
@@ -983,6 +995,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModSwitchesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mod_/takedowns': {
+      id: '/_app/mod_/takedowns'
+      path: '/mod/takedowns'
+      fullPath: '/mod/takedowns'
+      preLoaderRoute: typeof AppModTakedownsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/mod_/users': {
       id: '/_app/mod_/users'
       path: '/mod/users'
@@ -1222,6 +1241,7 @@ interface AppRouteChildren {
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppModSwitchesRoute: typeof AppModSwitchesRoute
+  AppModTakedownsRoute: typeof AppModTakedownsRoute
   AppModUsersRoute: typeof AppModUsersRoute
   AppPollNewRoute: typeof AppPollNewRoute
   AppSettingsAccountRoute: typeof AppSettingsAccountRoute
@@ -1274,6 +1294,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppModSwitchesRoute: AppModSwitchesRoute,
+  AppModTakedownsRoute: AppModTakedownsRoute,
   AppModUsersRoute: AppModUsersRoute,
   AppPollNewRoute: AppPollNewRoute,
   AppSettingsAccountRoute: AppSettingsAccountRoute,

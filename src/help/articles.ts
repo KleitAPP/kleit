@@ -114,6 +114,15 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "words",
+    group: "Safety",
+    title: "What can't go in a caption, bio or comment",
+    body: [
+      "Phone numbers and street addresses: never, in anything public. The screen says so before it saves - it isn't a glitch, and no one has to review it.",
+      "Words that reach for eating-disorder or self-harm content: a comment like that is saved where only you can see it and a person looks at it; a caption like that is published but a person looks at it too. If it was a wardrobe purge, they let it through. If you're going through something, the Search tab's help card has people to talk to.",
+    ],
+  },
+  {
     slug: "strikes",
     group: "Safety",
     title: "Strikes and appeals",

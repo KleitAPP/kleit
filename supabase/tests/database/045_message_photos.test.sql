@@ -56,6 +56,10 @@ select throws_ok($$ select send_message('e7e7e7e7-0000-4000-8000-000000000003', 
 select pg_temp.act_as('e7e7e7e7-0000-4000-8000-000000000002');
 select is((select count(*)::int from messages where photo_item_id is not null and sender_id = 'e7e7e7e7-0000-4000-8000-000000000001'), 2, 'friend: sees both photo messages');
 select ok(pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.jpg'), 'friend: can read the cleared photo''s file');
+select diag('cleared(pending item) = ' || coalesce((select private.image_cleared('e7000000-0000-4000-8000-000000000002'))::text, 'null')
+         || '; viewable(pending) = ' || coalesce((select private.message_photo_viewable('e7e7e7e7-0000-4000-8000-000000000001/messages/pending.jpg', 'e7e7e7e7-0000-4000-8000-000000000002'))::text, 'null')
+         || '; flags = ' || coalesce((select string_agg(item_id::text || ':' || scan_state::text, ', ') from item_flags where item_id::text like 'e7000000-%'), 'none')
+         || '; visible = ' || coalesce((select string_agg(name, ', ') from storage.objects where bucket_id = 'closet-photos' and name like 'e7e7e7e7%'), 'none'));
 select ok(not pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/pending.jpg'), 'friend: cannot read the file of a photo still being checked');
 select pg_temp.act_as('e7e7e7e7-0000-4000-8000-000000000003');
 select ok(not pg_temp.can_see('e7e7e7e7-0000-4000-8000-000000000001/messages/clean.jpg'), 'stranger: cannot read it');

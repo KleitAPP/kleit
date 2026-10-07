@@ -957,6 +957,7 @@ export type Database = {
           price_cents: number | null
           price_checked_at: string | null
           price_currency: string | null
+          purged_at: string | null
           search: unknown
           sold_out: boolean
           source_domain: string | null
@@ -981,6 +982,7 @@ export type Database = {
           price_cents?: number | null
           price_checked_at?: string | null
           price_currency?: string | null
+          purged_at?: string | null
           search?: unknown
           sold_out?: boolean
           source_domain?: string | null
@@ -1005,6 +1007,7 @@ export type Database = {
           price_cents?: number | null
           price_checked_at?: string | null
           price_currency?: string | null
+          purged_at?: string | null
           search?: unknown
           sold_out?: boolean
           source_domain?: string | null
@@ -2079,6 +2082,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_purges: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+          image_bucket: Database["public"]["Enums"]["image_bucket"]
+          image_id: string
+          keep_evidence: boolean
+        }[]
+      }
       claim_scans: {
         Args: { p_limit?: number }
         Returns: {
@@ -2209,6 +2221,7 @@ export type Database = {
         Args: { p_reason: string; p_target: string; p_what: string }
         Returns: undefined
       }
+      mark_purged: { Args: { p_item: string }; Returns: undefined }
       moderate: {
         Args: { p_action: string; p_note?: string; p_report: string }
         Returns: undefined
@@ -2290,6 +2303,13 @@ export type Database = {
           tag: string
         }[]
       }
+      public_set_codes: {
+        Args: { p_limit?: number }
+        Returns: {
+          published_at: string
+          share_code: string
+        }[]
+      }
       record_vote: {
         Args: {
           p_device_hash: string
@@ -2329,6 +2349,7 @@ export type Database = {
           price_cents: number | null
           price_checked_at: string | null
           price_currency: string | null
+          purged_at: string | null
           search: unknown
           sold_out: boolean
           source_domain: string | null

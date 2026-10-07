@@ -11,7 +11,7 @@ import { t } from "@/i18n/en";
  * is offered. Showing a field you cannot change is honest; offering a button that does nothing
  * is not.
  */
-export const Route = createFileRoute("/_app/settings/account")({
+export const Route = createFileRoute("/_app/settings_/account")({
   head: () => ({ meta: [{ title: "Account" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: Account,
 });

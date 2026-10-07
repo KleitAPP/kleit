@@ -15,7 +15,7 @@ import { t } from "@/i18n/en";
  * The per-device list comes from `user_devices`, which nothing writes to yet — that is part of
  * M1.10 proper. An empty list is stated plainly rather than dressed up.
  */
-export const Route = createFileRoute("/_app/settings/devices")({
+export const Route = createFileRoute("/_app/settings_/devices")({
   head: () => ({ meta: [{ title: "Where you're signed in" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: Devices,
 });

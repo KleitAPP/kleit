@@ -9,7 +9,7 @@ import { libraryUrl, loadCatalogue, type Catalogue } from "@/library/library";
  * decoration library. CC0 asks for no credit; we give it anyway, with a link to each object,
  * because that is also the takedown path by construction (artwork pack §3a.5 #3).
  */
-export const Route = createFileRoute("/_app/settings/library")({
+export const Route = createFileRoute("/_app/settings_/library")({
   head: () => ({
     meta: [
       { title: "Where the pictures come from" },

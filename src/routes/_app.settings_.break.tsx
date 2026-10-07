@@ -21,7 +21,7 @@ import { t } from "@/i18n/en";
  * the test deployment, where sign-in email does not deliver, that is unrecoverable. So the button
  * asks first, and the screen now says out loud that it signs you out everywhere.
  */
-export const Route = createFileRoute("/_app/settings/break")({
+export const Route = createFileRoute("/_app/settings_/break")({
   head: () => ({ meta: [{ title: "Take a break" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: TakeABreak,
 });

@@ -6,7 +6,7 @@ import { t } from "@/i18n/en";
 import { myReports, type MyReport } from "@/safety/report";
 
 /** S97 — Settings > Your reports: where each one got to (M7.1). */
-export const Route = createFileRoute("/_app/settings/reports")({
+export const Route = createFileRoute("/_app/settings_/reports")({
   head: () => ({
     meta: [{ title: "Your reports" }, { name: "robots", content: "noindex, nofollow" }],
   }),

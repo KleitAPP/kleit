@@ -14,7 +14,7 @@ import { t } from "@/i18n/en";
  * The note about them being drafts is on the screen, not buried, because they say so themselves
  * on their first line and a person deserves to know before they rely on one.
  */
-export const Route = createFileRoute("/_app/settings/legal")({
+export const Route = createFileRoute("/_app/settings_/legal")({
   head: () => ({
     meta: [{ title: "Help and legal" }, { name: "robots", content: "noindex, nofollow" }],
   }),

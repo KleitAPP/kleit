@@ -20,7 +20,7 @@ import { t } from "@/i18n/en";
  *    success. Each row is now locked while its own save is in flight, and every state change goes
  *    through the updater form so it works from whatever the latest state is, not a stale copy.
  */
-export const Route = createFileRoute("/_app/settings/privacy")({
+export const Route = createFileRoute("/_app/settings_/privacy")({
   head: () => ({ meta: [{ title: "Privacy" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: Privacy,
 });

@@ -37,15 +37,15 @@ import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$gro
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
-import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings.account'
-import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings.blocked'
-import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings.break'
-import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
-import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings.legal'
-import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings.library'
-import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings.muted'
-import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings.privacy'
-import { Route as AppSettingsReportsRouteImport } from './routes/_app.settings.reports'
+import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings_.account'
+import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings_.blocked'
+import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings_.break'
+import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings_.devices'
+import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings_.legal'
+import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings_.library'
+import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings_.muted'
+import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings_.privacy'
+import { Route as AppSettingsReportsRouteImport } from './routes/_app.settings_.reports'
 import { Route as AppStoreDomainRouteImport } from './routes/_app.store.$domain'
 import { Route as AppTagTagRouteImport } from './routes/_app.tag.$tag'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
@@ -207,49 +207,49 @@ const AppPollNewRoute = AppPollNewRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/account',
+  path: '/settings/account',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsBlockedRoute = AppSettingsBlockedRouteImport.update({
-  id: '/blocked',
-  path: '/blocked',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/blocked',
+  path: '/settings/blocked',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsBreakRoute = AppSettingsBreakRouteImport.update({
-  id: '/break',
-  path: '/break',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/break',
+  path: '/settings/break',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
-  id: '/devices',
-  path: '/devices',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/devices',
+  path: '/settings/devices',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsLegalRoute = AppSettingsLegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/legal',
+  path: '/settings/legal',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsLibraryRoute = AppSettingsLibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/library',
+  path: '/settings/library',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsMutedRoute = AppSettingsMutedRouteImport.update({
-  id: '/muted',
-  path: '/muted',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/muted',
+  path: '/settings/muted',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/privacy',
+  path: '/settings/privacy',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsReportsRoute = AppSettingsReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings_/reports',
+  path: '/settings/reports',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppStoreDomainRoute = AppStoreDomainRouteImport.update({
   id: '/store/$domain',
@@ -357,7 +357,7 @@ export interface FileRoutesByFullPath {
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
-  '/settings': typeof AppSettingsRouteWithChildren
+  '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
@@ -413,7 +413,7 @@ export interface FileRoutesByTo {
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/search': typeof AppSearchRoute
-  '/settings': typeof AppSettingsRouteWithChildren
+  '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
@@ -472,7 +472,7 @@ export interface FileRoutesById {
   '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/search': typeof AppSearchRoute
-  '/_app/settings': typeof AppSettingsRouteWithChildren
+  '/_app/settings': typeof AppSettingsRoute
   '/_app/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
   '/dev/components': typeof DevComponentsRoute
@@ -492,15 +492,15 @@ export interface FileRoutesById {
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/poll/new': typeof AppPollNewRoute
-  '/_app/settings/account': typeof AppSettingsAccountRoute
-  '/_app/settings/blocked': typeof AppSettingsBlockedRoute
-  '/_app/settings/break': typeof AppSettingsBreakRoute
-  '/_app/settings/devices': typeof AppSettingsDevicesRoute
-  '/_app/settings/legal': typeof AppSettingsLegalRoute
-  '/_app/settings/library': typeof AppSettingsLibraryRoute
-  '/_app/settings/muted': typeof AppSettingsMutedRoute
-  '/_app/settings/privacy': typeof AppSettingsPrivacyRoute
-  '/_app/settings/reports': typeof AppSettingsReportsRoute
+  '/_app/settings_/account': typeof AppSettingsAccountRoute
+  '/_app/settings_/blocked': typeof AppSettingsBlockedRoute
+  '/_app/settings_/break': typeof AppSettingsBreakRoute
+  '/_app/settings_/devices': typeof AppSettingsDevicesRoute
+  '/_app/settings_/legal': typeof AppSettingsLegalRoute
+  '/_app/settings_/library': typeof AppSettingsLibraryRoute
+  '/_app/settings_/muted': typeof AppSettingsMutedRoute
+  '/_app/settings_/privacy': typeof AppSettingsPrivacyRoute
+  '/_app/settings_/reports': typeof AppSettingsReportsRoute
   '/_app/store/$domain': typeof AppStoreDomainRoute
   '/_app/tag/$tag': typeof AppTagTagRoute
   '/_app/u/$username': typeof AppUUsernameRoute
@@ -666,15 +666,15 @@ export interface FileRouteTypes {
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
     | '/_app/poll/new'
-    | '/_app/settings/account'
-    | '/_app/settings/blocked'
-    | '/_app/settings/break'
-    | '/_app/settings/devices'
-    | '/_app/settings/legal'
-    | '/_app/settings/library'
-    | '/_app/settings/muted'
-    | '/_app/settings/privacy'
-    | '/_app/settings/reports'
+    | '/_app/settings_/account'
+    | '/_app/settings_/blocked'
+    | '/_app/settings_/break'
+    | '/_app/settings_/devices'
+    | '/_app/settings_/legal'
+    | '/_app/settings_/library'
+    | '/_app/settings_/muted'
+    | '/_app/settings_/privacy'
+    | '/_app/settings_/reports'
     | '/_app/store/$domain'
     | '/_app/tag/$tag'
     | '/_app/u/$username'
@@ -908,68 +908,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPollNewRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settings/account': {
-      id: '/_app/settings/account'
-      path: '/account'
+    '/_app/settings_/account': {
+      id: '/_app/settings_/account'
+      path: '/settings/account'
       fullPath: '/settings/account'
       preLoaderRoute: typeof AppSettingsAccountRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/blocked': {
-      id: '/_app/settings/blocked'
-      path: '/blocked'
+    '/_app/settings_/blocked': {
+      id: '/_app/settings_/blocked'
+      path: '/settings/blocked'
       fullPath: '/settings/blocked'
       preLoaderRoute: typeof AppSettingsBlockedRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/break': {
-      id: '/_app/settings/break'
-      path: '/break'
+    '/_app/settings_/break': {
+      id: '/_app/settings_/break'
+      path: '/settings/break'
       fullPath: '/settings/break'
       preLoaderRoute: typeof AppSettingsBreakRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/devices': {
-      id: '/_app/settings/devices'
-      path: '/devices'
+    '/_app/settings_/devices': {
+      id: '/_app/settings_/devices'
+      path: '/settings/devices'
       fullPath: '/settings/devices'
       preLoaderRoute: typeof AppSettingsDevicesRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/legal': {
-      id: '/_app/settings/legal'
-      path: '/legal'
+    '/_app/settings_/legal': {
+      id: '/_app/settings_/legal'
+      path: '/settings/legal'
       fullPath: '/settings/legal'
       preLoaderRoute: typeof AppSettingsLegalRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/library': {
-      id: '/_app/settings/library'
-      path: '/library'
+    '/_app/settings_/library': {
+      id: '/_app/settings_/library'
+      path: '/settings/library'
       fullPath: '/settings/library'
       preLoaderRoute: typeof AppSettingsLibraryRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/muted': {
-      id: '/_app/settings/muted'
-      path: '/muted'
+    '/_app/settings_/muted': {
+      id: '/_app/settings_/muted'
+      path: '/settings/muted'
       fullPath: '/settings/muted'
       preLoaderRoute: typeof AppSettingsMutedRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/privacy': {
-      id: '/_app/settings/privacy'
-      path: '/privacy'
+    '/_app/settings_/privacy': {
+      id: '/_app/settings_/privacy'
+      path: '/settings/privacy'
       fullPath: '/settings/privacy'
       preLoaderRoute: typeof AppSettingsPrivacyRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/reports': {
-      id: '/_app/settings/reports'
-      path: '/reports'
+    '/_app/settings_/reports': {
+      id: '/_app/settings_/reports'
+      path: '/settings/reports'
       fullPath: '/settings/reports'
       preLoaderRoute: typeof AppSettingsReportsRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/store/$domain': {
       id: '/_app/store/$domain'
@@ -1107,41 +1107,13 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppSettingsRouteChildren {
-  AppSettingsAccountRoute: typeof AppSettingsAccountRoute
-  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
-  AppSettingsBreakRoute: typeof AppSettingsBreakRoute
-  AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
-  AppSettingsLegalRoute: typeof AppSettingsLegalRoute
-  AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
-  AppSettingsMutedRoute: typeof AppSettingsMutedRoute
-  AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
-  AppSettingsReportsRoute: typeof AppSettingsReportsRoute
-}
-
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsAccountRoute: AppSettingsAccountRoute,
-  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
-  AppSettingsBreakRoute: AppSettingsBreakRoute,
-  AppSettingsDevicesRoute: AppSettingsDevicesRoute,
-  AppSettingsLegalRoute: AppSettingsLegalRoute,
-  AppSettingsLibraryRoute: AppSettingsLibraryRoute,
-  AppSettingsMutedRoute: AppSettingsMutedRoute,
-  AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
-  AppSettingsReportsRoute: AppSettingsReportsRoute,
-}
-
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
-
 interface AppRouteChildren {
   AppAsksRoute: typeof AppAsksRoute
   AppContestsRoute: typeof AppContestsRoute
   AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
   AppSearchRoute: typeof AppSearchRoute
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppSettingsRoute: typeof AppSettingsRoute
   AppYouRoute: typeof AppYouRoute
   AppIndexRoute: typeof AppIndexRoute
   AppAddLinkRoute: typeof AppAddLinkRoute
@@ -1153,6 +1125,15 @@ interface AppRouteChildren {
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppPollNewRoute: typeof AppPollNewRoute
+  AppSettingsAccountRoute: typeof AppSettingsAccountRoute
+  AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
+  AppSettingsBreakRoute: typeof AppSettingsBreakRoute
+  AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
+  AppSettingsLegalRoute: typeof AppSettingsLegalRoute
+  AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
+  AppSettingsMutedRoute: typeof AppSettingsMutedRoute
+  AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
+  AppSettingsReportsRoute: typeof AppSettingsReportsRoute
   AppStoreDomainRoute: typeof AppStoreDomainRoute
   AppTagTagRoute: typeof AppTagTagRoute
   AppUUsernameRoute: typeof AppUUsernameRoute
@@ -1180,7 +1161,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
   AppSearchRoute: AppSearchRoute,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppSettingsRoute: AppSettingsRoute,
   AppYouRoute: AppYouRoute,
   AppIndexRoute: AppIndexRoute,
   AppAddLinkRoute: AppAddLinkRoute,
@@ -1192,6 +1173,15 @@ const AppRouteChildren: AppRouteChildren = {
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppPollNewRoute: AppPollNewRoute,
+  AppSettingsAccountRoute: AppSettingsAccountRoute,
+  AppSettingsBlockedRoute: AppSettingsBlockedRoute,
+  AppSettingsBreakRoute: AppSettingsBreakRoute,
+  AppSettingsDevicesRoute: AppSettingsDevicesRoute,
+  AppSettingsLegalRoute: AppSettingsLegalRoute,
+  AppSettingsLibraryRoute: AppSettingsLibraryRoute,
+  AppSettingsMutedRoute: AppSettingsMutedRoute,
+  AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
+  AppSettingsReportsRoute: AppSettingsReportsRoute,
   AppStoreDomainRoute: AppStoreDomainRoute,
   AppTagTagRoute: AppTagTagRoute,
   AppUUsernameRoute: AppUUsernameRoute,

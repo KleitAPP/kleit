@@ -11,11 +11,14 @@ export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 30;
 
 /** The same shape rule as the database: lower case, digits, dot and underscore, no doubles or edges. */
-export function usernameShapeProblem(candidate: string): "too-short" | "too-long" | "characters" | null {
+export function usernameShapeProblem(
+  candidate: string,
+): "too-short" | "too-long" | "characters" | null {
   if (candidate.length < USERNAME_MIN) return "too-short";
   if (candidate.length > USERNAME_MAX) return "too-long";
   if (!/^[a-z0-9._]+$/.test(candidate)) return "characters";
-  if (/^[._]/.test(candidate) || /[._]$/.test(candidate) || /[._]{2}/.test(candidate)) return "characters";
+  if (/^[._]/.test(candidate) || /[._]$/.test(candidate) || /[._]{2}/.test(candidate))
+    return "characters";
   return null;
 }
 
@@ -59,7 +62,8 @@ export async function suggestUsernames(taken: string): Promise<string[]> {
   return good;
 }
 
-export type ClaimProblem = "taken" | "shape" | "already-have-one" | "signed-out" | "offline" | "unknown";
+export type ClaimProblem =
+  "taken" | "shape" | "already-have-one" | "signed-out" | "refused" | "offline" | "unknown";
 
 /**
  * Finishes sign-up: writes the profile and files the 18+ record, both inside the database.
@@ -81,6 +85,8 @@ export async function claimProfile(
     if (code === "23505") return { ok: false, problem: "already-have-one" };
     if (code === "23514") return { ok: false, problem: "taken" };
     if (code === "42501") return { ok: false, problem: "signed-out" };
+    // A banned identity coming back (migration 063): refused, and told only that much.
+    if (code === "P0007") return { ok: false, problem: "refused" };
     return { ok: false, problem: "unknown" };
   } catch {
     return { ok: false, problem: "offline" };

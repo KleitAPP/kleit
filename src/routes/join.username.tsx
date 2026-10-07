@@ -30,7 +30,9 @@ import { t } from "@/i18n/en";
  * Google button instead would have looked tidier and left a hole beside it (lesson L25).
  */
 export const Route = createFileRoute("/join/username")({
-  head: () => ({ meta: [{ title: "Pick your username" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Pick your username" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: PickUsername,
 });
 
@@ -110,7 +112,13 @@ function PickUsername() {
       void navigate({ to: "/" });
       return;
     }
-    setRefusal(result.problem === "offline" ? t("username.offline") : t("join.failed"));
+    setRefusal(
+      result.problem === "offline"
+        ? t("username.offline")
+        : result.problem === "refused"
+          ? t("join.refused")
+          : t("join.failed"),
+    );
   }
 
   return (
@@ -147,9 +155,15 @@ function PickUsername() {
         </div>
 
         <p aria-live="polite" className="mt-3 min-h-10 text-sm">
-          {shape === "too-short" ? <span className="text-ink-soft">{t("username.tooShort")}</span> : null}
-          {shape === "too-long" ? <span className="text-ink-soft">{t("username.tooLong")}</span> : null}
-          {shape === "characters" ? <span className="text-ink-soft">{t("username.characters")}</span> : null}
+          {shape === "too-short" ? (
+            <span className="text-ink-soft">{t("username.tooShort")}</span>
+          ) : null}
+          {shape === "too-long" ? (
+            <span className="text-ink-soft">{t("username.tooLong")}</span>
+          ) : null}
+          {shape === "characters" ? (
+            <span className="text-ink-soft">{t("username.characters")}</span>
+          ) : null}
           {shape === null && state === "checking" ? (
             <span className="text-ink-soft">{t("username.checking")}</span>
           ) : null}
@@ -188,7 +202,9 @@ function PickUsername() {
               <span className="text-base text-ink">
                 I'm 18 or older and I agree to the{" "}
                 <LegalLink onOpen={() => setOpenDoc("terms")}>{t("join.terms")}</LegalLink> and{" "}
-                <LegalLink onOpen={() => setOpenDoc("guidelines")}>{t("join.guidelines")}</LegalLink>
+                <LegalLink onOpen={() => setOpenDoc("guidelines")}>
+                  {t("join.guidelines")}
+                </LegalLink>
               </span>
             </label>
           </div>

@@ -1020,6 +1020,7 @@ export const en = {
   "join.usOnly": "Kleit is US only while we're new.",
   "join.failed": "That didn't go through. Try again, or use email instead",
   "join.offline": "You're offline. Sign-up needs a connection",
+  "join.refused": "This account can't be opened.",
   "join.testBotCheck": "Test bot check - real keys before the beta",
 
   "email.title": "What's your email?",

@@ -20,7 +20,13 @@ export const Route = createFileRoute("/_app/u/$username")({
   component: SomeonesProfile,
 });
 
-type Them = { user_id: string; username: string; display_name: string; is_private: boolean };
+type Them = {
+  user_id: string;
+  username: string;
+  display_name: string;
+  is_private: boolean;
+  bio: string;
+};
 
 function SomeonesProfile() {
   const { username } = Route.useParams();
@@ -33,7 +39,7 @@ function SomeonesProfile() {
     void (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, username, display_name, is_private")
+        .select("user_id, username, display_name, is_private, bio")
         .eq("username", username.toLowerCase())
         .maybeSingle();
       const { data: who } = await supabase.auth.getUser();
@@ -70,6 +76,9 @@ function SomeonesProfile() {
           <p className="truncate text-base text-ink-soft">@{them.username}</p>
         </div>
       </div>
+      {them.bio?.trim() ? (
+        <p className="mt-3 whitespace-pre-wrap text-base text-ink">{them.bio}</p>
+      ) : null}
 
       <FollowButton them={them} me={me} />
 

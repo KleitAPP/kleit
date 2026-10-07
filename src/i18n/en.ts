@@ -339,6 +339,10 @@ export const en = {
   "account.usernameRule": "You can change this twice every 14 days",
   "account.phone": "Phone number",
   "account.phoneNone": "Not added",
+  "account.displayName": "Your name",
+  "account.bio": "Bio",
+  "account.bioRule": "{count} characters left. No phone numbers or addresses - it's public.",
+  "account.save": "Save",
 
   "privacy.title": "Privacy",
   "privacy.privateAccount": "Private account",

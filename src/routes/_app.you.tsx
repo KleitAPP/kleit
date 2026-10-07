@@ -31,7 +31,7 @@ const TABS: readonly TabItem<Tab>[] = [
   { id: "polls", label: t("profile.polls") },
 ];
 
-type Me = { username: string; display_name: string; is_private: boolean };
+type Me = { username: string; display_name: string; is_private: boolean; bio: string };
 
 function YourProfile() {
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ function YourProfile() {
       if (!id) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, display_name, is_private")
+        .select("username, display_name, is_private, bio")
         .eq("user_id", id)
         .maybeSingle();
       if (!cancelled && profile) setMe(profile);
@@ -112,6 +112,9 @@ function YourProfile() {
           ) : null}
         </div>
       </div>
+      {me?.bio?.trim() ? (
+        <p className="mt-3 whitespace-pre-wrap text-base text-ink">{me.bio}</p>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Link

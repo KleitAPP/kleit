@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: number
+          reason: string
+          target_id: string | null
+          what: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: never
+          reason?: string
+          target_id?: string | null
+          what: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: never
+          reason?: string
+          target_id?: string | null
+          what?: string
+        }
+        Relationships: []
+      }
       age_confirmations: {
         Row: {
           confirmed_at: string
@@ -1854,6 +1881,23 @@ export type Database = {
         Args: { p_conversation: string }
         Returns: boolean
       }
+      admin_user_lookup: {
+        Args: { p_reason: string; p_username: string }
+        Returns: {
+          actions: Json
+          banned_at: string
+          created_at: string
+          deactivated_at: string
+          display_name: string
+          is_private: boolean
+          live_strikes: number
+          points: number
+          reports_about: number
+          sets_published: number
+          user_id: string
+          username: string
+        }[]
+      }
       approve_follow_request: {
         Args: { p_requester: string }
         Returns: boolean
@@ -2027,6 +2071,10 @@ export type Database = {
         }[]
       }
       level_of: { Args: { p_points: number }; Returns: number }
+      log_private_view: {
+        Args: { p_reason: string; p_target: string; p_what: string }
+        Returns: undefined
+      }
       moderate: {
         Args: { p_action: string; p_note?: string; p_report: string }
         Returns: undefined
@@ -2261,6 +2309,10 @@ export type Database = {
           my_like: boolean
           set_id: string
         }[]
+      }
+      set_suspended: {
+        Args: { p_on: boolean; p_reason: string; p_user: string }
+        Returns: undefined
       }
       sets_by_tag: {
         Args: { p_limit?: number; p_tag: string }

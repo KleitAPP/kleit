@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as DeletingRouteImport } from './routes/deleting'
 import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
@@ -45,6 +46,7 @@ import { Route as AppPollNewRouteImport } from './routes/_app.poll.new'
 import { Route as AppSettingsAccountRouteImport } from './routes/_app.settings_.account'
 import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings_.blocked'
 import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings_.break'
+import { Route as AppSettingsDeleteRouteImport } from './routes/_app.settings_.delete'
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings_.devices'
 import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings_.legal'
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings_.library'
@@ -74,6 +76,11 @@ import { Route as AppTemplateTemplateIdEditRouteImport } from './routes/_app.tem
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeletingRoute = DeletingRouteImport.update({
+  id: '/deleting',
+  path: '/deleting',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuspendedRoute = SuspendedRouteImport.update({
@@ -252,6 +259,11 @@ const AppSettingsBreakRoute = AppSettingsBreakRouteImport.update({
   path: '/settings/break',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsDeleteRoute = AppSettingsDeleteRouteImport.update({
+  id: '/settings_/delete',
+  path: '/settings/delete',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
   id: '/settings_/devices',
   path: '/settings/devices',
@@ -386,6 +398,7 @@ const AppTemplateTemplateIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/deleting': typeof DeletingRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -420,6 +433,7 @@ export interface FileRoutesByFullPath {
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/blocked': typeof AppSettingsBlockedRoute
   '/settings/break': typeof AppSettingsBreakRoute
+  '/settings/delete': typeof AppSettingsDeleteRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
@@ -448,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/set/$setId/': typeof AppSetSetIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/deleting': typeof DeletingRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -483,6 +498,7 @@ export interface FileRoutesByTo {
   '/settings/account': typeof AppSettingsAccountRoute
   '/settings/blocked': typeof AppSettingsBlockedRoute
   '/settings/break': typeof AppSettingsBreakRoute
+  '/settings/delete': typeof AppSettingsDeleteRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
@@ -513,6 +529,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/deleting': typeof DeletingRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -548,6 +565,7 @@ export interface FileRoutesById {
   '/_app/settings_/account': typeof AppSettingsAccountRoute
   '/_app/settings_/blocked': typeof AppSettingsBlockedRoute
   '/_app/settings_/break': typeof AppSettingsBreakRoute
+  '/_app/settings_/delete': typeof AppSettingsDeleteRoute
   '/_app/settings_/devices': typeof AppSettingsDevicesRoute
   '/_app/settings_/legal': typeof AppSettingsLegalRoute
   '/_app/settings_/library': typeof AppSettingsLibraryRoute
@@ -579,6 +597,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/deleting'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -613,6 +632,7 @@ export interface FileRouteTypes {
     | '/settings/account'
     | '/settings/blocked'
     | '/settings/break'
+    | '/settings/delete'
     | '/settings/devices'
     | '/settings/legal'
     | '/settings/library'
@@ -641,6 +661,7 @@ export interface FileRouteTypes {
     | '/set/$setId/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/deleting'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -676,6 +697,7 @@ export interface FileRouteTypes {
     | '/settings/account'
     | '/settings/blocked'
     | '/settings/break'
+    | '/settings/delete'
     | '/settings/devices'
     | '/settings/legal'
     | '/settings/library'
@@ -705,6 +727,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/deleting'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -740,6 +763,7 @@ export interface FileRouteTypes {
     | '/_app/settings_/account'
     | '/_app/settings_/blocked'
     | '/_app/settings_/break'
+    | '/_app/settings_/delete'
     | '/_app/settings_/devices'
     | '/_app/settings_/legal'
     | '/_app/settings_/library'
@@ -770,6 +794,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  DeletingRoute: typeof DeletingRoute
   SuspendedRoute: typeof SuspendedRoute
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -790,6 +815,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deleting': {
+      id: '/deleting'
+      path: '/deleting'
+      fullPath: '/deleting'
+      preLoaderRoute: typeof DeletingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suspended': {
@@ -1037,6 +1069,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBreakRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings_/delete': {
+      id: '/_app/settings_/delete'
+      path: '/settings/delete'
+      fullPath: '/settings/delete'
+      preLoaderRoute: typeof AppSettingsDeleteRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings_/devices': {
       id: '/_app/settings_/devices'
       path: '/settings/devices'
@@ -1247,6 +1286,7 @@ interface AppRouteChildren {
   AppSettingsAccountRoute: typeof AppSettingsAccountRoute
   AppSettingsBlockedRoute: typeof AppSettingsBlockedRoute
   AppSettingsBreakRoute: typeof AppSettingsBreakRoute
+  AppSettingsDeleteRoute: typeof AppSettingsDeleteRoute
   AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
   AppSettingsLegalRoute: typeof AppSettingsLegalRoute
   AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
@@ -1300,6 +1340,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsAccountRoute: AppSettingsAccountRoute,
   AppSettingsBlockedRoute: AppSettingsBlockedRoute,
   AppSettingsBreakRoute: AppSettingsBreakRoute,
+  AppSettingsDeleteRoute: AppSettingsDeleteRoute,
   AppSettingsDevicesRoute: AppSettingsDevicesRoute,
   AppSettingsLegalRoute: AppSettingsLegalRoute,
   AppSettingsLibraryRoute: AppSettingsLibraryRoute,
@@ -1332,6 +1373,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  DeletingRoute: DeletingRoute,
   SuspendedRoute: SuspendedRoute,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,

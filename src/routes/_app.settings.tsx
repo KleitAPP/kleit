@@ -50,7 +50,7 @@ function Settings() {
       <hr className="mt-8 border-line" />
       <ul className="mt-4 overflow-hidden rounded-md border border-line bg-surface">
         <Row to="/settings/break" title={t("settings.break")} />
-        <Later title={t("settings.delete")} />
+        <Row to="/settings/delete" title={t("settings.delete")} />
       </ul>
     </div>
   );

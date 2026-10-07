@@ -19,7 +19,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export type Landing = "signed-out" | "needs-username" | "ready" | "suspended";
+export type Landing = "signed-out" | "needs-username" | "ready" | "suspended" | "deleting";
 
 /** Same deadline idea as the launch check: never leave someone on a blank screen for ever. */
 const LOOKUP_TIMEOUT_MS = 4_000;
@@ -52,6 +52,11 @@ export async function whereDoIBelong(): Promise<Landing> {
     // If we cannot tell, assume the profile exists (see the note at the top of the file).
     if (error) return "ready";
     if (profile?.banned_at) return "suspended";
+    if (profile?.deactivated_at) {
+      // A break ends on sign-in (below); a pending deletion does not - it lands on Undo.
+      const { data: d } = await supabase.from("account_deletions").select("state").maybeSingle();
+      if (d?.state === "pending") return "deleting";
+    }
     return profile ? "ready" : "needs-username";
   } catch {
     return "ready";

@@ -44,6 +44,10 @@ function AppShell() {
         void navigate({ to: "/welcome", replace: true });
         return;
       }
+      if (where === "deleting") {
+        void navigate({ to: "/deleting", replace: true });
+        return;
+      }
       if (where === "suspended") {
         void navigate({ to: "/suspended", replace: true });
         return;

@@ -155,6 +155,24 @@ export const en = {
   "report.err.failed": "That didn't go through. Try again.",
   "block.andReport": "Block and report",
   "settings.strikes": "Strikes and appeals",
+  "delete.title": "Delete account",
+  "delete.what": "Here's exactly what happens, so there are no surprises.",
+  "delete.goes":
+    "Everything is hidden right away. After seven days your sets, comments, likes, follows and your own photos are deleted for good, and your username is free for anyone.",
+  "delete.stays":
+    'What stays: other people\'s remixes of your sets (credited "Remixed from a deleted account"), your votes in poll totals (with your name removed), store pieces you clipped (in the catalogue, with no name), and messages you sent, which show as "Message unavailable".',
+  "delete.grace": "Seven days to change your mind: sign in and press Undo.",
+  "delete.breakInstead":
+    'Just need a break? "Take a break" hides everything and keeps it all for when you come back.',
+  "delete.confirmTitle": "Delete your account?",
+  "delete.confirmWhy":
+    "It's hidden at once and gone for good in seven days. Signing in during those days lets you undo it.",
+  "delete.confirmNote": "You'll be shown the date it becomes final.",
+  "delete.confirm": "Yes, delete it",
+  "delete.pending": "Your account will be deleted on {date}.",
+  "delete.pendingWhy": "Until then everything is hidden. Press Undo and it's all back as it was.",
+  "delete.undo": "Undo - keep my account",
+  "delete.landingTitle": "This account is being deleted",
   "settings.strikesWhy": "Any strikes on your account, and how to appeal",
   "strikes.title": "Strikes and appeals",
   "strikes.why":

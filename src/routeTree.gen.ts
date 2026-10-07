@@ -42,6 +42,7 @@ import { Route as AppGroupsGroupIdRouteImport } from './routes/_app.groups_.$gro
 import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_.$conversationId'
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppModContactRouteImport } from './routes/_app.mod_.contact'
+import { Route as AppModLogRouteImport } from './routes/_app.mod_.log'
 import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
 import { Route as AppModTakedownsRouteImport } from './routes/_app.mod_.takedowns'
 import { Route as AppModUsersRouteImport } from './routes/_app.mod_.users'
@@ -240,6 +241,11 @@ const AppItemItemIdRoute = AppItemItemIdRouteImport.update({
 const AppModContactRoute = AppModContactRouteImport.update({
   id: '/mod_/contact',
   path: '/mod/contact',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModLogRoute = AppModLogRouteImport.update({
+  id: '/mod_/log',
+  path: '/mod/log',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModSwitchesRoute = AppModSwitchesRouteImport.update({
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/contact': typeof AppModContactRoute
+  '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
@@ -515,6 +522,7 @@ export interface FileRoutesByTo {
   '/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/contact': typeof AppModContactRoute
+  '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
   '/mod/users': typeof AppModUsersRoute
@@ -585,6 +593,7 @@ export interface FileRoutesById {
   '/_app/inbox_/$conversationId': typeof AppInboxConversationIdRoute
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/mod_/contact': typeof AppModContactRoute
+  '/_app/mod_/log': typeof AppModLogRoute
   '/_app/mod_/switches': typeof AppModSwitchesRoute
   '/_app/mod_/takedowns': typeof AppModTakedownsRoute
   '/_app/mod_/users': typeof AppModUsersRoute
@@ -655,6 +664,7 @@ export interface FileRouteTypes {
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/mod/contact'
+    | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
     | '/mod/users'
@@ -723,6 +733,7 @@ export interface FileRouteTypes {
     | '/inbox/$conversationId'
     | '/item/$itemId'
     | '/mod/contact'
+    | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
     | '/mod/users'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/_app/inbox_/$conversationId'
     | '/_app/item/$itemId'
     | '/_app/mod_/contact'
+    | '/_app/mod_/log'
     | '/_app/mod_/switches'
     | '/_app/mod_/takedowns'
     | '/_app/mod_/users'
@@ -1078,6 +1090,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppModContactRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mod_/log': {
+      id: '/_app/mod_/log'
+      path: '/mod/log'
+      fullPath: '/mod/log'
+      preLoaderRoute: typeof AppModLogRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/mod_/switches': {
       id: '/_app/mod_/switches'
       path: '/mod/switches'
@@ -1338,6 +1357,7 @@ interface AppRouteChildren {
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppModContactRoute: typeof AppModContactRoute
+  AppModLogRoute: typeof AppModLogRoute
   AppModSwitchesRoute: typeof AppModSwitchesRoute
   AppModTakedownsRoute: typeof AppModTakedownsRoute
   AppModUsersRoute: typeof AppModUsersRoute
@@ -1393,6 +1413,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppModContactRoute: AppModContactRoute,
+  AppModLogRoute: AppModLogRoute,
   AppModSwitchesRoute: AppModSwitchesRoute,
   AppModTakedownsRoute: AppModTakedownsRoute,
   AppModUsersRoute: AppModUsersRoute,

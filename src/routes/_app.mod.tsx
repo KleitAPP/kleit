@@ -95,6 +95,9 @@ function ModQueue() {
         <Link to="/mod/contact" className="text-ink underline underline-offset-2">
           {t("mod.contact")}
         </Link>
+        <Link to="/mod/log" className="text-ink underline underline-offset-2">
+          {t("mod.log")}
+        </Link>
       </p>
 
       {items.length === 0 ? (

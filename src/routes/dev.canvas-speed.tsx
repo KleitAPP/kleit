@@ -183,8 +183,16 @@ function CanvasSpeed() {
     c.height = bmp.height;
     const ctx = c.getContext("2d")!;
     ctx.drawImage(bmp, 0, 0);
-    const px = ctx.getImageData(2, 2, 1, 1).data;
-    return { w: bmp.width, h: bmp.height, type: blob.type, bytes: blob.size, cornerAlpha: px[3]! };
+    // The least-covered corner: the drag tests leave a star wherever they put it down, and one
+    // corner under a star is not a background that failed to hide (it was, once, on 2026-10-07).
+    const corners = [
+      [2, 2],
+      [bmp.width - 3, 2],
+      [2, bmp.height - 3],
+      [bmp.width - 3, bmp.height - 3],
+    ] as const;
+    const cornerAlpha = Math.min(...corners.map(([x, y]) => ctx.getImageData(x, y, 1, 1).data[3]!));
+    return { w: bmp.width, h: bmp.height, type: blob.type, bytes: blob.size, cornerAlpha };
   }
 
   useEffect(() => {

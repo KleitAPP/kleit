@@ -1858,6 +1858,48 @@ export type Database = {
         }
         Relationships: []
       }
+      text_checks: {
+        Row: {
+          attempts: number
+          author_id: string | null
+          body: string
+          checked_at: string | null
+          created_at: string
+          id: number
+          kind: string
+          labels: Json | null
+          state: string
+          target_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          author_id?: string | null
+          body: string
+          checked_at?: string | null
+          created_at?: string
+          id?: never
+          kind: string
+          labels?: Json | null
+          state?: string
+          target_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          author_id?: string | null
+          body?: string
+          checked_at?: string | null
+          created_at?: string
+          id?: never
+          kind?: string
+          labels?: Json | null
+          state?: string
+          target_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_devices: {
         Row: {
           city: string | null
@@ -2118,6 +2160,15 @@ export type Database = {
           image_id: string
         }[]
       }
+      claim_text_checks: {
+        Args: { p_limit?: number }
+        Returns: {
+          body: string
+          id: number
+          kind: string
+          target_id: string
+        }[]
+      }
       contact_resolve: {
         Args: { p_id: string; p_note?: string; p_outcome: string }
         Returns: undefined
@@ -2345,6 +2396,10 @@ export type Database = {
           published_at: string
           share_code: string
         }[]
+      }
+      record_text_check: {
+        Args: { p_id: number; p_labels?: Json; p_state: string }
+        Returns: undefined
       }
       record_vote: {
         Args: {

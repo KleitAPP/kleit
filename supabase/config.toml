@@ -117,3 +117,8 @@ verify_jwt = false
 # Turnstile and a daily limit per network itself (a signed-in sender's token is optional).
 [functions.contact-form]
 verify_jwt = false
+
+# purge-files is called by the database (pg_net) with the sweep secret, not by a person: no token
+# at the gateway; the function checks the secret itself.
+[functions.purge-files]
+verify_jwt = false

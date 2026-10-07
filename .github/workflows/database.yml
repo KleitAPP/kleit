@@ -177,6 +177,10 @@ jobs:
         run: supabase functions deploy takedown-request --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       - name: Deploy contact-form
         run: supabase functions deploy contact-form --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # Deletes taken-down and long-deleted pictures from storage; called by the nightly cleanup
+      # through pg_net with the sweep secret (migration 057), never by a person.
+      - name: Deploy purge-files
+        run: supabase functions deploy purge-files --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

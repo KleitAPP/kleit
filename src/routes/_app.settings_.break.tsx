@@ -22,7 +22,9 @@ import { t } from "@/i18n/en";
  * asks first, and the screen now says out loud that it signs you out everywhere.
  */
 export const Route = createFileRoute("/_app/settings_/break")({
-  head: () => ({ meta: [{ title: "Take a break" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Take a break" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: TakeABreak,
 });
 
@@ -70,7 +72,10 @@ function TakeABreak() {
       <p className="mt-3 text-base text-ink-soft">{t("break.signsYouOut")}</p>
 
       {failed ? (
-        <p role="alert" className="mt-6 rounded-sm border border-line bg-surface-2 px-4 py-3 text-base text-ink">
+        <p
+          role="alert"
+          className="mt-6 rounded-sm border border-line bg-surface-2 px-4 py-3 text-base text-ink"
+        >
           {t("break.failed")}
         </p>
       ) : null}

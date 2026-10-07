@@ -16,7 +16,9 @@ import { t } from "@/i18n/en";
  * M1.10 proper. An empty list is stated plainly rather than dressed up.
  */
 export const Route = createFileRoute("/_app/settings_/devices")({
-  head: () => ({ meta: [{ title: "Where you're signed in" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Where you're signed in" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: Devices,
 });
 

@@ -44,7 +44,11 @@ function Account() {
       <h1 className="font-display text-2xl text-ink">{t("account.title")}</h1>
       <dl className="mt-6 overflow-hidden rounded-md border border-line bg-surface">
         <Field label={t("account.email")} value={email ?? ""} />
-        <Field label={t("account.username")} value={username ? `@${username}` : ""} why={t("account.usernameRule")} />
+        <Field
+          label={t("account.username")}
+          value={username ? `@${username}` : ""}
+          why={t("account.usernameRule")}
+        />
         <Field label={t("account.phone")} value={t("account.phoneNone")} />
       </dl>
     </div>

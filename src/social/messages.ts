@@ -189,8 +189,9 @@ export async function acceptRequest(conversationId: string): Promise<boolean> {
 }
 
 /** Declining a request, or leaving: the conversation goes, for both. */
+/** Leaves the thread for you only; the rows stay for a report, and a new message brings it back. */
 export async function leave(conversationId: string): Promise<boolean> {
-  const { error } = await supabase.from("conversations").delete().eq("id", conversationId);
+  const { error } = await supabase.rpc("leave_conversation", { p_id: conversationId });
   return !error;
 }
 

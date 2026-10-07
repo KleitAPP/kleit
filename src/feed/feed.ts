@@ -52,4 +52,18 @@ export async function featuredFeed(offset: number): Promise<FeedSet[]> {
   return withPeople((data ?? []) as Record<string, unknown>[]);
 }
 
+export type Counts = { likes: number; comments: number; liked: boolean };
+
+/** One call for a page of cards (CL38). */
+export async function countsFor(ids: string[]): Promise<Map<string, Counts>> {
+  if (ids.length === 0) return new Map();
+  const { data } = await supabase.rpc("set_social_many", { p_ids: ids });
+  return new Map(
+    (data ?? []).map((r) => [
+      r.set_id,
+      { likes: Number(r.likes), comments: Number(r.comments), liked: r.my_like === true },
+    ]),
+  );
+}
+
 export const FEED_PAGE = PAGE;

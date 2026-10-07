@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(14);
+select plan(16);
 
 -- viewer follows "friend" and "noisy" (muted); "enemy" has blocked the viewer; "star" is a stranger.
 insert into auth.users (id, email) values
@@ -64,6 +64,11 @@ select ok(not exists (select 1 from feed_featured(0, 50) where visibility <> 'pu
 select is((select id from (select id, row_number() over () as n from feed_featured(0, 50)) f where id::text like 'fe000000-%' order by n limit 1), 'fe000000-0000-4000-8000-000000000006'::uuid, 'featured: this week''s most-loved set ranks above the unloved one');
 
 select ok(not exists (select 1 from feed_featured(0, 50) where id = 'fe000000-0000-4000-8000-000000000008'), 'featured: a set with no picture yet is not featured');
+
+-- The counts for a page of cards (042): the star's set has one like, not the viewer's; a set the
+-- viewer cannot open (the enemy's) counts nothing.
+select is((select likes from set_social_many(array['fe000000-0000-4000-8000-000000000006'::uuid, 'fe000000-0000-4000-8000-000000000005'::uuid]) where set_id = 'fe000000-0000-4000-8000-000000000006'), 1::bigint, 'viewer: the star''s set shows one like, and it is not mine');
+select is((select count(*)::int from set_social_many(array['fe000000-0000-4000-8000-000000000005'::uuid])), 0, 'viewer: a set across a block has no row at all');
 
 -- Nobody picks their own set.
 select throws_ok($$ update sets set featured_at = now() where id = 'fe000000-0000-4000-8000-000000000007' $$, 'P0001', null, 'viewer: cannot stamp featured_at on their own set');

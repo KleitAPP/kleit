@@ -19,6 +19,7 @@ export const en = {
 
   "set.by": "by @{username}",
   "set.like": "Like",
+  "set.unlike": "Unlike",
   "set.comment": "Comment",
   "set.save": "Save",
   "set.options": "More options",

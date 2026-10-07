@@ -12,6 +12,9 @@ export function SetCard({
   username,
   avatarSrc,
   caption,
+  likes,
+  comments,
+  liked = false,
   onOpen,
   onLike,
   onComment,
@@ -23,6 +26,9 @@ export function SetCard({
   username: string;
   avatarSrc?: string;
   caption?: string;
+  likes?: number;
+  comments?: number;
+  liked?: boolean;
   onOpen?: () => void;
   onLike?: () => void;
   onComment?: () => void;

@@ -5,7 +5,16 @@ import { EmptyState, SetCard, SetCardSkeleton, Tabs, type TabItem } from "@/comp
 import { t } from "@/i18n/en";
 import { previewUrl } from "@/search/search";
 
-import { FEED_PAGE, featuredFeed, followingFeed, type FeedSet } from "./feed";
+import { toggleLike } from "@/social/comments";
+
+import {
+  FEED_PAGE,
+  countsFor,
+  featuredFeed,
+  followingFeed,
+  type Counts,
+  type FeedSet,
+} from "./feed";
 
 /**
  * S11/S90 — the feed on Home (roadmap M6.2; decision 84): Following and Featured. Following
@@ -29,6 +38,12 @@ export function Feed() {
     featured: true,
   });
   const [busy, setBusy] = useState(false);
+  const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
+
+  async function addCounts(rows: FeedSet[]) {
+    const more = await countsFor(rows.map((r) => r.id));
+    setCounts((cur) => new Map([...cur, ...more]));
+  }
 
   // First load: both pages at once, then pick the tab that has something to show.
   useEffect(() => {
@@ -38,6 +53,7 @@ export function Feed() {
       if (cancelled) return;
       setFollowing(f);
       setFeatured(g);
+      void addCounts([...f, ...g]);
       setMore({ following: f.length === FEED_PAGE, featured: g.length === FEED_PAGE });
       setTab(f.length > 0 ? "following" : "featured");
     })();
@@ -54,10 +70,12 @@ export function Feed() {
         const last = following?.[following.length - 1]?.published_at ?? null;
         const next = await followingFeed(last);
         setFollowing((cur) => [...(cur ?? []), ...next]);
+        void addCounts(next);
         setMore((m) => ({ ...m, following: next.length === FEED_PAGE }));
       } else {
         const next = await featuredFeed(featured?.length ?? 0);
         setFeatured((cur) => [...(cur ?? []), ...next]);
+        void addCounts(next);
         setMore((m) => ({ ...m, featured: next.length === FEED_PAGE }));
       }
     } finally {
@@ -75,6 +93,18 @@ export function Feed() {
   }
   const rows = tab === "following" ? following : featured;
   const open = (id: string) => void navigate({ to: "/set/$setId", params: { setId: id } });
+  // Like in place: the heart flips at once, the row follows; if the row refuses, it flips back.
+  async function like(id: string) {
+    const cur = counts.get(id) ?? { likes: 0, comments: 0, liked: false };
+    const next = {
+      ...cur,
+      liked: !cur.liked,
+      likes: Math.max(0, cur.likes + (cur.liked ? -1 : 1)),
+    };
+    setCounts((m) => new Map(m).set(id, next));
+    const ok = await toggleLike(id, next.liked);
+    if (!ok) setCounts((m) => new Map(m).set(id, cur));
+  }
 
   return (
     <Tabs items={TABS} current={tab} onChange={setTab} label={t("feed.label")}>
@@ -101,8 +131,11 @@ export function Feed() {
                   {...(s.layout?.caption || s.title
                     ? { caption: s.layout?.caption || s.title }
                     : {})}
+                  likes={counts.get(s.id)?.likes ?? 0}
+                  comments={counts.get(s.id)?.comments ?? 0}
+                  liked={counts.get(s.id)?.liked ?? false}
                   onOpen={() => open(s.id)}
-                  onLike={() => open(s.id)}
+                  onLike={() => void like(s.id)}
                   onComment={() => open(s.id)}
                   onSave={() => open(s.id)}
                   onMore={() => open(s.id)}

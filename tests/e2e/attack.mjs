@@ -529,6 +529,69 @@ try {
     "attacker: the following feed has the public set, not the only-me one",
     feed1.error?.message,
   );
+
+  // Photos in messages (migration 059/060): the victim (followed by the attacker, so the message
+  // is not a request) sends one; the attacker may read the file only once the scan has cleared
+  // it, and a stranger with no session never can. The "file" is a tiny JPEG written with the
+  // service key; its row is deleted in `finally` with the victim's other items.
+  const photoPath = `${victim.id}/messages/attack-test-photo-ignore.jpg`;
+  const jpegBytes = Uint8Array.from(
+    atob(
+      "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
+    ),
+    (c) => c.charCodeAt(0),
+  );
+  await admin.storage
+    .from("closet-photos")
+    .upload(photoPath, jpegBytes, { contentType: "image/jpeg", upsert: true });
+  const { data: photoItem } = await admin
+    .from("items")
+    .insert({
+      owner_id: victim.id,
+      kind: "own",
+      title: "attack-test message photo (ignore)",
+      image_bucket: "closet-photos",
+      image_id: photoPath,
+    })
+    .select("id")
+    .single();
+  const sentPhoto = await victim.client.rpc("send_message", {
+    p_to: attacker.id,
+    p_body: "",
+    p_photo: photoItem?.id,
+  });
+  check(
+    !sentPhoto.error,
+    "victim: sends a photo with no words to a follower",
+    sentPhoto.error?.code,
+  );
+  const readUnscanned = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  check(
+    !readUnscanned.data?.signedUrl,
+    "attacker: cannot read the photo's file before the scan has cleared it",
+  );
+  await admin
+    .from("item_flags")
+    .upsert({ item_id: photoItem?.id, scan_state: "clean", scanned_at: new Date().toISOString() });
+  const readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  check(
+    !!readCleared.data?.signedUrl,
+    "attacker: can read it once the scan has cleared it",
+    readCleared.error?.message,
+  );
+  const readAnon = await anon.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  check(!readAnon.data?.signedUrl, "stranger: cannot read a message photo with no session");
+  const stolenPhoto = await a.rpc("send_message", {
+    p_to: victim.id,
+    p_body: "mine now",
+    p_photo: photoItem?.id,
+  });
+  check(
+    !!stolenPhoto.error,
+    "attacker: cannot send the victim's photo as their own",
+    stolenPhoto.error?.code,
+  );
+
   await a.from("mutes").insert({ muter_id: attacker.id, muted_id: victim.id });
   const feed2 = await a.rpc("feed_following", {});
   check(
@@ -620,6 +683,15 @@ try {
   // The victim is never left on a break by a run that stopped halfway.
   await admin.from("profiles").update({ deactivated_at: null }).eq("user_id", victim.id);
   const end = new Date().toISOString();
+  // The message photo and its file go every run (L29): the row by owner and title, the file by path.
+  await admin
+    .from("items")
+    .delete()
+    .eq("owner_id", victim.id)
+    .eq("title", "attack-test message photo (ignore)");
+  await admin.storage
+    .from("closet-photos")
+    .remove([`${victim.id}/messages/attack-test-photo-ignore.jpg`]);
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
   await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);

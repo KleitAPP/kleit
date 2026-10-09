@@ -97,6 +97,9 @@ Deno.serve(async (request) => {
   if (action === "probe" && isServer) return readPage(server, rawUrl, true);
   if (action === "save") {
     if (!me) return reply(401, { problem: "signed-out" });
+    // This function writes with the service key, so the database's refuse_if_banned triggers
+    // never see a person. Ask here, before anything is fetched or stored (CL50).
+    if (await isSuspended(server, me)) return reply(403, { problem: "suspended" });
     return saveClip(server, me, body);
   }
   return reply(400, { problem: "bad-request" });
@@ -117,6 +120,17 @@ async function canActAsServer(url: string, bearer: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Banned or suspended (both set profiles.banned_at). A failed read refuses: fail closed. */
+async function isSuspended(server: SupabaseClient, me: string): Promise<boolean> {
+  const { data, error } = await server
+    .from("profiles")
+    .select("banned_at")
+    .eq("user_id", me)
+    .maybeSingle();
+  if (error) return true;
+  return data?.banned_at != null;
 }
 
 async function optedOut(server: SupabaseClient, hostname: string): Promise<boolean> {

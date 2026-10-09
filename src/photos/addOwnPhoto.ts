@@ -66,7 +66,12 @@ export async function addOwnPhoto(photo: Blob | Prepared): Promise<AddResult> {
     })
     .select("id")
     .single();
-  if (saveError || !item) return { ok: false, problem: "save-failed" };
+  if (saveError || !item) {
+    // Never leave a file with no row (decision 103). Best effort: the owner may delete in their
+    // own folder, and a banned account's upload is refused by the bucket before it gets here.
+    await supabase.storage.from("closet-photos").remove([path]);
+    return { ok: false, problem: "save-failed" };
+  }
 
   // A photo of your own piece IS a closet piece. The closet is the row policy's business
   // (owner-only), so this insert can only ever land in the caller's own closet.

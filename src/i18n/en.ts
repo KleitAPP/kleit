@@ -988,6 +988,12 @@ export const en = {
   "item.backToCloset": "Back to your closet",
   "profile.closet": "Closet",
   "profile.myItems": "My items",
+  "profile.closetHint": "What you own",
+  "profile.drawerHint": "What you clipped",
+  "profile.foldersHint": "Sets you saved",
+  "profile.templatesHint": "Your layouts",
+  "profile.more": "More",
+  "profile.points": "Points",
 
   "home.placeholder": "You're signed in. The rest of Home arrives next.",
 

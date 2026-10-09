@@ -6,8 +6,25 @@ import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
 import { createQuickDraft, myDrafts, mySets, type SetSummary } from "@/sets/sets";
 import { isClosed, myPolls, type PollSummary } from "@/polls/polls";
-import { t } from "@/i18n/en";
+import { t, type MessageKey } from "@/i18n/en";
 import { myRoles } from "@/safety/moderation";
+import {
+  Archive,
+  ChevronRight,
+  Folder,
+  LayoutTemplate,
+  MessageCircleQuestion,
+  ShieldCheck,
+  Shirt,
+  SlidersHorizontal,
+  Star,
+  Tag,
+  Trophy,
+  Type,
+  UserPlus,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * S12 — Your profile (design pack W15).
@@ -29,6 +46,30 @@ const TABS: readonly TabItem<Tab>[] = [
   { id: "drafts", label: t("profile.drafts") },
   { id: "hidden", label: t("profile.hidden") },
   { id: "polls", label: t("profile.polls") },
+];
+
+type Shortcut = { to: string; label: MessageKey; hint?: MessageKey; Icon: LucideIcon };
+
+const BIG: readonly (Shortcut & { hint: MessageKey })[] = [
+  { to: "/you/closet", label: "profile.closet", hint: "profile.closetHint", Icon: Shirt },
+  { to: "/you/drawer", label: "profile.drawer", hint: "profile.drawerHint", Icon: Archive },
+  { to: "/you/collections", label: "profile.folders", hint: "profile.foldersHint", Icon: Folder },
+  {
+    to: "/you/templates",
+    label: "profile.templates",
+    hint: "profile.templatesHint",
+    Icon: LayoutTemplate,
+  },
+];
+
+const MORE: readonly Shortcut[] = [
+  { to: "/you/points", label: "profile.points", Icon: Star },
+  { to: "/contests", label: "contest.title", Icon: Trophy },
+  { to: "/asks", label: "ask.title", Icon: MessageCircleQuestion },
+  { to: "/groups", label: "profile.groups", Icon: Users },
+  { to: "/you/people", label: "profile.people", Icon: UserPlus },
+  { to: "/you/items", label: "profile.myItems", Icon: Tag },
+  { to: "/you/fonts", label: "profile.fonts", Icon: Type },
 ];
 
 type Me = { username: string; display_name: string; is_private: boolean; bio: string };
@@ -104,100 +145,71 @@ function YourProfile() {
         <span className="flex size-16 shrink-0 items-center justify-center rounded-pill bg-surface-2 text-ink">
           <KleitMark size={28} />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl text-ink">{name || t("tabs.you")}</h1>
           {me ? <p className="truncate text-base text-ink-soft">@{me.username}</p> : null}
           {me?.is_private ? (
             <p className="mt-1 text-sm text-ink-soft">{t("profile.private")}</p>
           ) : null}
         </div>
+        <Link
+          to="/settings"
+          aria-label={t("profile.settings")}
+          className="flex size-12 shrink-0 items-center justify-center rounded-pill border border-line bg-surface text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          <SlidersHorizontal className="size-5" aria-hidden="true" />
+        </Link>
       </div>
       {me?.bio?.trim() ? (
         <p className="mt-3 whitespace-pre-wrap text-base text-ink">{me.bio}</p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      {moderator ? (
         <Link
-          to="/you/closet"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          to="/mod"
+          className="mt-5 flex min-h-12 items-center gap-3 rounded-md border border-brand bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
         >
-          {t("profile.closet")}
+          <ShieldCheck className="size-5 shrink-0 text-brand" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate">{t("mod.title")}</span>
+          <ChevronRight className="size-5 shrink-0 text-ink-soft" aria-hidden="true" />
         </Link>
-        <Link
-          to="/you/drawer"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.drawer")}
-        </Link>
-        <Link
-          to="/you/items"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.myItems")}
-        </Link>
-        <Link
-          to="/you/collections"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.folders")}
-        </Link>
-        <Link
-          to="/asks"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("ask.title")}
-        </Link>
-        {moderator ? (
-          <Link
-            to="/mod"
-            className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-ink bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-          >
-            {t("mod.title")}
-          </Link>
-        ) : null}
-        <Link
-          to="/you/points"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("points.title")}
-        </Link>
-        <Link
-          to="/contests"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("contest.title")}
-        </Link>
-        <Link
-          to="/groups"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.groups")}
-        </Link>
-        <Link
-          to="/you/people"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.people")}
-        </Link>
-        <Link
-          to="/you/templates"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.templates")}
-        </Link>
-        <Link
-          to="/you/fonts"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.fonts")}
-        </Link>
-        <Link
-          to="/settings"
-          className="flex min-h-12 flex-1 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("profile.settings")}
-        </Link>
-      </div>
+      ) : null}
+
+      {/* The four places people go most, big; everything else on one row that scrolls sideways.
+          Every label is one line and never wraps (the owner's call, 2026-10-09: design C). */}
+      <ul className="mt-4 grid grid-cols-2 gap-3">
+        {BIG.map(({ to, label, hint, Icon }) => (
+          <li key={to} className="min-w-0">
+            <Link
+              to={to}
+              className="flex h-full flex-col gap-3 rounded-md border border-line bg-surface p-4 text-ink transition-colors duration-fast hover:bg-surface-2"
+            >
+              <Icon className="size-6 text-brand" aria-hidden="true" />
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-base font-semibold">{t(label)}</span>
+                <span className="truncate text-sm text-ink-soft">{t(hint)}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <h2 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink-soft">
+        {t("profile.more")}
+      </h2>
+      <ul className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1">
+        {MORE.map(({ to, label, Icon }) => (
+          <li key={to} className="shrink-0">
+            <Link
+              to={to}
+              className="flex min-h-12 items-center gap-2 whitespace-nowrap rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+            >
+              <Icon className="size-4" aria-hidden="true" />
+              {t(label)}
+            </Link>
+          </li>
+        ))}
+      </ul>
 
       <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.you")}>
         {tab === "sets" ? null : (

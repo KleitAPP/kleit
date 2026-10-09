@@ -1,3 +1,4 @@
+import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -44,13 +45,32 @@ export async function queue(): Promise<QueueItem[]> {
   return (data ?? []) as QueueItem[];
 }
 
-export async function moderate(reportId: string, action: Action, note: string): Promise<boolean> {
+/**
+ * Why a moderator action failed, in plain words for the screen - never silence (2026-10-09:
+ * the owner could not tell whether his taps had done anything).
+ */
+export function whyItFailed(error: { message?: string } | null): string | null {
+  if (!error) return null;
+  const m = error.message ?? "";
+  if (/already resolved|resolved report|no open|not_found/i.test(m)) return t("mod.err.done");
+  if (/staff are not/i.test(m)) return t("mod.err.staff");
+  if (/moderators only/i.test(m)) return t("mod.err.role");
+  if (/reason is required/i.test(m)) return t("mod.err.reason");
+  return t("mod.err.other");
+}
+
+/** Null when it worked; otherwise the sentence to show. */
+export async function moderate(
+  reportId: string,
+  action: Action,
+  note: string,
+): Promise<string | null> {
   const { error } = await supabase.rpc("moderate", {
     p_report: reportId,
     p_action: action,
     p_note: note,
   });
-  return !error;
+  return whyItFailed(error);
 }
 
 export async function myStrikes(): Promise<Strike[]> {

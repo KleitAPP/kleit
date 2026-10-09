@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
-import { myRoles } from "@/safety/moderation";
+import { myRoles, whyItFailed } from "@/safety/moderation";
 
 /**
  * Takedown requests for moderators (M7.4; spec 13.3 #3–#4): TAKE IT DOWN first (48 hours),
@@ -38,6 +38,7 @@ function Takedowns() {
   const [item, setItem] = useState<Record<string, string>>({});
   const [note, setNote] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [failure, setFailure] = useState<Record<string, string>>({});
 
   async function refresh() {
     const { data } = await supabase
@@ -67,7 +68,9 @@ function Takedowns() {
       ...(outcome === "removed" && guess ? { p_item: guess } : {}),
     });
     setBusy(null);
-    if (!error) await refresh();
+    const problem = whyItFailed(error);
+    setFailure({ ...failure, [r.id]: problem ?? "" });
+    if (!problem || problem === t("mod.err.done")) await refresh();
   }
 
   if (allowed === null) return <div className="mx-auto w-full max-w-xl px-4 pt-8" />;
@@ -159,6 +162,11 @@ function Takedowns() {
                     {t("takedowns.reject")}
                   </button>
                 </div>
+                {failure[r.id] ? (
+                  <p role="alert" className="mt-2 text-sm font-medium text-danger">
+                    {failure[r.id]}
+                  </p>
+                ) : null}
               </li>
             );
           })}

@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
-import { t } from "@/i18n/en";
+import { ChevronRight } from "lucide-react";
+
+import { t, type MessageKey } from "@/i18n/en";
 import {
   decideAppeal,
   moderate,
@@ -37,6 +39,7 @@ function ModQueue() {
   const [acting, setActing] = useState<{ item: QueueItem; action: Action } | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   async function refresh() {
     const [q, a] = await Promise.all([loadQueue(), openAppeals()]);
@@ -60,9 +63,10 @@ function ModQueue() {
   async function act() {
     if (!acting || busy) return;
     setBusy(true);
-    const ok = await moderate(acting.item.id, acting.action, note);
+    const problem = await moderate(acting.item.id, acting.action, note);
     setBusy(false);
-    if (ok) {
+    setFailure(problem);
+    if (!problem || problem === t("mod.err.done")) {
       setActing(null);
       setNote("");
       await refresh();
@@ -82,23 +86,29 @@ function ModQueue() {
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{t("mod.title")}</h1>
       <p className="mt-1 text-sm text-ink-soft">{t("mod.why")}</p>
-      <p className="mt-2 flex gap-4 text-sm">
-        <Link to="/mod/users" className="text-ink underline underline-offset-2">
-          {t("mod.users")}
-        </Link>
-        <Link to="/mod/switches" className="text-ink underline underline-offset-2">
-          {t("mod.switches")}
-        </Link>
-        <Link to="/mod/takedowns" className="text-ink underline underline-offset-2">
-          {t("mod.takedowns")}
-        </Link>
-        <Link to="/mod/contact" className="text-ink underline underline-offset-2">
-          {t("mod.contact")}
-        </Link>
-        <Link to="/mod/log" className="text-ink underline underline-offset-2">
-          {t("mod.log")}
-        </Link>
-      </p>
+      {/* The five other screens, as real rows - they were a line of small underlined words
+          that read as text on a phone (2026-10-09). */}
+      <h2 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink-soft">
+        {t("mod.tools")}
+      </h2>
+      <ul className="mt-2 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
+        {TOOLS.map(({ to, label, hint }) => (
+          <li key={to}>
+            <Link
+              to={to}
+              className="flex min-h-14 items-center gap-3 px-4 py-2 text-ink transition-colors duration-fast hover:bg-surface-2"
+            >
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-base font-medium">{t(label)}</span>
+                <span className="truncate text-sm text-ink-soft">{t(hint)}</span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-ink-soft" aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <h2 className="mt-6 font-display text-xl text-ink">{t("mod.queueTitle")}</h2>
 
       {items.length === 0 ? (
         <div className="mt-4">
@@ -107,7 +117,14 @@ function ModQueue() {
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {items.map((r) => (
-            <QueueRow key={r.id} r={r} onAct={(action) => setActing({ item: r, action })} />
+            <QueueRow
+              key={r.id}
+              r={r}
+              onAct={(action) => {
+                setFailure(null);
+                setActing({ item: r, action });
+              }}
+            />
           ))}
         </ul>
       )}
@@ -144,7 +161,12 @@ function ModQueue() {
 
       <Sheet
         open={acting !== null}
-        onOpenChange={(o) => !o && setActing(null)}
+        onOpenChange={(o) => {
+          if (!o) {
+            setActing(null);
+            setFailure(null);
+          }
+        }}
         title={acting ? t(`mod.confirm.${acting.action}`) : ""}
         {...(acting ? { description: t(`mod.confirmWhy.${acting.action}`) } : {})}
         action={
@@ -153,6 +175,11 @@ function ModQueue() {
           </PrimaryButton>
         }
       >
+        {failure ? (
+          <p role="alert" className="mb-3 text-sm font-medium text-danger">
+            {failure}
+          </p>
+        ) : null}
         <label className="block">
           <span className="text-sm text-ink-soft">{t("mod.note")}</span>
           <input
@@ -167,6 +194,14 @@ function ModQueue() {
     </div>
   );
 }
+
+const TOOLS: readonly { to: string; label: MessageKey; hint: MessageKey }[] = [
+  { to: "/mod/takedowns", label: "mod.takedowns", hint: "mod.toolsTakedowns" },
+  { to: "/mod/contact", label: "mod.contact", hint: "mod.toolsContact" },
+  { to: "/mod/users", label: "mod.users", hint: "mod.toolsUsers" },
+  { to: "/mod/switches", label: "mod.switches", hint: "mod.toolsSwitches" },
+  { to: "/mod/log", label: "mod.log", hint: "mod.toolsLog" },
+];
 
 function QueueRow({ r, onAct }: { r: QueueItem; onAct: (a: Action) => void }) {
   const [shown, setShown] = useState(false);

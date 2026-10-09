@@ -38,7 +38,7 @@ export function ItemCard({
     <button
       type="button"
       onClick={onSelect}
-      className="min-w-0 rounded-sm text-left transition-opacity duration-fast active:opacity-70"
+      className="block w-full min-w-0 rounded-sm text-left transition-opacity duration-fast active:opacity-70"
     >
       {body}
     </button>

@@ -144,7 +144,7 @@ function SearchTab() {
               ) : (
                 <ul className="grid grid-cols-2 gap-3">
                   {items.map((i) => (
-                    <li key={i.id}>
+                    <li key={i.id} className="min-w-0">
                       <ItemCard
                         imageSrc={i.url ?? ""}
                         imageAlt={i.title ?? ""}

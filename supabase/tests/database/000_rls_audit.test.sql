@@ -28,7 +28,8 @@ select is(
     where t.schemaname = 'public'
       and t.tablename not in (
         'blocked_identities', 'removed_image_fingerprints', 'age_confirmations',
-        'waitlist_emails', 'asset_licences', 'votes', 'reserved_usernames', 'click_totals', 'text_checks', 'push_queue'
+        'waitlist_emails', 'asset_licences', 'votes', 'reserved_usernames', 'click_totals', 'text_checks', 'push_queue',
+        'external_cleanups'
       )
       and not exists (select 1 from pg_policies p
                        where p.schemaname = 'public' and p.tablename = t.tablename)),

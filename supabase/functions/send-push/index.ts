@@ -8,6 +8,11 @@
  *
  * Behind the switch: with `push_open` off, or with no REST key in the environment, it claims
  * nothing and says so.
+ *
+ * One more job on the same visit (CL53; spec 3.7 #10): accounts made final overnight are
+ * forgotten at OneSignal too - `external_cleanups` holds their ids, and each is deleted by
+ * external_id. This runs whether or not the switch is on: a person who once said yes to push
+ * is at OneSignal even if the switch has since gone off.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -101,10 +106,11 @@ Deno.serve(async (request) => {
   if (!sameSecret(given, secret)) return Response.json({ problem: "not-allowed" }, { status: 401 });
 
   const server = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { data: sw } = await server.from("app_settings").select("value").eq("key", "push_open").maybeSingle();
-  if (sw?.value !== true) return Response.json({ skipped: "switch-off" });
   const key = Deno.env.get("ONESIGNAL_REST_API_KEY");
-  if (!key) return Response.json({ skipped: "no-key" });
+  const forgotten = key ? await forget(server, key) : 0;
+  const { data: sw } = await server.from("app_settings").select("value").eq("key", "push_open").maybeSingle();
+  if (sw?.value !== true) return Response.json({ forgotten, skipped: "switch-off" });
+  if (!key) return Response.json({ forgotten, skipped: "no-key" });
 
   const { data: due, error } = await server.rpc("claim_pushes", { p_limit: BATCH });
   if (error) return Response.json({ problem: "claim-failed" }, { status: 502 });
@@ -139,5 +145,37 @@ Deno.serve(async (request) => {
   if (sent.length) await server.rpc("mark_pushes", { p_ids: sent, p_state: "sent" });
   if (dropped.length) await server.rpc("mark_pushes", { p_ids: dropped, p_state: "dropped" });
   if (failed.length) await server.rpc("mark_pushes", { p_ids: failed, p_state: "failed" });
-  return Response.json({ claimed: rows.length, sent: sent.length, dropped: dropped.length, failed: failed.length });
+  return Response.json({ claimed: rows.length, sent: sent.length, dropped: dropped.length, failed: failed.length, forgotten });
 });
+
+type Cleanup = { id: number; user_id: string; service: string };
+
+/**
+ * Deleted accounts, forgotten at OneSignal: DELETE the user by our id. 202 is done; 404 is
+ * done too (never registered, or already gone); anything else is tried again next minute, ten
+ * times in all. Returns how many were forgotten this visit.
+ */
+// deno-lint-ignore no-explicit-any
+async function forget(server: any, key: string): Promise<number> {
+  const { data, error } = await server.rpc("claim_cleanups", { p_limit: 20 });
+  if (error || !data) return 0;
+  let done = 0;
+  for (const row of data as Cleanup[]) {
+    if (row.service !== "onesignal") continue;
+    try {
+      const response = await fetch(
+        `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${encodeURIComponent(row.user_id)}`,
+        { method: "DELETE", headers: { Authorization: `Key ${key}`, Accept: "application/json" } },
+      );
+      if (response.ok || response.status === 404) {
+        await server.rpc("mark_cleanup", { p_id: row.id });
+        done++;
+      } else {
+        console.error(`[send-push] forget ${row.id}: ${response.status}`);
+      }
+    } catch (problem) {
+      console.error(`[send-push] forget ${row.id}:`, problem instanceof Error ? problem.message : String(problem));
+    }
+  }
+  return done;
+}

@@ -1,0 +1,39 @@
+# Kleit — the iOS build on Codemagic's Macs (roadmap M8.1c, WA3: the owner's computer is Windows).
+# Free tier: 500 Mac minutes a month. This workflow compiles the iOS project with signing OFF, to
+# prove the project builds; TestFlight and signing (M8.1b) wait for the Apple Developer account.
+# To use it: a free Codemagic account on the Kleit GitHub (the owner's), add this repository,
+# start the "ios-unsigned" workflow. Nothing here needs a secret.
+workflows:
+  ios-unsigned:
+    name: iOS (unsigned compile)
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      node: 22
+    scripts:
+      - name: Install bun and the web app
+        script: |
+          curl -fsSL https://bun.sh/install | bash
+          export PATH="$HOME/.bun/bin:$PATH"
+          bun install --frozen-lockfile
+      - name: Build the web app and copy it into the iOS shell
+        script: |
+          export PATH="$HOME/.bun/bin:$PATH"
+          bun run build:native
+      - name: Compile for the simulator (no signing)
+        script: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -sdk iphonesimulator -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            -derivedDataPath build build | tail -40
+      - name: Read the app back
+        script: |
+          app=$(find build -name "App.app" -type d | head -1)
+          test -n "$app"
+          test -f "$app/PrivacyInfo.xcprivacy"
+          ls "$app/public/index.html"
+          echo "iOS app compiled: $app"
+    artifacts:
+      - build/Build/Products/**/*.app

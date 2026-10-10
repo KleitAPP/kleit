@@ -17,6 +17,8 @@ on:
       - "src/photos/**"
       - "scripts/check-photo-prepare.mjs"
       - "scripts/check-cutout.mjs"
+      - "src/offline/**"
+      - "scripts/check-offline.mjs"
       - "scripts/fixtures/**"
       - ".github/workflows/launch-gate.yml"
   schedule:
@@ -62,3 +64,7 @@ jobs:
       # never painted on. Same real browser, same real module (M2.6).
       - name: The cutout editor cuts, restores and undoes exactly
         run: node scripts/check-cutout.mjs
+      # The on-phone store for offline use: lists and pictures come back as they went in, edits
+      # queue in order, and a lost connection is told apart from a refusal (M8.5).
+      - name: The offline store keeps and replays in order
+        run: node scripts/check-offline.mjs

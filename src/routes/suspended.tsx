@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
 import { appeal as sendAppeal, myStrikes, type Strike } from "@/safety/moderation";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 
 /**
  * The suspended account's one screen (M7.2; spec 13.4 #3). Plain words, the strikes that led
@@ -78,7 +79,7 @@ function Suspended() {
       ) : null}
       <button
         type="button"
-        onClick={() => void supabase.auth.signOut().then(() => navigate({ to: "/welcome" }))}
+        onClick={() => void signOutEverywhereOnThisPhone().then(() => navigate({ to: "/welcome" }))}
         className="mt-8 min-h-12 rounded-pill border border-line bg-surface px-5 text-base text-ink"
       >
         {t("you.signOut")}

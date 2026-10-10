@@ -24,14 +24,46 @@ export type Landing = "signed-out" | "needs-username" | "ready" | "suspended" | 
 /** Same deadline idea as the launch check: never leave someone on a blank screen for ever. */
 const LOOKUP_TIMEOUT_MS = 4_000;
 
-/** Fails closed: anything we cannot read counts as nobody signed in. */
+/**
+ * Fails closed: anything we cannot read counts as nobody signed in - with one exception written
+ * for the phone with no signal (M8.5): a session that cannot be REFRESHED because the network is
+ * away is still the same person, so the id remembered from the last good sign-in stands in. The
+ * server refuses every write anyway until a real token is back, so this opens nothing.
+ */
+const LAST_SIGNED_IN = "kleit.lastSignedIn";
+
 async function whoIsSignedIn(): Promise<string | null> {
   try {
     const { data, error } = await supabase.auth.getSession();
+    const id = data.session?.user?.id ?? null;
+    if (!error && id) {
+      try {
+        localStorage.setItem(LAST_SIGNED_IN, id);
+      } catch {
+        // Storage refused: the offline stand-in is simply not available.
+      }
+      return id;
+    }
+    if (error && typeof navigator !== "undefined" && navigator.onLine === false) {
+      try {
+        return localStorage.getItem(LAST_SIGNED_IN);
+      } catch {
+        return null;
+      }
+    }
     if (error) return null;
-    return data.session?.user?.id ?? null;
+    return id;
   } catch {
     return null;
+  }
+}
+
+/** On sign-out the stand-in goes too. */
+export function forgetSignedIn(): void {
+  try {
+    localStorage.removeItem(LAST_SIGNED_IN);
+  } catch {
+    // Nothing to forget.
   }
 }
 

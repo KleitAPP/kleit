@@ -6,6 +6,8 @@
  * database is not already doing; the filters here are for shape, not for safety.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { isNetworkError, isOnline } from "@/offline/net";
+import { blobGet, blobPut, cacheGet, cachePut } from "@/offline/store";
 
 export type ScanState = "pending" | "clean" | "review" | "blocked";
 
@@ -28,13 +30,44 @@ const ITEM_FIELDS =
 
 /** Your closet: the pieces you own, newest first. Private by default; the row policy enforces it. */
 export async function myCloset(): Promise<ItemSummary[]> {
+  // Offline (M8.5): the last good copy. The pictures come from `cachedImageUrl` below.
+  if (!isOnline()) return (await cacheGet<ItemSummary[]>("closet"))?.value ?? [];
   const { data, error } = await supabase
     .from("closet_items")
     .select(`item:items(${ITEM_FIELDS})`)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (error && isNetworkError(error)) return (await cacheGet<ItemSummary[]>("closet"))?.value ?? [];
   if (error || !data) return [];
-  return data.flatMap((row) => (row.item ? [row.item as unknown as ItemSummary] : []));
+  const list = data.flatMap((row) => (row.item ? [row.item as unknown as ItemSummary] : []));
+  void cachePut("closet", list);
+  return list;
+}
+
+/** How many closet pictures are kept on the phone for offline use (the newest first). */
+export const OFFLINE_PICTURES = 60;
+
+/**
+ * A picture for the closet that works with no signal: online, the signed address as before,
+ * and the bytes are kept on the phone on the way past; offline, the kept bytes as an object
+ * URL, or null when this one was never kept. The caller revokes object URLs it no longer shows.
+ */
+export async function cachedImageUrl(
+  item: Pick<ItemSummary, "id" | "kind" | "image_id" | "image_bucket">,
+  keep: boolean,
+): Promise<string | null> {
+  if (!isOnline()) {
+    const blob = await blobGet(item.id);
+    return blob ? URL.createObjectURL(blob) : null;
+  }
+  const url = await imageUrlFor(item);
+  if (url && keep) {
+    void fetch(url)
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((blob) => (blob && blob.size > 0 ? blobPut(item.id, blob) : undefined))
+      .catch(() => undefined);
+  }
+  return url;
 }
 
 /** Your drawer: what you clipped, cut out, or picked up (decision 103). Newest first. */
@@ -70,8 +103,19 @@ export async function oneItem(id: string): Promise<ItemSummary | null> {
 export async function myScanStates(ids: string[]): Promise<Map<string, ScanState>> {
   const states = new Map<string, ScanState>();
   if (ids.length === 0) return states;
-  const { data } = await supabase.rpc("my_items_scan_states", { p_item_ids: ids });
+  // Offline (M8.5): the last answers, so a cleared piece is not shown as "Checking" for no reason.
+  const remembered = async () => {
+    const kept = (await cacheGet<Record<string, ScanState>>("scanStates"))?.value ?? {};
+    for (const id of ids) if (kept[id]) states.set(id, kept[id]);
+    return states;
+  };
+  if (!isOnline()) return remembered();
+  const { data, error } = await supabase.rpc("my_items_scan_states", { p_item_ids: ids });
+  if (error && isNetworkError(error)) return remembered();
   for (const row of data ?? []) states.set(row.item_id, row.scan_state as ScanState);
+  const kept = (await cacheGet<Record<string, ScanState>>("scanStates"))?.value ?? {};
+  for (const [id, state] of states) kept[id] = state;
+  void cachePut("scanStates", kept);
   return states;
 }
 

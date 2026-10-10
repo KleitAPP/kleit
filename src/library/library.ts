@@ -7,6 +7,8 @@
  * once, on first use, because nobody needs 190 KB of titles to open the app.
  */
 
+import { isNativeApp, siteUrl } from "@/lib/site";
+
 export type LibraryAsset = {
   /** A museum photograph, a picture drawn for Kleit, or a one-colour structural SVG the user recolours. */
   kind: "cutout" | "drawn" | "structural";
@@ -47,8 +49,16 @@ export function loadCatalogue(): Promise<Catalogue> {
   return loading;
 }
 
-/** The library's URL for a catalogue file (a decoration, a background, or a thumbnail). */
+/**
+ * The library's URL for a catalogue file (a decoration, a background, or a thumbnail).
+ *
+ * Inside the phone apps the drawn decorations, the backgrounds, the structural pieces and every
+ * thumbnail ship in the app, so the drawer works with no signal (M8.5; spec 20.2 #2). The museum
+ * photographs (`cutouts/`, 26 MB) do not: they come from the website on first use, which keeps
+ * the app a third of the size, and the drawer says so when the network is away.
+ */
 export function libraryUrl(file: string): string {
+  if (file.startsWith("cutouts/") && isNativeApp()) return siteUrl(`/library/${file}`);
   return `/library/${file}`;
 }
 

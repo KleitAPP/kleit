@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Chip, EmptyState, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { useOnline } from "@/offline/net";
 import {
   libraryUrl,
   loadCatalogue,
@@ -108,6 +109,7 @@ export function LibraryDrawer({
   }, [catalogue, mode, pack, query]);
 
   const showPacks = mode === "assets" ? !pack && !query.trim() : false;
+  const online = useOnline();
 
   return (
     <Sheet
@@ -115,6 +117,7 @@ export function LibraryDrawer({
       onOpenChange={onOpenChange}
       title={mode === "assets" ? t("library.title") : t("library.backgrounds")}
     >
+      {!online ? <p className="mb-3 text-sm text-ink-soft">{t("offline.museum")}</p> : null}
       {!catalogue ? (
         <div className="grid grid-cols-2 gap-3">
           {Array.from({ length: 6 }, (_, i) => (

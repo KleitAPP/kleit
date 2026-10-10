@@ -44,7 +44,11 @@ jobs:
           test -s "$apk"
           ls -l "$apk"
           unzip -l "$apk" | grep -q "assets/public/index.html" || { echo "the web app is not inside the APK"; exit 1; }
-          echo "APK ok: $(du -h "$apk" | cut -f1), web app inside"
+          # M8.5: the drawn decorations and thumbnails ship inside; the museum photographs do not.
+          unzip -l "$apk" | grep -q "assets/public/library/drawn/" || { echo "the drawn decorations are not inside the APK"; exit 1; }
+          unzip -l "$apk" | grep -q "assets/public/library/thumbs/" || { echo "the thumbnails are not inside the APK"; exit 1; }
+          if unzip -l "$apk" | grep -q "assets/public/library/cutouts/"; then echo "the museum photographs are inside the APK (they should come from the site)"; exit 1; fi
+          echo "APK ok: $(du -h "$apk" | cut -f1), web app inside, museum photographs left out"
       - uses: actions/upload-artifact@v4
         with:
           name: kleit-debug-apk

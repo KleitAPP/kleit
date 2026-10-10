@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "build:native": "vite build && cp .output/public/_shell.html .output/public/index.html && cap sync"
+    "build:native": "vite build && cp .output/public/_shell.html .output/public/index.html && rm -rf .output/public/library/cutouts && cap sync"
   },
   "overrides": {
     "rolldown": "1.2.1"

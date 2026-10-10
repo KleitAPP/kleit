@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 
 /**
  * The screen a sign-in lands on while a deletion is pending (spec 3.7 #2): the date it becomes
@@ -56,7 +57,9 @@ function Deleting() {
       <button
         type="button"
         onClick={() =>
-          void supabase.auth.signOut().then(() => navigate({ to: "/welcome", replace: true }))
+          void signOutEverywhereOnThisPhone().then(() =>
+            navigate({ to: "/welcome", replace: true }),
+          )
         }
         className="mt-3 min-h-12 rounded-pill border border-line bg-surface px-5 text-base text-ink"
       >

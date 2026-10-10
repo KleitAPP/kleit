@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 
 /**
  * S15 — Settings (design pack W16): a plain list, one level deep.
@@ -41,7 +42,9 @@ function Settings() {
       <button
         type="button"
         onClick={() => {
-          void supabase.auth.signOut().then(() => navigate({ to: "/welcome", replace: true }));
+          void signOutEverywhereOnThisPhone().then(() =>
+            navigate({ to: "/welcome", replace: true }),
+          );
         }}
         className="mt-6 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
       >

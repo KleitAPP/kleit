@@ -1005,6 +1005,15 @@ export const en = {
   "profile.closet": "Closet",
   "profile.myItems": "My items",
   "settings.notificationsWhy": "Pushes to your phone, and the quiet hours",
+  "offline.banner":
+    "You're offline. Your closet, your sets and the drawn decorations still open; museum pictures need a connection.",
+  "offline.withEdits":
+    "You're offline. {count} edits are saved on your phone and will go when you're back.",
+  "offline.withEdits.one":
+    "You're offline. 1 edit is saved on your phone and will go when you're back.",
+  "offline.sending": "Back online - sending {count} edits.",
+  "offline.sending.one": "Back online - sending 1 edit.",
+  "offline.museum": "Museum pictures need a connection; drawn ones work offline.",
   "notify.title": "Notifications",
   "notify.why": "A push to your phone when a friend votes, comments, follows or writes to you.",
   "notify.switch": "Push notifications",

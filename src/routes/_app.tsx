@@ -11,6 +11,8 @@ import { LaunchSplash } from "@/screens/LaunchGate";
 import { supabase } from "@/integrations/supabase/client";
 import { appSettingsQuery } from "@/app/appSettings";
 import { startPush } from "@/native/push";
+import { OfflineBanner } from "@/offline/OfflineBanner";
+import { watchOutbox } from "@/offline/outbox";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -84,6 +86,11 @@ function AppShell() {
     };
   }, [allowed, pushOpen, navigate]);
 
+  // Offline edits (M8.5): replay on start and whenever the network comes back.
+  useEffect(() => {
+    if (allowed === true) watchOutbox();
+  }, [allowed]);
+
   if (allowed !== true) return <LaunchSplash />;
 
   const current: TabId =
@@ -97,6 +104,7 @@ function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
+      <OfflineBanner />
       <main className="flex-1">
         <Outlet />
       </main>

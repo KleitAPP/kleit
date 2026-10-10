@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 
 /**
  * S24 — Delete account (spec 3.7; design pack G14). The one red line in Settings. Says plainly
@@ -107,7 +108,9 @@ function DeleteAccount() {
         <button
           type="button"
           onClick={() =>
-            void supabase.auth.signOut().then(() => navigate({ to: "/welcome", replace: true }))
+            void signOutEverywhereOnThisPhone().then(() =>
+              navigate({ to: "/welcome", replace: true }),
+            )
           }
           className="mt-6 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base text-ink"
         >

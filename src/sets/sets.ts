@@ -17,6 +17,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TemplateLayoutV2 } from "@/canvas/doc";
 import { allTemplates } from "@/templates/templates";
 import { type ItemSummary } from "@/items/items";
+import { isNetworkError, isOnline } from "@/offline/net";
+import { noteQueued } from "@/offline/outbox";
+import { cacheGet, cachePut, outboxAdd } from "@/offline/store";
 
 export type QuickLayout = {
   version: 1;
@@ -105,11 +108,20 @@ export async function createQuickDraft(): Promise<string | null> {
 export async function loadSet(
   id: string,
 ): Promise<{ set: SetSummary; placements: Placement[] } | null> {
-  const { data: set } = await supabase
+  // Offline (M8.5): the last good copy of this set, if there is one.
+  if (!isOnline())
+    return (
+      (await cacheGet<{ set: SetSummary; placements: Placement[] }>(`set:${id}`))?.value ?? null
+    );
+  const { data: set, error: setError } = await supabase
     .from("sets")
     .select("id, title, status, visibility, share_code, tags, layout, updated_at")
     .eq("id", id)
     .maybeSingle();
+  if (setError && isNetworkError(setError))
+    return (
+      (await cacheGet<{ set: SetSummary; placements: Placement[] }>(`set:${id}`))?.value ?? null
+    );
   if (!set) return null;
   const { data: rows } = await supabase
     .from("set_items")
@@ -135,7 +147,9 @@ export async function loadSet(
     background: raw?.background ?? DEFAULT_BACKGROUND,
     caption: raw?.caption ?? "",
   };
-  return { set: { ...(set as unknown as SetSummary), layout, creative }, placements };
+  const loaded = { set: { ...(set as unknown as SetSummary), layout, creative }, placements };
+  void cachePut(`set:${id}`, loaded);
+  return loaded;
 }
 
 /** Autosave: the server writes the set and a version together, and trims (migration 017). */
@@ -152,9 +166,26 @@ export async function saveLayoutResult(
   setId: string,
   layout: QuickLayout,
 ): Promise<"saved" | "refused" | "failed"> {
+  if (!isOnline()) return queueLayout(setId, layout);
   const { error } = await supabase.rpc("save_set_layout", { p_set_id: setId, p_layout: layout });
   if (!error) return "saved";
+  if (isNetworkError(error)) return queueLayout(setId, layout);
   return (error as { code?: string }).code === "P0006" ? "refused" : "failed";
+}
+
+/**
+ * Offline (M8.5): the save goes in the outbox and the cached copy is brought up to date, so the
+ * screen can say "Saved" truthfully - saved on the phone, and sent the moment the network is
+ * back (src/offline/outbox.ts). The server's rules apply then, exactly as they would have now.
+ */
+async function queueLayout(setId: string, layout: QuickLayout): Promise<"saved" | "failed"> {
+  const ok = await outboxAdd({ kind: "save_set_layout", setId, layout, at: Date.now() });
+  if (!ok) return "failed";
+  const cached = await cacheGet<{ set: SetSummary; placements: Placement[] }>(`set:${setId}`);
+  if (cached)
+    await cachePut(`set:${setId}`, { ...cached.value, set: { ...cached.value.set, layout } });
+  await noteQueued();
+  return "saved";
 }
 
 /** Last refusal seen by the creative autosave, so the canvas can say why (set by saveDiff). */
@@ -190,6 +221,11 @@ export function refreshPreview(setId: string): void {
 
 /** Put a piece in a slot, replacing whatever was there. */
 export async function placeItem(setId: string, slot: number, itemId: string): Promise<boolean> {
+  if (!isOnline()) {
+    const ok = await outboxAdd({ kind: "place_item", setId, slot, itemId, at: Date.now() });
+    if (ok) await noteQueued();
+    return ok;
+  }
   // One piece per slot: clear the slot first, then the piece may only sit in one slot.
   const { data: existing } = await supabase
     .from("set_items")
@@ -208,6 +244,11 @@ export async function placeItem(setId: string, slot: number, itemId: string): Pr
 }
 
 export async function clearSlot(setId: string, slot: number): Promise<boolean> {
+  if (!isOnline()) {
+    const ok = await outboxAdd({ kind: "clear_slot", setId, slot, at: Date.now() });
+    if (ok) await noteQueued();
+    return ok;
+  }
   const { data: existing } = await supabase
     .from("set_items")
     .select("id, position")
@@ -222,32 +263,40 @@ export async function clearSlot(setId: string, slot: number): Promise<boolean> {
 
 /** Your published sets, newest first (S12's Sets tab). */
 export async function mySets(): Promise<SetSummary[]> {
+  if (!isOnline()) return (await cacheGet<SetSummary[]>("sets"))?.value ?? [];
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;
   if (!me) return [];
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("sets")
     .select("id, title, status, visibility, share_code, layout, updated_at")
     .eq("owner_id", me)
     .eq("status", "published")
     .is("deleted_at", null)
     .order("published_at", { ascending: false });
-  return (data ?? []) as unknown as SetSummary[];
+  if (error && isNetworkError(error)) return (await cacheGet<SetSummary[]>("sets"))?.value ?? [];
+  const list = (data ?? []) as unknown as SetSummary[];
+  void cachePut("sets", list);
+  return list;
 }
 
 /** Your drafts, newest first (S12's Drafts tab). */
 export async function myDrafts(): Promise<SetSummary[]> {
+  if (!isOnline()) return (await cacheGet<SetSummary[]>("drafts"))?.value ?? [];
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;
   if (!me) return [];
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("sets")
     .select("id, title, status, visibility, share_code, layout, updated_at")
     .eq("owner_id", me)
     .eq("status", "draft")
     .is("deleted_at", null)
     .order("updated_at", { ascending: false });
-  return (data ?? []) as unknown as SetSummary[];
+  if (error && isNetworkError(error)) return (await cacheGet<SetSummary[]>("drafts"))?.value ?? [];
+  const list = (data ?? []) as unknown as SetSummary[];
+  void cachePut("drafts", list);
+  return list;
 }
 
 /** "Black boots + 3 more" - a title written for you (spec 5.1 #15). */

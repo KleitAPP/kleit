@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { EmptyState, ItemCardSkeleton } from "@/components/kleit";
 import { ItemTile } from "@/items/ItemTile";
 import {
-  imageUrlFor,
+  cachedImageUrl,
+  OFFLINE_PICTURES,
   myCloset,
   myScanStates,
   type ItemSummary,
@@ -40,9 +41,10 @@ function Closet() {
       const items = await myCloset();
       const states = await myScanStates(items.map((i) => i.id));
       const loaded = await Promise.all(
-        items.map(async (item) => ({
+        items.map(async (item, index) => ({
           item,
-          imageUrl: await imageUrlFor(item),
+          // The newest pictures are kept on the phone for offline use (M8.5).
+          imageUrl: await cachedImageUrl(item, index < OFFLINE_PICTURES),
           state: states.get(item.id) ?? "pending",
         })),
       );

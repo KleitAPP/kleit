@@ -14,7 +14,7 @@ import {
   followingFeed,
   type Counts,
   type FeedSet,
-} from "./feed";
+} from "./feedData";
 
 /**
  * S11/S90 — the feed on Home (roadmap M6.2; decision 84): Following and Featured. Following

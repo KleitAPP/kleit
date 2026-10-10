@@ -66,5 +66,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>So you can pick a picture of something you own and add it to your closet. Only the photos you choose leave your phone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>So you can take a picture of a piece right now. The camera is used only while you are taking the picture.</string>
 </dict>
 </plist>

@@ -20,6 +20,7 @@ import {
   type Message,
   type SendProblem,
 } from "@/social/messages";
+import { usePermissionPrimer } from "@/native/primers";
 
 /**
  * S71 — one conversation (M5.2). Text only. A request shows Accept / Decline to the person who
@@ -44,6 +45,7 @@ function ConversationScreen() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoFailed, setPhotoFailed] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const photos = usePermissionPrimer("photos", () => fileInput.current?.click());
   const [confirmLeave, setConfirmLeave] = useState(false);
   const bottom = useRef<HTMLLIElement>(null);
 
@@ -244,6 +246,7 @@ function ConversationScreen() {
           void submit();
         }}
       >
+        {photos.sheet}
         <input
           ref={fileInput}
           type="file"
@@ -258,7 +261,7 @@ function ConversationScreen() {
           <button
             type="button"
             disabled={photoBusy}
-            onClick={() => fileInput.current?.click()}
+            onClick={photos.ask}
             aria-label={t("dm.addPhoto")}
             title={t("dm.addPhoto")}
             className="min-h-12 rounded-pill border border-line bg-surface px-4 text-base text-ink disabled:opacity-40"

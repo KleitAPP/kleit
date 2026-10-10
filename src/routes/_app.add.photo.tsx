@@ -7,6 +7,7 @@ import { finishCutout, type Cutout } from "@/photos/cutout";
 import { prepareCanvas, type PrepareProblem } from "@/photos/prepare";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { usePermissionPrimer } from "@/native/primers";
 
 /**
  * S34/S36 (choose), S35 (cut it out) and S37 (checking) as one flow - add a photo of your own
@@ -59,6 +60,7 @@ const PROBLEM_WORDS: Record<AddProblem, string> = {
 function AddPhoto() {
   const navigate = useNavigate();
   const picker = useRef<HTMLInputElement>(null);
+  const photos = usePermissionPrimer("photos", () => picker.current?.click());
   const [stage, setStage] = useState<Stage>({ at: "choosing" });
   // Kept across the editor so "keep background" can still add the original file.
   const chosen = useRef<File | null>(null);
@@ -110,6 +112,7 @@ function AddPhoto() {
       {/* Said before the choice, not after it. */}
       <p className="mt-3 text-base text-ink-soft">{t("photo.privacy")}</p>
 
+      {photos.sheet}
       <input
         ref={picker}
         type="file"
@@ -186,7 +189,7 @@ function AddPhoto() {
             {t("photo.seeCloset")}
           </PrimaryButton>
         ) : stage.at === "editing" ? null : (
-          <PrimaryButton onClick={() => picker.current?.click()}>{t("photo.choose")}</PrimaryButton>
+          <PrimaryButton onClick={photos.ask}>{t("photo.choose")}</PrimaryButton>
         )}
       </div>
 
@@ -195,7 +198,7 @@ function AddPhoto() {
           type="button"
           onClick={() => {
             setStage({ at: "choosing" });
-            picker.current?.click();
+            photos.ask();
           }}
           className="mt-3 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
         >

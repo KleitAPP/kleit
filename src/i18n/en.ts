@@ -1002,6 +1002,22 @@ export const en = {
   "item.backToCloset": "Back to your closet",
   "profile.closet": "Closet",
   "profile.myItems": "My items",
+  "primer.continue": "Continue",
+  "primer.notNow": "Not now",
+  "primer.photos.title": "Kleit would like to see your photos",
+  "primer.photos.why": "So you can pick a picture of something you own and add it to your closet.",
+  "primer.photos.more":
+    "Only the photos you choose leave your phone, and the location is stripped from each one first. Nothing is uploaded on its own.",
+  "primer.camera.title": "Kleit would like to use your camera",
+  "primer.camera.why":
+    "So you can take a picture of a piece right now instead of finding it later.",
+  "primer.camera.more":
+    "The camera is used only while you are taking the picture, never in the background.",
+  "primer.notifications.title": "Kleit would like to send you notifications",
+  "primer.notifications.why":
+    "So you hear when a friend votes on your poll, comments, or sends you a set.",
+  "primer.notifications.more":
+    "Nothing between 10 pm and 8 am, and a busy hour arrives as one message. You can turn them off any time in Settings.",
   "profile.closetHint": "What you own",
   "profile.drawerHint": "What you clipped",
   "profile.foldersHint": "Sets you saved",

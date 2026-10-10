@@ -10,6 +10,9 @@
  *   5. Reset after several strokes is byte-identical to the start.
  *   6. Anything cut away finishes as a transparent PNG; the PNG really carries the hole.
  *   7. The photo itself is never painted on.
+ *   8. A starting mask from the phone (M8.3): the cutout begins from it, not from "keep all";
+ *      restore can bring back what the phone cut; Reset goes back to the phone's mask; and the
+ *      result is a transparent PNG even with no strokes.
  */
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -113,7 +116,36 @@ const result = await page.evaluate(async () => {
   // 7. The source was never painted on.
   const sourceUntouched = same(Array.from(g.getImageData(0, 0, 200, 100).data), sourceBytes);
 
+  // 8. The phone's cutout as the starting mask: the left half gone, the right half kept.
+  const base = document.createElement("canvas");
+  base.width = 200;
+  base.height = 100;
+  const bg = base.getContext("2d");
+  bg.fillStyle = "#000";
+  bg.fillRect(100, 0, 100, 100);
+  const withBase = K.startCutout(source, base);
+  const baseLeftGone = alphaAt(K.renderCutout(withBase), 50, 50);
+  const baseRightKept = alphaAt(K.renderCutout(withBase), 150, 50);
+  const baseNeedsPng = K.hasCutAnything(withBase) === true;
+  const baseFinishedType = (await K.finishCutout(withBase)).type;
+  K.addStroke(withBase, { brush: "restore", size: 30, points: [{ x: 50, y: 50 }] });
+  const baseRestored = alphaAt(K.renderCutout(withBase), 50, 50);
+  K.resetCutout(withBase);
+  const baseAfterReset = alphaAt(K.renderCutout(withBase), 50, 50);
+  // A mask of the wrong size is ignored, never stretched over the photo.
+  const wrong = document.createElement("canvas");
+  wrong.width = 10;
+  wrong.height = 10;
+  const wrongSizeIgnored = K.startCutout(source, wrong).base === null;
+
   return {
+    baseLeftGone,
+    baseRightKept,
+    baseNeedsPng,
+    baseFinishedType,
+    baseRestored,
+    baseAfterReset,
+    wrongSizeIgnored,
     untouchedIsPhoto,
     untouchedType,
     erasedCentre,
@@ -154,6 +186,17 @@ const checks = [
     result.pngHoleAlpha === 0 && result.pngKeptAlpha === 255,
   ],
   ["the photo itself is never painted on", result.sourceUntouched === true],
+  [
+    "the phone's mask is the starting point: its cut is gone, its kept part is kept",
+    result.baseLeftGone === 0 && result.baseRightKept === 255,
+  ],
+  [
+    "a phone cutout finishes as a transparent PNG even with no strokes",
+    result.baseNeedsPng === true && result.baseFinishedType === "image/png",
+  ],
+  ["restore brings back what the phone cut", result.baseRestored === 255],
+  ["reset goes back to the phone's mask, not to the whole photo", result.baseAfterReset === 0],
+  ["a mask of the wrong size is ignored", result.wrongSizeIgnored === true],
 ];
 
 let failed = 0;

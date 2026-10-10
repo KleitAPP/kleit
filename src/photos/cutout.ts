@@ -32,14 +32,32 @@ export type Cutout = {
   strokes: Stroke[];
   width: number;
   height: number;
+  /**
+   * The mask the strokes are painted over: the phone's own cutout (M8.3), or nothing, which
+   * means "keep all". Reset goes back to this, not to a blank photo.
+   */
+  base: HTMLCanvasElement | null;
 };
 
-/** A mask with everything kept: the starting point on the web. */
-export function startCutout(source: HTMLCanvasElement): Cutout {
+/**
+ * The starting point: everything kept (the web), or the phone's own cutout as the first mask
+ * (`base`, the same size as the source) with the brushes to fix it.
+ */
+export function startCutout(
+  source: HTMLCanvasElement,
+  base: HTMLCanvasElement | null = null,
+): Cutout {
   const mask = document.createElement("canvas");
   mask.width = source.width;
   mask.height = source.height;
-  const cutout: Cutout = { source, mask, strokes: [], width: source.width, height: source.height };
+  const cutout: Cutout = {
+    source,
+    mask,
+    strokes: [],
+    width: source.width,
+    height: source.height,
+    base: base && base.width === source.width && base.height === source.height ? base : null,
+  };
   redrawMask(cutout);
   return cutout;
 }
@@ -81,9 +99,9 @@ export function renderCutout(cutout: Cutout, onto?: HTMLCanvasElement): HTMLCanv
   return canvas;
 }
 
-/** True if any stroke has taken anything away - i.e. the result needs transparency. */
+/** True if anything has been taken away - i.e. the result needs transparency. */
 export function hasCutAnything(cutout: Cutout): boolean {
-  return cutout.strokes.some((s) => s.brush === "erase");
+  return cutout.base !== null || cutout.strokes.some((s) => s.brush === "erase");
 }
 
 /**
@@ -108,8 +126,13 @@ export async function finishCutout(
 function redrawMask(cutout: Cutout): void {
   const g = must(cutout.mask.getContext("2d"));
   g.globalCompositeOperation = "source-over";
-  g.fillStyle = "#000";
-  g.fillRect(0, 0, cutout.mask.width, cutout.mask.height);
+  g.clearRect(0, 0, cutout.mask.width, cutout.mask.height);
+  if (cutout.base) {
+    g.drawImage(cutout.base, 0, 0);
+  } else {
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, cutout.mask.width, cutout.mask.height);
+  }
   for (const stroke of cutout.strokes) paintStroke(cutout.mask, stroke);
 }
 

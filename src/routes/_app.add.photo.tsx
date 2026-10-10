@@ -7,6 +7,7 @@ import { finishCutout, type Cutout } from "@/photos/cutout";
 import { prepareCanvas, type PrepareProblem } from "@/photos/prepare";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { nativeMask } from "@/native/cutout";
 import { usePermissionPrimer } from "@/native/primers";
 
 /**
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/_app/add/photo")({
 type Stage =
   | { at: "choosing" }
   | { at: "chosen"; file: File; preview: string }
-  | { at: "editing"; source: HTMLCanvasElement }
+  | { at: "editing"; source: HTMLCanvasElement; base: HTMLCanvasElement | null }
   | { at: "working" }
   | { at: "done"; state: "clean" | "review" | "blocked" | "checking" }
   | { at: "failed"; problem: AddProblem };
@@ -87,7 +88,11 @@ function AddPhoto() {
       setStage({ at: "failed", problem: prepared.problem satisfies PrepareProblem });
       return;
     }
-    setStage({ at: "editing", source: prepared.canvas });
+    // On the phone the system's cutout goes first (M8.3) and the brushes fix it; on the web, or
+    // when the phone cannot, this is null and the eraser starts from "keep all" as before.
+    setStage({ at: "working" });
+    const base = await nativeMask(prepared.canvas);
+    setStage({ at: "editing", source: prepared.canvas, base });
   }
 
   async function finishEditing(cutout: Cutout) {
@@ -137,6 +142,7 @@ function AddPhoto() {
       {stage.at === "editing" ? (
         <CutoutEditor
           source={stage.source}
+          base={stage.base}
           onDone={(cutout) => void finishEditing(cutout)}
           onKeepBackground={() => {
             const file = chosen.current;

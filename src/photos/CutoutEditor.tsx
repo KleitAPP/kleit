@@ -27,10 +27,13 @@ import { t } from "@/i18n/en";
  */
 export function CutoutEditor({
   source,
+  base = null,
   onDone,
   onKeepBackground,
 }: {
   source: HTMLCanvasElement;
+  /** The phone's own cutout as the first mask (M8.3), or nothing. */
+  base?: HTMLCanvasElement | null;
   onDone: (cutout: Cutout) => void;
   /** The person decided to keep the photo as it is. */
   onKeepBackground: () => void;
@@ -44,11 +47,11 @@ export function CutoutEditor({
 
   // Start (or restart) from the given source.
   useEffect(() => {
-    const cutout = startCutout(source);
+    const cutout = startCutout(source, base);
     cutoutRef.current = cutout;
     setStrokes(0);
     if (view.current) renderCutout(cutout, view.current);
-  }, [source]);
+  }, [source, base]);
 
   function repaint() {
     const cutout = cutoutRef.current;

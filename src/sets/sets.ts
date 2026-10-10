@@ -345,17 +345,14 @@ export async function restoreSet(setId: string): Promise<boolean> {
 }
 
 /**
- * Delete now: gone for good. The delete policy answers only for the owner's own sets that are
- * already in the bin, so a live set cannot be destroyed by a stray call - it has to be deleted
- * first, and that is the step with the warning.
+ * Delete now: gone for good. The server function answers only for the owner's own sets that
+ * are already in the bin, so a live set cannot be destroyed by a stray call - it has to be
+ * deleted first, and that is the step with the warning. (The table itself never takes a delete
+ * from a member; migration 075.)
  */
 export async function eraseSet(setId: string): Promise<boolean> {
-  const { error, count } = await supabase
-    .from("sets")
-    .delete({ count: "exact" })
-    .eq("id", setId)
-    .not("deleted_at", "is", null);
-  return !error && (count ?? 0) > 0;
+  const { data, error } = await supabase.rpc("erase_set", { p_set_id: setId });
+  return !error && data === true;
 }
 
 /** "Black boots + 3 more" - a title written for you (spec 5.1 #15). */

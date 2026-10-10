@@ -2283,6 +2283,7 @@ export type Database = {
         Returns: number
       }
       erase_closet_item: { Args: { p_item_id: string }; Returns: undefined }
+      erase_set: { Args: { p_set_id: string }; Returns: boolean }
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {

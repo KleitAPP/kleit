@@ -1,10 +1,10 @@
--- Tests for migration 074 (Recently deleted, S26): a set in the bin can be destroyed by its owner
--- and nobody else; a closet piece leaves, comes back, or goes for good through the four
+-- Tests for migrations 074 and 075 (Recently deleted, S26): a set in the bin can be destroyed by
+-- its owner and nobody else; a closet piece leaves, comes back, or goes for good through the four
 -- functions, and the two rows it lives in always agree.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(21);
+select plan(25);
 
 insert into auth.users (id, email) values
   ('cdcdcdcd-0000-4000-8000-000000000001', 'bin-owner@test.kleit'),
@@ -83,20 +83,21 @@ select throws_ok($$ select restore_closet_item('cd000000-0000-4000-8000-00000000
 -- ---------------- someone else ----------------
 select pg_temp.act_as('cdcdcdcd-0000-4000-8000-000000000002');
 select throws_ok($$ select delete_closet_item('cd000000-0000-4000-8000-000000000011', true) $$, 'P0002', null, 'other: cannot touch a piece that is not in their closet');
-delete from sets where id = 'cd000000-0000-4000-8000-000000000001';
+select ok(not erase_set('cd000000-0000-4000-8000-000000000001'), 'other: Delete now on a set in someone else''s bin does nothing');
 reset role;
 select set_config('request.jwt.claims', '', true);
-select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000001'), 1, 'other: cannot empty someone else''s bin');
+select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000001'), 1, 'other: the set is still there');
 
 -- ---------------- sets, as the owner ----------------
 select pg_temp.act_as('cdcdcdcd-0000-4000-8000-000000000001');
-delete from sets where id = 'cd000000-0000-4000-8000-000000000002';
-delete from sets where id = 'cd000000-0000-4000-8000-000000000001';
+select ok(not erase_set('cd000000-0000-4000-8000-000000000002'), 'owner: a live set cannot be destroyed - it has to go through the bin');
+select ok(erase_set('cd000000-0000-4000-8000-000000000001'), 'owner: Delete now on a set in the bin destroys it');
+select throws_ok($$ delete from sets where id = 'cd000000-0000-4000-8000-000000000003' $$, '42501', null, 'owner: the table itself never takes a delete from a member');
 update sets set deleted_at = null where id = 'cd000000-0000-4000-8000-000000000003';
 reset role;
 select set_config('request.jwt.claims', '', true);
-select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000002'), 1, 'owner: a live set cannot be destroyed - it has to go through the bin');
-select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000001'), 0, 'owner: Delete now on a set in the bin destroys it');
+select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000002'), 1, 'owner: the live set is still there');
+select is((select count(*)::int from sets where id = 'cd000000-0000-4000-8000-000000000001'), 0, 'owner: the destroyed set is gone');
 select ok((select deleted_at is null from sets where id = 'cd000000-0000-4000-8000-000000000003'), 'owner: Restore brings a set back from the bin');
 
 select * from finish();

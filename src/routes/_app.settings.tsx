@@ -37,6 +37,7 @@ function Settings() {
         <Row to="/settings/reports" title={t("settings.reports")} why={t("settings.reportsWhy")} />
         <Row to="/settings/strikes" title={t("settings.strikes")} why={t("settings.strikesWhy")} />
         <Row to="/settings/muted" title={t("settings.muted")} why={t("settings.mutedWhy")} />
+        <Row to="/settings/export" title={t("settings.export")} why={t("settings.exportWhy")} />
       </ul>
 
       <button

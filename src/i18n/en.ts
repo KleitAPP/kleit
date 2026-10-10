@@ -1014,6 +1014,28 @@ export const en = {
   "offline.sending": "Back online - sending {count} edits.",
   "offline.sending.one": "Back online - sending 1 edit.",
   "offline.museum": "Museum pictures need a connection; drawn ones work offline.",
+  "settings.export": "Download my data",
+  "settings.exportWhy": "A ZIP of everything we hold about you",
+  "exportData.title": "Download my data",
+  "exportData.why": "Everything Kleit holds about you, as one ZIP file you can open anywhere.",
+  "exportData.whatSets": "Your profile, sets, folders and templates",
+  "exportData.whatPhotos":
+    "The photos you added to your closet, and the source links of pieces you clipped",
+  "exportData.whatSocial": "Comments, likes, follows, blocks, points and badges",
+  "exportData.whatMessages": "Your conversations, polls, reports and notifications",
+  "exportData.notVotes":
+    "Votes on your polls are included as totals, never one by one - the same as in the app.",
+  "exportData.request": "Make my file",
+  "exportData.making": "Making your file…",
+  "exportData.ready": "Your file is ready.",
+  "exportData.readyAgain": "Here's the file made earlier today. A new one can be made tomorrow.",
+  "exportData.download": "Download the ZIP",
+  "exportData.expires": "The link works for 7 days and only for you.",
+  "exportData.skipped":
+    "{count} photos were over the size limit for one file and are still in your closet.",
+  "exportData.skipped.one":
+    "1 photo was over the size limit for one file and is still in your closet.",
+  "exportData.failed": "That didn't work. Check your connection and try again.",
   "notify.title": "Notifications",
   "notify.why": "A push to your phone when a friend votes, comments, follows or writes to you.",
   "notify.switch": "Push notifications",

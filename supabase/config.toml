@@ -126,3 +126,12 @@ verify_jwt = false
 # screen-text is called by the database (pg_net) with the sweep secret: no token at the gateway.
 [functions.screen-text]
 verify_jwt = false
+
+# send-push is called by the database (pg_net) with the sweep secret: no token at the gateway.
+[functions.send-push]
+verify_jwt = false
+
+# export-data is called by the signed-in person (Settings > Download my data): the gateway checks
+# the token, and the function reads every row as that person.
+[functions.export-data]
+verify_jwt = true

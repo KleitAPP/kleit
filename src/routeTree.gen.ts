@@ -52,6 +52,7 @@ import { Route as AppSettingsBlockedRouteImport } from './routes/_app.settings_.
 import { Route as AppSettingsBreakRouteImport } from './routes/_app.settings_.break'
 import { Route as AppSettingsDeleteRouteImport } from './routes/_app.settings_.delete'
 import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings_.devices'
+import { Route as AppSettingsExportRouteImport } from './routes/_app.settings_.export'
 import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings_.legal'
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings_.library'
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings_.muted'
@@ -294,6 +295,11 @@ const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
   path: '/settings/devices',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsExportRoute = AppSettingsExportRouteImport.update({
+  id: '/settings_/export',
+  path: '/settings/export',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsLegalRoute = AppSettingsLegalRouteImport.update({
   id: '/settings_/legal',
   path: '/settings/legal',
@@ -470,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/delete': typeof AppSettingsDeleteRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/export': typeof AppSettingsExportRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
@@ -540,6 +547,7 @@ export interface FileRoutesByTo {
   '/settings/break': typeof AppSettingsBreakRoute
   '/settings/delete': typeof AppSettingsDeleteRoute
   '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/export': typeof AppSettingsExportRoute
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
@@ -612,6 +620,7 @@ export interface FileRoutesById {
   '/_app/settings_/break': typeof AppSettingsBreakRoute
   '/_app/settings_/delete': typeof AppSettingsDeleteRoute
   '/_app/settings_/devices': typeof AppSettingsDevicesRoute
+  '/_app/settings_/export': typeof AppSettingsExportRoute
   '/_app/settings_/legal': typeof AppSettingsLegalRoute
   '/_app/settings_/library': typeof AppSettingsLibraryRoute
   '/_app/settings_/muted': typeof AppSettingsMutedRoute
@@ -684,6 +693,7 @@ export interface FileRouteTypes {
     | '/settings/break'
     | '/settings/delete'
     | '/settings/devices'
+    | '/settings/export'
     | '/settings/legal'
     | '/settings/library'
     | '/settings/muted'
@@ -754,6 +764,7 @@ export interface FileRouteTypes {
     | '/settings/break'
     | '/settings/delete'
     | '/settings/devices'
+    | '/settings/export'
     | '/settings/legal'
     | '/settings/library'
     | '/settings/muted'
@@ -825,6 +836,7 @@ export interface FileRouteTypes {
     | '/_app/settings_/break'
     | '/_app/settings_/delete'
     | '/_app/settings_/devices'
+    | '/_app/settings_/export'
     | '/_app/settings_/legal'
     | '/_app/settings_/library'
     | '/_app/settings_/muted'
@@ -1173,6 +1185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsDevicesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings_/export': {
+      id: '/_app/settings_/export'
+      path: '/settings/export'
+      fullPath: '/settings/export'
+      preLoaderRoute: typeof AppSettingsExportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings_/legal': {
       id: '/_app/settings_/legal'
       path: '/settings/legal'
@@ -1387,6 +1406,7 @@ interface AppRouteChildren {
   AppSettingsBreakRoute: typeof AppSettingsBreakRoute
   AppSettingsDeleteRoute: typeof AppSettingsDeleteRoute
   AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
+  AppSettingsExportRoute: typeof AppSettingsExportRoute
   AppSettingsLegalRoute: typeof AppSettingsLegalRoute
   AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
   AppSettingsMutedRoute: typeof AppSettingsMutedRoute
@@ -1444,6 +1464,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsBreakRoute: AppSettingsBreakRoute,
   AppSettingsDeleteRoute: AppSettingsDeleteRoute,
   AppSettingsDevicesRoute: AppSettingsDevicesRoute,
+  AppSettingsExportRoute: AppSettingsExportRoute,
   AppSettingsLegalRoute: AppSettingsLegalRoute,
   AppSettingsLibraryRoute: AppSettingsLibraryRoute,
   AppSettingsMutedRoute: AppSettingsMutedRoute,

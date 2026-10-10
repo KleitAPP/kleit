@@ -339,6 +339,39 @@ try {
     "owner: results show the guest's vote as a total",
   );
   await guest.close();
+
+  // 9. Download my data (S25): the ZIP is made for this account, the link opens, and the file is
+  //    a real ZIP that carries the profile and the sets built above.
+  const exportAnswer = await fetch(`${URL_}/functions/v1/export-data`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: ANON,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+  });
+  const exported = exportAnswer.ok ? await exportAnswer.json() : null;
+  check(
+    !!exported?.url,
+    "download my data: the server made the file",
+    `http ${exportAnswer.status}`,
+  );
+  if (exported?.url) {
+    const zipAnswer = await fetch(exported.url);
+    const zipBytes = new Uint8Array(await zipAnswer.arrayBuffer());
+    const isZip = zipBytes[0] === 0x50 && zipBytes[1] === 0x4b;
+    const text = new TextDecoder("latin1").decode(zipBytes);
+    check(
+      zipAnswer.ok && isZip && zipBytes.length > 200,
+      "download my data: the link opens a real ZIP",
+      `${zipBytes.length} bytes`,
+    );
+    check(
+      /profile\.json/.test(text) && /sets\.json/.test(text) && /README\.txt/.test(text),
+      "download my data: the ZIP carries profile.json, sets.json and a README",
+    );
+  }
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

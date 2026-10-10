@@ -2,12 +2,22 @@
 # Free tier: 500 Mac minutes a month. This workflow compiles the iOS project with signing OFF, to
 # prove the project builds; TestFlight and signing (M8.1b) wait for the Apple Developer account.
 # To use it: a free Codemagic account on the Kleit GitHub (the owner's), add this repository,
-# start the "ios-unsigned" workflow. Nothing here needs a secret.
+# start the "ios-unsigned" workflow - or push the `ios` branch: a push there starts it by itself
+# (only that branch, so the 500 minutes are not spent on every push to main). Nothing here needs
+# a secret.
 workflows:
   ios-unsigned:
     name: iOS (unsigned compile)
     max_build_duration: 30
     instance_type: mac_mini_m2
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: ios
+          include: true
+          source: true
+      cancel_previous_builds: true
     environment:
       xcode: latest
       node: 22

@@ -7,6 +7,7 @@ import { refreshPreview, autoTitle, loadSet, type Placement, type SetSummary } f
 import { t } from "@/i18n/en";
 import { parseTags } from "@/search/search";
 import { siteUrl } from "@/lib/site";
+import { noteSetSent } from "@/native/review";
 
 /**
  * S46 Publish and S47 Send, as one screen (design pack W10, W11; spec 5.2, 7.1; decision 5).
@@ -134,6 +135,7 @@ function SendSet() {
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ title: text, url: link });
+        void noteSetSent(); // S107: the third set sent may ask for a rating, once, on a phone
         return;
       }
     } catch {
@@ -147,6 +149,7 @@ function SendSet() {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
+      void noteSetSent();
     } catch {
       setProblem(t("send.copyFailed"));
     }

@@ -35,6 +35,8 @@ select throws_ok($$ insert into push_settings (user_id, enabled) values ('ababab
 select throws_ok($$ select count(*) from push_queue $$, '42501', null, 'owner: cannot read the outbox');
 select throws_ok($$ select * from claim_pushes(5) $$, '42501', null, 'owner: cannot claim from it');
 reset role;
+-- act_as leaves the claims behind for the transaction; the rest of this file is the server.
+select set_config('request.jwt.claims', '', true);
 insert into push_settings (user_id, enabled, timezone) values ('abababab-0000-4000-8000-000000000003', true, 'Not/AZone');
 select is((select timezone from push_settings where user_id = 'abababab-0000-4000-8000-000000000003'), 'UTC', 'an unknown time zone becomes UTC');
 insert into push_settings (user_id, enabled, timezone) values ('abababab-0000-4000-8000-000000000004', true, 'UTC');

@@ -372,6 +372,57 @@ try {
       "download my data: the ZIP carries profile.json, sets.json and a README",
     );
   }
+
+  // 10. Recently deleted (S26): delete the second set from its own page, find it in the bin,
+  //     bring it back, then delete one set for good from the bin.
+  await page.goto(`${SITE}/set/${second.setId}`);
+  await page.getByRole("button", { name: "More options" }).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("button", { name: "Delete the set" }).click();
+  await page.waitForURL(/\/you$/);
+  await page.goto(`${SITE}/you/deleted`);
+  const restoreButtons = page.getByRole("button", { name: "Restore" });
+  await restoreButtons.first().waitFor();
+  const inBin = await restoreButtons.count();
+  const binText = await page.innerText("body");
+  check(
+    inBin >= 1 && /days left|Goes tonight/.test(binText),
+    "recently deleted: the deleted set is in the bin with its days left",
+    `${inBin} in the bin`,
+  );
+  // The newest deletion is first: that is the set just deleted.
+  await restoreButtons.first().click();
+  await page.getByText("Restored. It's back with your sets.").waitFor();
+  const { data: restoredRow } = await admin
+    .from("sets")
+    .select("deleted_at")
+    .eq("id", second.setId)
+    .maybeSingle();
+  check(
+    restoredRow?.deleted_at === null && (await restoreButtons.count()) === inBin - 1,
+    "recently deleted: Restore puts the set back",
+  );
+  if (inBin >= 2) {
+    const { data: binRows } = await admin
+      .from("sets")
+      .select("id")
+      .eq("owner_id", user.id)
+      .not("deleted_at", "is", null);
+    const before = binRows?.length ?? 0;
+    await page.getByRole("button", { name: "Delete now" }).first().click();
+    await page.getByRole("button", { name: "Delete for good" }).click();
+    await wait(1500);
+    const { data: binAfter } = await admin
+      .from("sets")
+      .select("id")
+      .eq("owner_id", user.id)
+      .not("deleted_at", "is", null);
+    check(
+      (binAfter?.length ?? 0) === before - 1 && (await restoreButtons.count()) === inBin - 2,
+      "recently deleted: Delete now destroys the set for good",
+      `${before} → ${binAfter?.length ?? 0} in the bin`,
+    );
+  }
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

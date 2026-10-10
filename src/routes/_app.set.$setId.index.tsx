@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { buyUrlFor, imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
 import {
   autoTitle,
+  deleteSet,
   loadSet,
   templates,
   type Placement,
@@ -154,12 +155,10 @@ function SetPage() {
 
   async function remove() {
     if (!set) return;
-    const { error } = await supabase
-      .from("sets")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", set.id);
+    // Into Recently deleted for 30 days (S26); the chat picture comes down with it.
+    const ok = await deleteSet(set.id);
     setConfirm(null);
-    if (error) {
+    if (!ok) {
       setNotice(t("setpage.deleteFailed"));
       return;
     }

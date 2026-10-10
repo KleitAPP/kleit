@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { EmptyState, ItemCardSkeleton } from "@/components/kleit";
@@ -86,6 +86,13 @@ function Closet() {
           ))}
         </ul>
       )}
+
+      <Link
+        to="/you/deleted"
+        className="mt-6 flex min-h-12 items-center text-sm font-medium text-ink-soft transition-colors duration-fast hover:text-ink"
+      >
+        {t("closet.bin")}
+      </Link>
     </div>
   );
 }

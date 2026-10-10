@@ -65,6 +65,7 @@ import { Route as AppTagTagRouteImport } from './routes/_app.tag.$tag'
 import { Route as AppUUsernameRouteImport } from './routes/_app.u.$username'
 import { Route as AppYouClosetRouteImport } from './routes/_app.you_.closet'
 import { Route as AppYouCollectionsRouteImport } from './routes/_app.you_.collections'
+import { Route as AppYouDeletedRouteImport } from './routes/_app.you_.deleted'
 import { Route as AppYouDrawerRouteImport } from './routes/_app.you_.drawer'
 import { Route as AppYouFontsRouteImport } from './routes/_app.you_.fonts'
 import { Route as AppYouItemsRouteImport } from './routes/_app.you_.items'
@@ -361,6 +362,11 @@ const AppYouCollectionsRoute = AppYouCollectionsRouteImport.update({
   path: '/you/collections',
   getParentRoute: () => AppRoute,
 } as any)
+const AppYouDeletedRoute = AppYouDeletedRouteImport.update({
+  id: '/you_/deleted',
+  path: '/you/deleted',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppYouDrawerRoute = AppYouDrawerRouteImport.update({
   id: '/you_/drawer',
   path: '/you/drawer',
@@ -489,6 +495,7 @@ export interface FileRoutesByFullPath {
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
+  '/you/deleted': typeof AppYouDeletedRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
@@ -560,6 +567,7 @@ export interface FileRoutesByTo {
   '/u/$username': typeof AppUUsernameRoute
   '/you/closet': typeof AppYouClosetRoute
   '/you/collections': typeof AppYouCollectionsRoute
+  '/you/deleted': typeof AppYouDeletedRoute
   '/you/drawer': typeof AppYouDrawerRoute
   '/you/fonts': typeof AppYouFontsRoute
   '/you/items': typeof AppYouItemsRoute
@@ -633,6 +641,7 @@ export interface FileRoutesById {
   '/_app/u/$username': typeof AppUUsernameRoute
   '/_app/you_/closet': typeof AppYouClosetRoute
   '/_app/you_/collections': typeof AppYouCollectionsRoute
+  '/_app/you_/deleted': typeof AppYouDeletedRoute
   '/_app/you_/drawer': typeof AppYouDrawerRoute
   '/_app/you_/fonts': typeof AppYouFontsRoute
   '/_app/you_/items': typeof AppYouItemsRoute
@@ -706,6 +715,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
+    | '/you/deleted'
     | '/you/drawer'
     | '/you/fonts'
     | '/you/items'
@@ -777,6 +787,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/you/closet'
     | '/you/collections'
+    | '/you/deleted'
     | '/you/drawer'
     | '/you/fonts'
     | '/you/items'
@@ -849,6 +860,7 @@ export interface FileRouteTypes {
     | '/_app/u/$username'
     | '/_app/you_/closet'
     | '/_app/you_/collections'
+    | '/_app/you_/deleted'
     | '/_app/you_/drawer'
     | '/_app/you_/fonts'
     | '/_app/you_/items'
@@ -1276,6 +1288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppYouCollectionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/you_/deleted': {
+      id: '/_app/you_/deleted'
+      path: '/you/deleted'
+      fullPath: '/you/deleted'
+      preLoaderRoute: typeof AppYouDeletedRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/you_/drawer': {
       id: '/_app/you_/drawer'
       path: '/you/drawer'
@@ -1419,6 +1438,7 @@ interface AppRouteChildren {
   AppUUsernameRoute: typeof AppUUsernameRoute
   AppYouClosetRoute: typeof AppYouClosetRoute
   AppYouCollectionsRoute: typeof AppYouCollectionsRoute
+  AppYouDeletedRoute: typeof AppYouDeletedRoute
   AppYouDrawerRoute: typeof AppYouDrawerRoute
   AppYouFontsRoute: typeof AppYouFontsRoute
   AppYouItemsRoute: typeof AppYouItemsRoute
@@ -1477,6 +1497,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppUUsernameRoute: AppUUsernameRoute,
   AppYouClosetRoute: AppYouClosetRoute,
   AppYouCollectionsRoute: AppYouCollectionsRoute,
+  AppYouDeletedRoute: AppYouDeletedRoute,
   AppYouDrawerRoute: AppYouDrawerRoute,
   AppYouFontsRoute: AppYouFontsRoute,
   AppYouItemsRoute: AppYouItemsRoute,

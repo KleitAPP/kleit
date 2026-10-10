@@ -1,10 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { EmptyState } from "@/components/kleit";
+import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import {
   buyUrlFor,
+  closetItemUses,
+  deleteClosetItem,
   imageUrlFor,
+  inMyCloset,
   myScanStates,
   oneItem,
   priceLabel,
@@ -29,6 +32,10 @@ import { ReportButton } from "@/safety/ReportButton";
  * "Sets with this item" and "Find similar" are on the design and not on this page yet. They
  * read from `public_item_stats` (M3.1) and the photo search (M6); a heading over nothing would
  * be a promise, so they arrive with their data.
+ *
+ * Remove from closet (spec 7.1 #7, #11; S26): shown only when the piece is in YOUR closet - the
+ * closet table answers nobody else, so the question "is this mine?" is the database's. A piece
+ * that sits on some of your sets asks one thing first: keep it there, or take it off them too.
  */
 export const Route = createFileRoute("/_app/item/$itemId")({
   head: () => ({ meta: [{ title: "Item" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -38,11 +45,21 @@ export const Route = createFileRoute("/_app/item/$itemId")({
 type Loaded =
   | { at: "loading" }
   | { at: "missing" }
-  | { at: "found"; item: ItemSummary; imageUrl: string | null; state: ScanState | null };
+  | {
+      at: "found";
+      item: ItemSummary;
+      imageUrl: string | null;
+      state: ScanState | null;
+      mine: boolean;
+    };
 
 function ItemPage() {
   const { itemId } = Route.useParams();
+  const navigate = useNavigate();
   const [loaded, setLoaded] = useState<Loaded>({ at: "loading" });
+  const [removing, setRemoving] = useState<{ uses: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,14 +70,35 @@ function ItemPage() {
         if (!cancelled) setLoaded({ at: "missing" });
         return;
       }
-      const [imageUrl, states] = await Promise.all([imageUrlFor(item), myScanStates([item.id])]);
+      const [imageUrl, states, mine] = await Promise.all([
+        imageUrlFor(item),
+        myScanStates([item.id]),
+        item.kind === "own" ? inMyCloset(item.id) : Promise.resolve(false),
+      ]);
       if (!cancelled)
-        setLoaded({ at: "found", item, imageUrl, state: states.get(item.id) ?? null });
+        setLoaded({ at: "found", item, imageUrl, state: states.get(item.id) ?? null, mine });
     })();
     return () => {
       cancelled = true;
     };
   }, [itemId]);
+
+  async function askToRemove() {
+    setProblem(null);
+    setRemoving({ uses: await closetItemUses(itemId) });
+  }
+
+  async function remove(keepInSets: boolean) {
+    setBusy(true);
+    const done = await deleteClosetItem(itemId, keepInSets);
+    setBusy(false);
+    if (!done) {
+      setProblem(t("item.removeFailed"));
+      return;
+    }
+    setRemoving(null);
+    void navigate({ to: "/you/closet" });
+  }
 
   if (loaded.at === "loading") {
     return (
@@ -78,7 +116,7 @@ function ItemPage() {
     );
   }
 
-  const { item, imageUrl, state } = loaded;
+  const { item, imageUrl, state, mine } = loaded;
   const name =
     item.title?.trim() || (item.kind === "own" ? t("item.yourPiece") : t("item.untitled"));
   const price = priceLabel(item);
@@ -141,15 +179,89 @@ function ItemPage() {
         </div>
       ) : null}
 
-      {item.kind === "own" ? (
-        <Link
-          to="/you/closet"
-          className="mt-6 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-        >
-          {t("item.backToCloset")}
-        </Link>
+      {mine ? (
+        <>
+          <Link
+            to="/you/closet"
+            className="mt-6 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("item.backToCloset")}
+          </Link>
+          <button
+            type="button"
+            onClick={() => void askToRemove()}
+            className="mt-3 flex min-h-12 w-full items-center justify-center rounded-pill px-5 text-base font-medium text-danger transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("item.remove")}
+          </button>
+        </>
       ) : null}
+
+      <Sheet
+        open={removing !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoving(null);
+        }}
+        title={t("item.remove")}
+        description={t("item.removeWarning")}
+        action={
+          removing && removing.uses > 0 ? null : (
+            <PrimaryButton onClick={() => void remove(true)} disabled={busy}>
+              {t("item.removeConfirm")}
+            </PrimaryButton>
+          )
+        }
+      >
+        {removing && removing.uses > 0 ? (
+          <div>
+            <p className="text-base text-ink">{t("item.removeUsed", { count: removing.uses })}</p>
+            <div className="mt-3 flex flex-col gap-2">
+              <Choice
+                label={t("item.removeKeep")}
+                hint={t("item.removeKeepHint")}
+                disabled={busy}
+                onClick={() => void remove(true)}
+              />
+              <Choice
+                label={t("item.removeAlso")}
+                hint={t("item.removeAlsoHint")}
+                disabled={busy}
+                onClick={() => void remove(false)}
+              />
+            </div>
+          </div>
+        ) : null}
+        {problem ? (
+          <p role="alert" className="mt-3 text-sm font-medium text-danger">
+            {problem}
+          </p>
+        ) : null}
+      </Sheet>
     </div>
+  );
+}
+
+function Choice({
+  label,
+  hint,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  hint: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex min-h-12 w-full flex-col items-start rounded-md border border-line bg-surface px-4 py-3 text-left transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+    >
+      <span className="text-base font-medium text-ink">{label}</span>
+      <span className="text-sm text-ink-soft">{hint}</span>
+    </button>
   );
 }
 

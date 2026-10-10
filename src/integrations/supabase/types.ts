@@ -2272,11 +2272,17 @@ export type Database = {
           username: string
         }[]
       }
+      closet_item_uses: { Args: { p_item_id: string }; Returns: number }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
       decide_appeal: {
         Args: { p_appeal: string; p_note?: string; p_outcome: string }
         Returns: undefined
       }
+      delete_closet_item: {
+        Args: { p_item_id: string; p_keep_in_sets?: boolean }
+        Returns: number
+      }
+      erase_closet_item: { Args: { p_item_id: string }; Returns: undefined }
       feed_featured: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -2503,6 +2509,7 @@ export type Database = {
         Returns: Json
       }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
+      restore_closet_item: { Args: { p_item_id: string }; Returns: undefined }
       request_account_deletion: { Args: never; Returns: string }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       save_set_layout: {

@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   Star,
   Tag,
+  Trash2,
   Trophy,
   Type,
   UserPlus,
@@ -29,10 +30,10 @@ import {
 /**
  * S12 — Your profile (design pack W15).
  *
- * Three tabs: Sets · Drafts · Hidden. The last two are yours alone, and this screen says so
- * rather than leaving you to wonder. They are empty for everyone today because `sets` does not
- * exist until M3.1 — the tabs ship now so the shape of the screen never changes under people,
- * which is the same reason Search and Inbox shipped empty at M1.8.
+ * Four tabs: Sets · Drafts · Hidden · Polls. Sets is what others may see (each set's own
+ * setting decides who); Hidden is your published sets set to Only me (spec 7.1a). Drafts and
+ * Hidden are yours alone, and the screen says so rather than leaving you to wonder. Recently
+ * deleted (S26) is reachable from here too, quietly, at the bottom.
  */
 export const Route = createFileRoute("/_app/you")({
   head: () => ({ meta: [{ title: "You" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -98,7 +99,7 @@ function YourProfile() {
   }, [tab, polls]);
 
   useEffect(() => {
-    if (tab !== "sets" || sets !== null) return;
+    if ((tab !== "sets" && tab !== "hidden") || sets !== null) return;
     let cancelled = false;
     void mySets().then((list) => {
       if (!cancelled) setSets(list);
@@ -138,6 +139,11 @@ function YourProfile() {
   }, []);
 
   const name = me?.display_name?.trim() ? me.display_name : (me?.username ?? "");
+  // Only me sets live in Hidden, not in Sets (spec 7.1a #1, #3).
+  const shown =
+    tab === "hidden"
+      ? sets?.filter((s) => s.visibility === "only_me")
+      : sets?.filter((s) => s.visibility !== "only_me");
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8">
@@ -216,9 +222,9 @@ function YourProfile() {
           <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
         )}
 
-        {tab === "sets" && sets && sets.length > 0 ? (
+        {(tab === "sets" || tab === "hidden") && shown && shown.length > 0 ? (
           <ul className="mt-4 divide-y divide-line">
-            {sets.map((d) => (
+            {shown.map((d) => (
               <li key={d.id}>
                 <Link
                   to="/set/$setId"
@@ -306,6 +312,14 @@ function YourProfile() {
           />
         )}
       </Tabs>
+
+      <Link
+        to="/you/deleted"
+        className="mt-6 flex min-h-12 items-center gap-2 text-sm font-medium text-ink-soft transition-colors duration-fast hover:text-ink"
+      >
+        <Trash2 className="size-4" aria-hidden="true" />
+        {t("profile.bin")}
+      </Link>
     </div>
   );
 }

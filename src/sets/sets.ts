@@ -299,6 +299,65 @@ export async function myDrafts(): Promise<SetSummary[]> {
   return list;
 }
 
+/** A set in the bin: what Recently deleted shows (S26). */
+export type DeletedSet = Pick<SetSummary, "id" | "title" | "status" | "layout"> & {
+  deleted_at: string;
+};
+
+/** How long a deleted set or closet piece waits before it is gone for good (spec 7.1 #7). */
+export const BIN_DAYS = 30;
+
+/** Your sets in the bin, the most recently deleted first. Only the owner's policy answers. */
+export async function recentlyDeletedSets(): Promise<DeletedSet[]> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return [];
+  const { data } = await supabase
+    .from("sets")
+    .select("id, title, status, layout, deleted_at")
+    .eq("owner_id", me)
+    .not("deleted_at", "is", null)
+    .gte("deleted_at", new Date(Date.now() - BIN_DAYS * 24 * 60 * 60 * 1000).toISOString())
+    .order("deleted_at", { ascending: false });
+  return ((data ?? []) as unknown as DeletedSet[]).filter((d) => d.deleted_at);
+}
+
+/**
+ * Into the bin: the set disappears from Kleit now and waits 30 days (spec 7.1 #7). The chat
+ * picture comes down with it (7.1 #8) - the server takes it down once the row says deleted.
+ */
+export async function deleteSet(setId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("sets")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", setId);
+  if (error) return false;
+  refreshPreview(setId);
+  return true;
+}
+
+/** Out of the bin, exactly as it was; the chat picture is drawn again if the set is shareable. */
+export async function restoreSet(setId: string): Promise<boolean> {
+  const { error } = await supabase.from("sets").update({ deleted_at: null }).eq("id", setId);
+  if (error) return false;
+  refreshPreview(setId);
+  return true;
+}
+
+/**
+ * Delete now: gone for good. The delete policy answers only for the owner's own sets that are
+ * already in the bin, so a live set cannot be destroyed by a stray call - it has to be deleted
+ * first, and that is the step with the warning.
+ */
+export async function eraseSet(setId: string): Promise<boolean> {
+  const { error, count } = await supabase
+    .from("sets")
+    .delete({ count: "exact" })
+    .eq("id", setId)
+    .not("deleted_at", "is", null);
+  return !error && (count ?? 0) > 0;
+}
+
 /** "Black boots + 3 more" - a title written for you (spec 5.1 #15). */
 export function autoTitle(placements: Placement[]): string {
   const sorted = [...placements].sort((a, b) => a.slot - b.slot);

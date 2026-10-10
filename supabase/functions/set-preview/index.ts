@@ -162,7 +162,7 @@ Deno.serve(async (request) => {
   if (!who.user) return reply(401, { problem: "signed-out" });
   const { data: mine } = await asCaller
     .from("sets")
-    .select("id, owner_id, status, visibility, share_code, preview_image_id")
+    .select("id, owner_id, status, visibility, share_code, preview_image_id, deleted_at")
     .eq("id", setId)
     .maybeSingle();
   if (!mine || mine.owner_id !== who.user.id) return reply(404, { problem: "not-found" });
@@ -170,9 +170,12 @@ Deno.serve(async (request) => {
   const server = createClient(url, serviceKey);
   const previous = mine.preview_image_id as string | null;
 
-  // Not something the world may see: no picture, and any old one goes.
+  // Not something the world may see: no picture, and any old one goes. A set in Recently
+  // deleted counts (spec 7.1 #8: the cached preview is cleared); Restore draws it again.
   const shareable =
-    mine.status === "published" && (mine.visibility === "public" || mine.visibility === "link");
+    mine.status === "published" &&
+    !mine.deleted_at &&
+    (mine.visibility === "public" || mine.visibility === "link");
   if (!shareable) {
     if (previous) {
       await server.from("sets").update({ preview_image_id: null }).eq("id", setId);

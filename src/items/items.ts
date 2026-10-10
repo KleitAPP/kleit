@@ -44,6 +44,79 @@ export async function myCloset(): Promise<ItemSummary[]> {
   return list;
 }
 
+/** A closet piece in the bin: what Recently deleted shows (S26). */
+export type DeletedPiece = { item: ItemSummary; deleted_at: string };
+
+/**
+ * Your closet pieces in the bin, the most recently deleted first. A piece whose picture the
+ * purge has already taken, or that was taken down, is not offered back: Restore would hand the
+ * person an empty tile.
+ */
+export async function recentlyDeletedPieces(): Promise<DeletedPiece[]> {
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("closet_items")
+    .select(`deleted_at, item:items(${ITEM_FIELDS}, purged_at, takedown_state)`)
+    .not("deleted_at", "is", null)
+    .gte("deleted_at", since)
+    .order("deleted_at", { ascending: false });
+  if (error || !data) return [];
+  const out: DeletedPiece[] = [];
+  for (const row of data) {
+    const item = row.item as unknown as
+      (ItemSummary & { purged_at: string | null; takedown_state: string }) | null;
+    if (!item || !row.deleted_at || item.purged_at || item.takedown_state !== "none") continue;
+    out.push({ item, deleted_at: row.deleted_at });
+  }
+  return out;
+}
+
+/** Whether this piece is in YOUR closet right now. The closet table answers nobody else. */
+export async function inMyCloset(itemId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("closet_items")
+    .select("item_id")
+    .eq("item_id", itemId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  return !!data;
+}
+
+/** How many of your own sets hold this piece - the "used in 12 sets" warning (spec 7.1 #11). */
+export async function closetItemUses(itemId: string): Promise<number> {
+  const { data } = await supabase.rpc("closet_item_uses", { p_item_id: itemId });
+  return typeof data === "number" ? data : 0;
+}
+
+/**
+ * Out of the closet and into the bin for 30 days. `keepInSets` leaves the piece on your sets
+ * exactly as it is; otherwise it comes off them and is hidden from everyone at once. Returns
+ * null when it did not happen.
+ */
+export async function deleteClosetItem(
+  itemId: string,
+  keepInSets: boolean,
+): Promise<{ removedFromSets: number } | null> {
+  const { data, error } = await supabase.rpc("delete_closet_item", {
+    p_item_id: itemId,
+    p_keep_in_sets: keepInSets,
+  });
+  if (error) return null;
+  return { removedFromSets: typeof data === "number" ? data : 0 };
+}
+
+/** Back into the closet. False when its 30 days are up or the picture is already gone. */
+export async function restoreClosetItem(itemId: string): Promise<boolean> {
+  const { error } = await supabase.rpc("restore_closet_item", { p_item_id: itemId });
+  return !error;
+}
+
+/** Delete now: off your sets, hidden from everyone, out of the bin. The file follows nightly. */
+export async function eraseClosetItem(itemId: string): Promise<boolean> {
+  const { error } = await supabase.rpc("erase_closet_item", { p_item_id: itemId });
+  return !error;
+}
+
 /** How many closet pictures are kept on the phone for offline use (the newest first). */
 export const OFFLINE_PICTURES = 60;
 

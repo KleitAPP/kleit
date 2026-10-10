@@ -4,6 +4,7 @@ import { useState } from "react";
 import { APP_VERSION } from "@/app/version";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 
 /**
  * S22 — Help and legal (design pack §2.1; spec 13.5, 17.2).
@@ -48,7 +49,7 @@ function HelpAndLegal() {
         </li>
         <li className="border-b border-line">
           <a
-            href={`/contact?v=${APP_VERSION}`}
+            href={siteUrl(`/contact?v=${APP_VERSION}`)}
             className="flex min-h-12 w-full items-center px-4 py-3 text-base text-ink"
           >
             {t("help.contactUs")}

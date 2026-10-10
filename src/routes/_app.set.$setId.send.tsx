@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshPreview, autoTitle, loadSet, type Placement, type SetSummary } from "@/sets/sets";
 import { t } from "@/i18n/en";
 import { parseTags } from "@/search/search";
+import { siteUrl } from "@/lib/site";
 
 /**
  * S46 Publish and S47 Send, as one screen (design pack W10, W11; spec 5.2, 7.1; decision 5).
@@ -83,7 +84,7 @@ function SendSet() {
     );
   }
 
-  const link = `${window.location.origin}/s/${set.share_code}`;
+  const link = siteUrl(`/s/${set.share_code}`);
   const chosen = VISIBILITY.find((v) => v.id === set.visibility) ?? VISIBILITY[0]!;
 
   async function publish() {

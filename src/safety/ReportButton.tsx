@@ -4,6 +4,7 @@ import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
 import { fileReport, REASONS, type Reason, type ReportTarget } from "./report";
+import { siteUrl } from "@/lib/site";
 
 type ReasonKey = `report.reason.${Reason}`;
 
@@ -157,7 +158,7 @@ export function ReportSheet({
             <p className="text-sm text-ink-soft">
               {reason === "intimate_image" ? t("report.intimateHint") : t("report.copyrightHint")}{" "}
               <a
-                href={reason === "intimate_image" ? "/takedown" : "/copyright"}
+                href={siteUrl(reason === "intimate_image" ? "/takedown" : "/copyright")}
                 className="underline underline-offset-2"
               >
                 {reason === "intimate_image" ? t("report.intimateLink") : t("report.copyrightLink")}

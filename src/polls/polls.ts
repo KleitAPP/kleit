@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { SetSummary } from "@/sets/sets";
+import { siteUrl } from "@/lib/site";
 
 /**
  * "Which one?" polls, from the app's side (roadmap M3.7; spec 7.3; migration 022).
@@ -176,7 +177,7 @@ export async function reopenPoll(pollId: string): Promise<boolean> {
 }
 
 export function pollLink(poll: Pick<PollSummary, "share_code">): string {
-  return `${window.location.origin}/p/${poll.share_code}`;
+  return siteUrl(`/p/${poll.share_code}`);
 }
 
 /** One vote as the owner may see it (spec 7.3 #9): when, which, how it counted - never who. */

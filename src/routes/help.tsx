@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-rout
 
 import { ARTICLES, GROUPS } from "@/help/articles";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 
 /** S115 — the help centre: open to anyone, signed in or not. The list, with each article beneath. */
 export const Route = createFileRoute("/help")({
@@ -49,15 +50,15 @@ function Help() {
         ))
       )}
       <footer className="mt-10 text-sm text-ink-soft">
-        <a href="/contact" className="underline underline-offset-2">
+        <a href={siteUrl("/contact")} className="underline underline-offset-2">
           {t("help.contact")}
         </a>{" "}
         ·{" "}
-        <a href="/takedown" className="underline underline-offset-2">
+        <a href={siteUrl("/takedown")} className="underline underline-offset-2">
           {t("help.takedown")}
         </a>{" "}
         ·{" "}
-        <a href="/copyright" className="underline underline-offset-2">
+        <a href={siteUrl("/copyright")} className="underline underline-offset-2">
           {t("help.copyright")}
         </a>
       </footer>

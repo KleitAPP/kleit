@@ -262,6 +262,8 @@ export const en = {
   "switches.signups_open.why": "Off: nobody new can finish signing up",
   "switches.posting_open": "Posting open",
   "switches.posting_open.why": "Off: nothing new can be published; drafts still save",
+  "switches.push_open": "Push notifications",
+  "switches.push_open.why": "Off: no push leaves the project and the apps never ask the phone",
   "switches.dms_open": "Messages open",
   "switches.dms_open.why": "Off: no new direct messages",
   "switches.comments_open": "Comments open",
@@ -1002,6 +1004,26 @@ export const en = {
   "item.backToCloset": "Back to your closet",
   "profile.closet": "Closet",
   "profile.myItems": "My items",
+  "settings.notificationsWhy": "Pushes to your phone, and the quiet hours",
+  "notify.title": "Notifications",
+  "notify.why": "A push to your phone when a friend votes, comments, follows or writes to you.",
+  "notify.switch": "Push notifications",
+  "notify.switchWhy": "Your phone will ask once",
+  "notify.webOnly":
+    "Pushes come with the phone app. On the web, your notifications are in the Inbox.",
+  "notify.notYet":
+    "Push notifications aren't switched on for Kleit yet. Your notifications are in the Inbox.",
+  "notify.phoneSaidNo":
+    "Your phone said no. To change that, allow notifications for Kleit in your phone's settings.",
+  "notify.on": "Pushes are on.",
+  "notify.off": "Pushes are off.",
+  "notify.saveFailed": "That didn't save. Check your connection and try again.",
+  "notify.rulesTitle": "How they behave",
+  "notify.ruleQuiet":
+    "Nothing between 10 pm and 8 am, your time. Anything from the night waits for the morning.",
+  "notify.ruleBundle": "A busy hour arrives as one push, not twelve.",
+  "notify.ruleWhat":
+    "Votes, comments, likes, follows, messages, and contest results. Nothing else, and never ads.",
   "primer.continue": "Continue",
   "primer.notNow": "Not now",
   "primer.photos.title": "Kleit would like to see your photos",

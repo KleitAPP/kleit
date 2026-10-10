@@ -24,10 +24,14 @@ function Settings() {
       <ul className="mt-6 overflow-hidden rounded-md border border-line bg-surface">
         <Row to="/settings/account" title={t("settings.account")} why={t("settings.accountWhy")} />
         <Row to="/settings/privacy" title={t("settings.privacy")} why={t("settings.privacyWhy")} />
+        <Row
+          to="/settings/notifications"
+          title={t("settings.notifications")}
+          why={t("settings.notificationsWhy")}
+        />
         <Row to="/settings/devices" title={t("settings.devices")} why={t("settings.devicesWhy")} />
         <Row to="/settings/legal" title={t("settings.help")} />
         <Later title={t("settings.signInMethods")} />
-        <Later title={t("settings.notifications")} />
         <Row to="/settings/blocked" title={t("settings.blocked")} why={t("settings.blockedWhy")} />
         <Row to="/settings/reports" title={t("settings.reports")} why={t("settings.reportsWhy")} />
         <Row to="/settings/strikes" title={t("settings.strikes")} why={t("settings.strikesWhy")} />

@@ -50,6 +50,7 @@
         "input-otp": "^1.4.2",
         "konva": "^10.7.0",
         "lucide-react": "^0.575.0",
+        "onesignal-cordova-plugin": "^5.6.0",
         "react": "^19.2.0",
         "react-day-picker": "^9.14.0",
         "react-dom": "^19.2.0",
@@ -922,6 +923,8 @@
     "ofetch": ["ofetch@2.0.0-alpha.3", "", {}, "sha512-zpYTCs2byOuft65vI3z43Dd6iSdFbOZZLb9/d21aCpx2rGastVU9dOCv0lu4ykc1Ur1anAYjDi3SUvR0vq50JA=="],
 
     "ohash": ["ohash@2.0.11", "", {}, "sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ=="],
+
+    "onesignal-cordova-plugin": ["onesignal-cordova-plugin@5.6.0", "", {}, "sha512-8soFe/AhZCTYkIZzZ7tTZNec5i4wo6LOpchHwE+lAxp4OR/KxMb/ZxSC0KdbhY0V5Mdih1EIpzxbirm+Hhgsfw=="],
 
     "open": ["open@8.4.2", "", { "dependencies": { "define-lazy-prop": "^2.0.0", "is-docker": "^2.1.1", "is-wsl": "^2.2.0" } }, "sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ=="],
 

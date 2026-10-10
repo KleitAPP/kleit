@@ -22,6 +22,8 @@ export type AppSettings = {
   comments_open: boolean;
   /** Public share links. */
   public_links_open: boolean;
+  /** Push notifications (M8.4a). Off until the owner turns it on; the apps never ask the phone while it is off. */
+  push_open: boolean;
 };
 
 /**
@@ -40,6 +42,9 @@ export const SETTINGS_WHEN_UNREADABLE: AppSettings = {
   dms_open: true,
   comments_open: true,
   public_links_open: true,
+  // The one switch that fails CLOSED: a push is a thing that leaves the project, so an
+  // unreadable row means none, not all.
+  push_open: false,
 };
 
 function asBoolean(value: unknown, fallback: boolean): boolean {
@@ -59,7 +64,7 @@ function asVersion(value: unknown, fallback: string): string {
  */
 export const SETTINGS_TIMEOUT_MS = 4_000;
 
-/** Reads all seven switches in one request. A key that is missing or the wrong shape keeps its open default. */
+/** Reads all eight switches in one request. A key that is missing or the wrong shape keeps its open default. */
 export async function fetchAppSettings(): Promise<AppSettings> {
   // A plain AbortController, not AbortSignal.timeout(), because the older Android we test on
   // does not have AbortSignal.timeout (Chrome 103+).
@@ -87,6 +92,7 @@ export async function fetchAppSettings(): Promise<AppSettings> {
     dms_open: asBoolean(rows.get("dms_open"), base.dms_open),
     comments_open: asBoolean(rows.get("comments_open"), base.comments_open),
     public_links_open: asBoolean(rows.get("public_links_open"), base.public_links_open),
+    push_open: asBoolean(rows.get("push_open"), base.push_open),
   };
 }
 

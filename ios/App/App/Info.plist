@@ -70,5 +70,9 @@
 	<string>So you can pick a picture of something you own and add it to your closet. Only the photos you choose leave your phone.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>So you can take a picture of a piece right now. The camera is used only while you are taking the picture.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

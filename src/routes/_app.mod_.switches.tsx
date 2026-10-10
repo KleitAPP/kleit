@@ -23,6 +23,7 @@ const SWITCHES = [
   "dms_open",
   "comments_open",
   "public_links_open",
+  "push_open",
 ] as const;
 type Key = (typeof SWITCHES)[number];
 

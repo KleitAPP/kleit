@@ -55,6 +55,7 @@ import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings_.
 import { Route as AppSettingsLegalRouteImport } from './routes/_app.settings_.legal'
 import { Route as AppSettingsLibraryRouteImport } from './routes/_app.settings_.library'
 import { Route as AppSettingsMutedRouteImport } from './routes/_app.settings_.muted'
+import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings_.notifications'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/_app.settings_.privacy'
 import { Route as AppSettingsReportsRouteImport } from './routes/_app.settings_.reports'
 import { Route as AppSettingsStrikesRouteImport } from './routes/_app.settings_.strikes'
@@ -308,6 +309,12 @@ const AppSettingsMutedRoute = AppSettingsMutedRouteImport.update({
   path: '/settings/muted',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsNotificationsRoute =
+  AppSettingsNotificationsRouteImport.update({
+    id: '/settings_/notifications',
+    path: '/settings/notifications',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
   id: '/settings_/privacy',
   path: '/settings/privacy',
@@ -466,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
+  '/settings/notifications': typeof AppSettingsNotificationsRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/settings/reports': typeof AppSettingsReportsRoute
   '/settings/strikes': typeof AppSettingsStrikesRoute
@@ -535,6 +543,7 @@ export interface FileRoutesByTo {
   '/settings/legal': typeof AppSettingsLegalRoute
   '/settings/library': typeof AppSettingsLibraryRoute
   '/settings/muted': typeof AppSettingsMutedRoute
+  '/settings/notifications': typeof AppSettingsNotificationsRoute
   '/settings/privacy': typeof AppSettingsPrivacyRoute
   '/settings/reports': typeof AppSettingsReportsRoute
   '/settings/strikes': typeof AppSettingsStrikesRoute
@@ -606,6 +615,7 @@ export interface FileRoutesById {
   '/_app/settings_/legal': typeof AppSettingsLegalRoute
   '/_app/settings_/library': typeof AppSettingsLibraryRoute
   '/_app/settings_/muted': typeof AppSettingsMutedRoute
+  '/_app/settings_/notifications': typeof AppSettingsNotificationsRoute
   '/_app/settings_/privacy': typeof AppSettingsPrivacyRoute
   '/_app/settings_/reports': typeof AppSettingsReportsRoute
   '/_app/settings_/strikes': typeof AppSettingsStrikesRoute
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/settings/legal'
     | '/settings/library'
     | '/settings/muted'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/reports'
     | '/settings/strikes'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/settings/legal'
     | '/settings/library'
     | '/settings/muted'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/reports'
     | '/settings/strikes'
@@ -816,6 +828,7 @@ export interface FileRouteTypes {
     | '/_app/settings_/legal'
     | '/_app/settings_/library'
     | '/_app/settings_/muted'
+    | '/_app/settings_/notifications'
     | '/_app/settings_/privacy'
     | '/_app/settings_/reports'
     | '/_app/settings_/strikes'
@@ -1181,6 +1194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsMutedRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings_/notifications': {
+      id: '/_app/settings_/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings_/privacy': {
       id: '/_app/settings_/privacy'
       path: '/settings/privacy'
@@ -1370,6 +1390,7 @@ interface AppRouteChildren {
   AppSettingsLegalRoute: typeof AppSettingsLegalRoute
   AppSettingsLibraryRoute: typeof AppSettingsLibraryRoute
   AppSettingsMutedRoute: typeof AppSettingsMutedRoute
+  AppSettingsNotificationsRoute: typeof AppSettingsNotificationsRoute
   AppSettingsPrivacyRoute: typeof AppSettingsPrivacyRoute
   AppSettingsReportsRoute: typeof AppSettingsReportsRoute
   AppSettingsStrikesRoute: typeof AppSettingsStrikesRoute
@@ -1426,6 +1447,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsLegalRoute: AppSettingsLegalRoute,
   AppSettingsLibraryRoute: AppSettingsLibraryRoute,
   AppSettingsMutedRoute: AppSettingsMutedRoute,
+  AppSettingsNotificationsRoute: AppSettingsNotificationsRoute,
   AppSettingsPrivacyRoute: AppSettingsPrivacyRoute,
   AppSettingsReportsRoute: AppSettingsReportsRoute,
   AppSettingsStrikesRoute: AppSettingsStrikesRoute,

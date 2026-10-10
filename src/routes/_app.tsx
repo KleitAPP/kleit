@@ -8,6 +8,10 @@ import { createCreativeDraft } from "@/canvas/persist";
 import { createTemplate } from "@/templates/templates";
 import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
+import { supabase } from "@/integrations/supabase/client";
+import { appSettingsQuery } from "@/app/appSettings";
+import { startPush } from "@/native/push";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * The signed-in shell (design pack §3.1): five tabs, always visible, on every signed-in screen.
@@ -62,6 +66,23 @@ function AppShell() {
       cancelled = true;
     };
   }, [navigate]);
+
+  // Push (M8.4a): once signed in, and only when the server's switch is on, tell OneSignal who
+  // this is so a push can be addressed. Does nothing on the web, and never asks the phone.
+  const settings = useQuery(appSettingsQuery);
+  const pushOpen = settings.data?.push_open === true;
+  useEffect(() => {
+    if (allowed !== true || !pushOpen) return;
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      const me = data.user?.id;
+      if (!me || cancelled) return;
+      void startPush(me, true, (path) => void navigate({ to: path }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [allowed, pushOpen, navigate]);
 
   if (allowed !== true) return <LaunchSplash />;
 

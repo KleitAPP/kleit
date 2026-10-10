@@ -142,6 +142,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
         run: |
           supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
             "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
@@ -153,6 +154,13 @@ jobs:
             echo "OpenAI key: present"
           else
             echo "OpenAI key: not set yet (OW18) - screen-text will wait"
+          fi
+          # The OneSignal REST key (M8.4a) is the owner's GitHub secret; absent, send-push claims nothing.
+          if [ -n "$ONESIGNAL_REST_API_KEY" ]; then
+            supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "ONESIGNAL_REST_API_KEY=$ONESIGNAL_REST_API_KEY"
+            echo "OneSignal key: present"
+          else
+            echo "OneSignal key: not set yet - send-push will wait"
           fi
       - name: Deploy ingest-image
         run: supabase functions deploy ingest-image --project-ref "$SUPABASE_PROJECT_REF"
@@ -192,6 +200,9 @@ jobs:
       # The outside text check (migration 071); called by pg_cron with the sweep secret.
       - name: Deploy screen-text
         run: supabase functions deploy screen-text --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # Called by the database every minute with the sweep secret (M8.4a).
+      - name: Deploy send-push
+        run: supabase functions deploy send-push --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault
@@ -371,6 +382,17 @@ jobs:
           psql "$DSN" -q -c "delete from public.text_checks where id in ($OK_ID, $BAD_ID)"
           test "$S_OK" = "ok" || { echo "::error::the benign line was not marked ok ($S_OK)"; exit 1; }
           case "$S_BAD" in flagged*) ;; *) echo "::error::the threat was not flagged ($S_BAD)"; exit 1;; esac
+      - name: Prove the push door answers (and stays shut)
+        # M8.4a: the function is live, refuses a caller without the secret, and with it reports
+        # the state of the switch - "switch-off" until the owner turns push_open on, "no-key"
+        # until the OneSignal key is in, else the counts. Nothing is sent by this step.
+        run: |
+          BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
+          NO="$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$BASE/functions/v1/send-push" -H "Content-Type: application/json" -d '{}')"
+          test "$NO" = "401" || { echo "::error::send-push answered $NO to a caller with no secret"; exit 1; }
+          curl -sS -o /tmp/push.json -w "  http %{http_code}\n" -X POST "$BASE/functions/v1/send-push" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
+          cat /tmp/push.json; echo
+          grep -Eq '"skipped":"(switch-off|no-key)"|"claimed":' /tmp/push.json || { echo "::error::send-push gave an unexpected answer"; exit 1; }
       - name: Prove a removed picture stays removed
         run: |
           export PGPASSWORD="$SUPABASE_DB_PASSWORD"

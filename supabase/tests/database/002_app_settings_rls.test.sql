@@ -9,7 +9,7 @@ insert into auth.users (id, email) values
   ('44444444-4444-4444-8444-444444444444', 'friend@test.kleit');
 insert into user_roles (user_id, role) values ('33333333-3333-4333-8333-333333333333', 'admin');
 
-select is((select count(*)::int from app_settings), 7, 'app_settings: the seven agreed keys exist (design pack G8)');
+select is((select count(*)::int from app_settings), 8, 'app_settings: the seven agreed keys exist (design pack G8), plus push_open (M8.4a, migration 073)');
 
 set local role anon;
 select is((select value from app_settings where key = 'maintenance_mode'), 'false'::jsonb,

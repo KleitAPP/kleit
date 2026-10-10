@@ -766,6 +766,33 @@ export type Database = {
           },
         ]
       }
+      external_cleanups: {
+        Row: {
+          attempts: number
+          created_at: string
+          done_at: string | null
+          id: number
+          service: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          done_at?: string | null
+          id?: never
+          service: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          done_at?: string | null
+          id?: never
+          service?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follow_requests: {
         Row: {
           created_at: string
@@ -2183,6 +2210,14 @@ export type Database = {
         Returns: boolean
       }
       cancel_account_deletion: { Args: never; Returns: boolean }
+      claim_cleanups: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: number
+          service: string
+          user_id: string
+        }[]
+      }
       claim_profile: {
         Args: {
           p_display_name?: string
@@ -2390,6 +2425,7 @@ export type Database = {
         Args: { p_reason: string; p_target: string; p_what: string }
         Returns: undefined
       }
+      mark_cleanup: { Args: { p_id: number }; Returns: undefined }
       mark_purged: { Args: { p_item: string }; Returns: undefined }
       mark_pushes: {
         Args: { p_ids: number[]; p_state: string }

@@ -965,6 +965,10 @@ export const en = {
   "setpage.resetConfirm": "Reset the link",
   "setpage.resetDone": "Done. The old link no longer opens this set.",
   "setpage.resetFailed": "That didn't work. Have another go in a moment.",
+  "setpage.embed": "Embed on a website",
+  "setpage.embedCopied":
+    "Embed code copied. Paste it into a blog post or a page; it stops working if you reset the link or make the set private.",
+  "setpage.embedFailed": "Couldn't copy. Have another go in a moment.",
   "setpage.delete": "Delete",
   "setpage.deleteWarning":
     "It disappears from Kleit now and waits 30 days in Recently deleted, then it's gone for good. Previews already sent in chats can't be pulled back.",

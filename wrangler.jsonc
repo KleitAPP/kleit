@@ -18,7 +18,7 @@
     "directory": ".output/public",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/s/*", "/p/*", "/takedown", "/takedown/*", "/copyright", "/contact", "/delete-account", "/sitemap.xml"]
+    "run_worker_first": ["/s/*", "/p/*", "/e/*", "/takedown", "/takedown/*", "/copyright", "/contact", "/delete-account", "/sitemap.xml"]
   },
   // The share Worker's one question goes to the database with the PUBLIC key (the same one the
   // app ships with); the function it calls answers only what a guest may see.

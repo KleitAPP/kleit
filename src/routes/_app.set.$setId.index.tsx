@@ -18,6 +18,7 @@ import { inkFor } from "@/sets/swatches";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 import { ReportButton } from "@/safety/ReportButton";
 import { setCommentsSetting, type CommentsSetting } from "@/social/comments";
 import { SocialBar } from "@/social/SocialBar";
@@ -151,6 +152,25 @@ function SetPage() {
     }
     setSet({ ...set, share_code: data });
     setNotice(t("setpage.resetDone"));
+  }
+
+  /**
+   * Embed (M9.3; spec 6.6 #5): one iframe line for a blog or a website. The embed page is the
+   * Worker's `/e/<code>`, so it lives and dies with the share link - Only me or a reset code
+   * stops the embed at the same moment.
+   */
+  async function copyEmbed() {
+    if (!set) return;
+    const src = siteUrl(`/e/${set.share_code}`);
+    const name = (set.title || title).replace(/"/g, "'");
+    const code = `<iframe src="${src}" title="${name} on Kleit" loading="lazy" style="width:100%;max-width:520px;aspect-ratio:4/5;border:0;border-radius:12px"></iframe>`;
+    setOptions(false);
+    try {
+      await navigator.clipboard.writeText(code);
+      setNotice(t("setpage.embedCopied"));
+    } catch {
+      setNotice(t("setpage.embedFailed"));
+    }
   }
 
   async function remove() {
@@ -390,6 +410,18 @@ function SetPage() {
               {t("setpage.history")}
             </Link>
           </li>
+          {set.status === "published" &&
+          (set.visibility === "public" || set.visibility === "link") ? (
+            <li>
+              <button
+                type="button"
+                onClick={() => void copyEmbed()}
+                className="flex min-h-12 w-full items-center text-left text-base text-ink"
+              >
+                {t("setpage.embed")}
+              </button>
+            </li>
+          ) : null}
           <li>
             <button
               type="button"

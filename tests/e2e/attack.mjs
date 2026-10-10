@@ -408,6 +408,29 @@ try {
     "stranger: a private set's code and a wrong code are the same page",
     `${wrong.status}/${privPage.status}`,
   );
+  // The embed (M9.3) answers the same questions the same way, and only it may be framed.
+  const embed = await fetch(`${SITE}/e/${pub.share_code}`);
+  const embedHtml = await embed.text();
+  const embedPriv = await fetch(`${SITE}/e/${priv.share_code}`);
+  check(
+    embed.status === 200 &&
+      embed.headers.get("content-security-policy") === "frame-ancestors *" &&
+      /noindex/.test(embed.headers.get("x-robots-tag") ?? "") &&
+      /Open on Kleit/.test(embedHtml) &&
+      !/Sign up/.test(embedHtml),
+    "stranger: the public set embeds (framable, noindex, no sign-up card)",
+    `${embed.status} csp=${embed.headers.get("content-security-policy")}`,
+  );
+  check(
+    embedPriv.status === 404 && !/attackvictim/.test(await embedPriv.text()),
+    "stranger: the private set's embed is the same not-available page",
+    String(embedPriv.status),
+  );
+  const sharePage = await fetch(`${SITE}/s/${pub.share_code}`);
+  check(
+    !(sharePage.headers.get("content-security-policy") ?? "").includes("frame-ancestors *"),
+    "stranger: the share page itself does not invite framing",
+  );
 
   // ---------------------------------------------------------------------------
   // 7. Templates (M4.5): a private one is nobody else's; a published one is readable but not

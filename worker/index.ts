@@ -1,7 +1,8 @@
 // Kleit share-page Worker (technical pack §4.1 "set-preview"; spec 8.2–8.4; roadmap M3.3, M3.5).
 //
-// Only /s/* and /p/* reach this code (wrangler.jsonc: run_worker_first). Everything else is a static
-// asset or the SPA shell and never runs a Worker, so the free 100k/day limit is untouched.
+// Only /s/*, /p/*, /e/* and a few form pages reach this code (wrangler.jsonc: run_worker_first).
+// Everything else is a static asset or the SPA shell and never runs a Worker, so the free
+// 100k/day limit is untouched.
 //
 // What it is: the one page a person with no account can open - the set, its pieces, prices and
 // Buy, the sources, the creator's name, and a "Sign up" card. Rendered here as plain HTML with
@@ -141,6 +142,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/p/")) return pollPage(request, env);
+    if (url.pathname.startsWith("/e/")) return embedPage(request, env);
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
     if (url.pathname === "/takedown" || url.pathname === "/copyright")
       return takedownFormPage(request, env);
@@ -660,10 +662,15 @@ function deleteAccountPage(): Response {
   });
 }
 
-
 // Search-engine data for a Public set page (spec 8.4 #5: structured data, CreativeWork). Only
 // what the page already shows; the JSON goes through esc-free serialisation with "<" escaped.
-function structuredData(set: SharedSet, title: string, who: string, pageUrl: string, preview: string | null): string {
+function structuredData(
+  set: SharedSet,
+  title: string,
+  who: string,
+  pageUrl: string,
+  preview: string | null,
+): string {
   const data = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -716,16 +723,102 @@ async function sitemap(request: Request, env: Env): Promise<Response> {
   });
 }
 
-function notAvailable(status = 404): Response {
+// /e/<code> is the embed (M9.3; spec 6.6 #5; design pack S110): the same set, drawn to sit
+// inside an iframe on somebody's blog. The same one question with the public key, so a set that
+// stops being shareable stops embedding at the same moment; the same pieces and Buy links as the
+// share page, with the disclosure beside them (spec 8.2 #7); no sign-up card, no header, no
+// footer - the host page has its own. It is the only page here that may be framed, and it says
+// so itself with `frame-ancestors *`; the page answers to any width the host gives it.
+async function embedPage(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const code = url.pathname.slice(3).replace(/\/+$/, "");
+  if (!CODE.test(code)) return notAvailable(404, true);
+  let set: SharedSet | null = null;
+  try {
+    set = await fetchSet(env, code);
+  } catch {
+    return notAvailable(503, true);
+  }
+  if (!set) return notAvailable(404, true);
+  const base = `${url.protocol}//${url.host}`;
+  return new Response(renderEmbed(set, code, base, env), {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "content-security-policy": "frame-ancestors *",
+      "x-robots-tag": "noindex, nofollow",
+      "cache-control": "no-store",
+      "x-kleit-surface": "share-worker",
+    },
+  });
+}
+
+function renderEmbed(set: SharedSet, code: string, base: string, env: Env): string {
+  const title = set.title || "A set on Kleit";
+  const who = set.owner.display_name?.trim() || `@${set.owner.username}`;
+  const background = /^#[0-9a-fA-F]{6}$/.test(set.layout?.background ?? "")
+    ? (set.layout!.background as string)
+    : "#F4EFE6";
+  const functions = `${env.SUPABASE_URL}/functions/v1`;
+  const pageUrl = `${base}/s/${code}`;
+  const pieces = set.pieces
+    .map((p) => {
+      const name = p.title?.trim() || (p.kind === "own" ? `${who}'s own piece` : "A piece");
+      const tag = p.kind === "own" ? "OWN" : price(p);
+      const img =
+        p.pictured && p.kind === "product"
+          ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(name)}" loading="lazy">`
+          : `<div class="noimg" aria-hidden="true"></div>`;
+      const buy = p.buyable
+        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy ${esc(name)} at ${esc(p.store_name ?? "the store")}, opens store site">Buy at ${esc(p.store_name ?? "the store")}</a>`
+        : "";
+      return `<li class="piece">${img}<div class="meta"><h3>${esc(name)}</h3>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
+    })
+    .join("");
+  const hasBuy = set.pieces.some((p) => p.buyable);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${esc(title)} · Kleit</title>
+<link rel="canonical" href="${esc(pageUrl)}">
+${STYLE}${EMBED_STYLE}</head>
+<body class="embed">
+<main class="embed-wrap">
+  <p class="embed-head"><a class="embed-mark" href="${esc(pageUrl)}" target="_top" rel="noopener">Kleit</a> · <span class="embed-title">${esc(title)}</span> <span class="embed-by">by ${esc(who)}</span></p>
+  ${creativeCanvas(set, functions, background)}
+  <section class="canvas" style="background:${background}" aria-label="The set">
+    <ul class="pieces">${pieces}</ul>
+  </section>
+  ${hasBuy ? `<p class="disclosure">We earn a commission from purchases.</p>` : ""}
+  <p class="embed-foot"><a href="${esc(pageUrl)}" target="_top" rel="noopener">Open on Kleit</a></p>
+</main>
+</body></html>`;
+}
+
+// On top of the share page's stylesheet: no page margins (the host page has its own), the
+// canvas first, everything else a line.
+const EMBED_STYLE = `<style>
+html,body.embed{margin:0;padding:0;background:transparent}
+.embed-wrap{max-width:none;margin:0;padding:0}
+.embed-head{margin:0 0 8px;font-size:14px;color:#5f5a52;line-height:1.4}
+.embed-mark{font-weight:700;color:#1f1d1a;text-decoration:none}
+.embed-title{color:#1f1d1a;font-weight:600}
+.embed-foot{margin:8px 0 0;font-size:14px}
+.embed-foot a{color:#d9552b;font-weight:600}
+.embed .disclosure{margin-top:6px}
+</style>`;
+
+function notAvailable(status = 404, framed = false): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Kleit</title>${STYLE}</head>
 <body><main class="wrap"><h1>This set isn't available</h1><p>It may have been made private, or the link may have been reset.</p>
-<p><a class="button" href="/welcome">Open Kleit</a></p></main></body></html>`;
+<p><a class="button" href="/welcome"${framed ? ' target="_top"' : ""}>Open Kleit</a></p></main></body></html>`;
   return new Response(html, {
     status,
     headers: {
       "content-type": "text/html; charset=utf-8",
+      ...(framed ? { "content-security-policy": "frame-ancestors *" } : {}),
       "x-robots-tag": "noindex, nofollow",
       "cache-control": "no-store",
       "x-kleit-surface": "share-worker",

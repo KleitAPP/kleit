@@ -2256,6 +2256,7 @@ export type Database = {
           target_id: string
         }[]
       }
+      closet_item_uses: { Args: { p_item_id: string }; Returns: number }
       contact_resolve: {
         Args: { p_id: string; p_note?: string; p_outcome: string }
         Returns: undefined
@@ -2272,7 +2273,6 @@ export type Database = {
           username: string
         }[]
       }
-      closet_item_uses: { Args: { p_item_id: string }; Returns: number }
       count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
       decide_appeal: {
         Args: { p_appeal: string; p_note?: string; p_outcome: string }
@@ -2510,9 +2510,9 @@ export type Database = {
         Returns: Json
       }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
-      restore_closet_item: { Args: { p_item_id: string }; Returns: undefined }
       request_account_deletion: { Args: never; Returns: string }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
+      restore_closet_item: { Args: { p_item_id: string }; Returns: undefined }
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }
         Returns: number

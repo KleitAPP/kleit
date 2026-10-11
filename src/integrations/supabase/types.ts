@@ -1499,6 +1499,7 @@ export type Database = {
       push_settings: {
         Row: {
           enabled: boolean
+          muted_kinds: string[]
           platform: string | null
           timezone: string
           updated_at: string
@@ -1506,6 +1507,7 @@ export type Database = {
         }
         Insert: {
           enabled?: boolean
+          muted_kinds?: string[]
           platform?: string | null
           timezone?: string
           updated_at?: string
@@ -1513,6 +1515,7 @@ export type Database = {
         }
         Update: {
           enabled?: boolean
+          muted_kinds?: string[]
           platform?: string | null
           timezone?: string
           updated_at?: string

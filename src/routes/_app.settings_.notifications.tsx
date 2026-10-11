@@ -8,10 +8,14 @@ import { t } from "@/i18n/en";
 import { isNativeApp } from "@/lib/site";
 import { usePermissionPrimer } from "@/native/primers";
 import {
+  PUSH_KINDS,
   askPhoneForPush,
   pushPermissionGranted,
+  readMutedKinds,
   readPushSetting,
+  saveMutedKinds,
   savePushSetting,
+  type PushKindId,
 } from "@/native/push";
 
 /**
@@ -24,6 +28,9 @@ import {
  *
  * On the web the switch is not shown: there is no push there (and nothing to pretend with).
  * While the server's push switch is off, the row says so and waits.
+ *
+ * Under the switch, which kinds reach the phone (spec 12.1 #6): each one is on until the
+ * person turns it off; likes are in-app only and the screen says so (12.1 #2).
  */
 export const Route = createFileRoute("/_app/settings_/notifications")({
   head: () => ({
@@ -38,16 +45,34 @@ function Notifications() {
   const [on, setOn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ text: string; tone: "positive" | "warning" } | null>(null);
+  const [off, setOff] = useState<Set<PushKindId> | null>(null);
+  const [kindBusy, setKindBusy] = useState<PushKindId | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([readPushSetting(), pushPermissionGranted()]).then(([saved, granted]) => {
-      if (!cancelled) setOn(saved && granted);
-    });
+    void Promise.all([readPushSetting(), pushPermissionGranted(), readMutedKinds()]).then(
+      ([saved, granted, muted]) => {
+        if (cancelled) return;
+        setOn(saved && granted);
+        setOff(muted);
+      },
+    );
     return () => {
       cancelled = true;
     };
   }, []);
+
+  async function flipKind(id: PushKindId) {
+    if (off === null) return;
+    const next = new Set(off);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setKindBusy(id);
+    const saved = await saveMutedKinds(next);
+    setKindBusy(null);
+    if (saved) setOff(next);
+    else setNote({ text: t("notify.saveFailed"), tone: "warning" });
+  }
 
   async function turnOn() {
     setBusy(true);
@@ -111,6 +136,33 @@ function Notifications() {
           </label>
         </div>
       )}
+
+      {native && pushOpen && on ? (
+        <>
+          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-soft">
+            {t("notify.kindsTitle")}
+          </h2>
+          <ul className="mt-2 overflow-hidden rounded-md border border-line bg-surface">
+            {PUSH_KINDS.map(({ id }) => (
+              <li key={id} className="border-b border-line last:border-b-0">
+                <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 px-4 py-3">
+                  <span className="text-base text-ink">{t(`notify.kind.${id}`)}</span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    className="size-6 shrink-0 accent-brand"
+                    checked={off !== null && !off.has(id)}
+                    aria-checked={off !== null && !off.has(id)}
+                    disabled={off === null || kindBusy !== null}
+                    onChange={() => void flipKind(id)}
+                  />
+                </label>
+              </li>
+            ))}
+            <li className="px-4 py-3 text-sm text-ink-soft">{t("notify.kind.like")}</li>
+          </ul>
+        </>
+      ) : null}
 
       <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-soft">
         {t("notify.rulesTitle")}

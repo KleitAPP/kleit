@@ -119,3 +119,33 @@ export async function readPushSetting(): Promise<boolean> {
   const { data } = await supabase.from("push_settings").select("enabled").maybeSingle();
   return data?.enabled === true;
 }
+
+/**
+ * Which kinds reach the phone (spec 12.1 #6): everything is on until the person turns a kind
+ * off, and the server keeps the list of what is off (`muted_kinds`, migration 078). Likes are
+ * never a push, whatever the list says.
+ */
+export const PUSH_KINDS = [
+  { id: "vote", kinds: ["vote"] },
+  { id: "comment", kinds: ["comment", "ask_answer", "ask_chosen"] },
+  { id: "follow", kinds: ["follow", "follow_request"] },
+  { id: "message", kinds: ["message", "message_request"] },
+  { id: "group_invite", kinds: ["group_invite"] },
+  { id: "contest_results", kinds: ["contest_results"] },
+] as const;
+export type PushKindId = (typeof PUSH_KINDS)[number]["id"];
+
+export async function readMutedKinds(): Promise<Set<PushKindId>> {
+  const { data } = await supabase.from("push_settings").select("muted_kinds").maybeSingle();
+  const muted = new Set<string>(data?.muted_kinds ?? []);
+  return new Set(PUSH_KINDS.filter((k) => k.kinds.some((x) => muted.has(x))).map((k) => k.id));
+}
+
+export async function saveMutedKinds(off: Set<PushKindId>): Promise<boolean> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return false;
+  const muted_kinds = PUSH_KINDS.filter((k) => off.has(k.id)).flatMap((k) => [...k.kinds]);
+  const { error } = await supabase.from("push_settings").update({ muted_kinds }).eq("user_id", me);
+  return !error;
+}

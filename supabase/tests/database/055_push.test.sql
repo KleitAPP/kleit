@@ -52,14 +52,15 @@ insert into notifications (id, user_id, kind, actor_id, ref_type, ref_id) values
 select is((select count(*)::int from push_queue), 0, 'switch off: nothing reaches the outbox');
 
 -- 5. Switch on: a new notification queues one push, with the actor's name for the sender.
+--    (A comment: likes are in-app only since 078, and have their own test, 059.)
 update app_settings set value = 'true' where key = 'push_open';
 insert into notifications (id, user_id, kind, actor_id, ref_type, ref_id) values
-  ('abab0000-0000-4000-8000-000000000002', 'abababab-0000-4000-8000-000000000001', 'like', 'abababab-0000-4000-8000-000000000002', 'set', gen_random_uuid());
-select is((select count(*)::int from push_queue where notification_id = 'abab0000-0000-4000-8000-000000000002' and state = 'pending'), 1, 'switch on: a like queues one push');
--- A bundled like within the hour does not queue another.
+  ('abab0000-0000-4000-8000-000000000002', 'abababab-0000-4000-8000-000000000001', 'comment', 'abababab-0000-4000-8000-000000000002', 'set', gen_random_uuid());
+select is((select count(*)::int from push_queue where notification_id = 'abab0000-0000-4000-8000-000000000002' and state = 'pending'), 1, 'switch on: a comment queues one push');
+-- A bundled comment within the hour does not queue another.
 update notifications set bundled_count = bundled_count + 1 where id = 'abab0000-0000-4000-8000-000000000002';
 update notifications set bundled_count = bundled_count + 1 where id = 'abab0000-0000-4000-8000-000000000002';
-select is((select count(*)::int from push_queue where notification_id = 'abab0000-0000-4000-8000-000000000002'), 1, 'twelve likes in an hour are still one push');
+select is((select count(*)::int from push_queue where notification_id = 'abab0000-0000-4000-8000-000000000002'), 1, 'twelve comments in an hour are still one push');
 
 -- 6. Nobody who has not said yes, and nobody hidden.
 insert into notifications (user_id, kind, actor_id, ref_type, ref_id) values

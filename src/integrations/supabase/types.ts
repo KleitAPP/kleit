@@ -1321,6 +1321,7 @@ export type Database = {
           locked: boolean
           owner_id: string
           question: string
+          results_told_at: string | null
           share_code: string
           takedown_state: Database["public"]["Enums"]["takedown_state"]
           updated_at: string
@@ -1334,6 +1335,7 @@ export type Database = {
           locked?: boolean
           owner_id: string
           question?: string
+          results_told_at?: string | null
           share_code?: string
           takedown_state?: Database["public"]["Enums"]["takedown_state"]
           updated_at?: string
@@ -1347,6 +1349,7 @@ export type Database = {
           locked?: boolean
           owner_id?: string
           question?: string
+          results_told_at?: string | null
           share_code?: string
           takedown_state?: Database["public"]["Enums"]["takedown_state"]
           updated_at?: string

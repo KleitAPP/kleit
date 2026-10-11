@@ -19,6 +19,8 @@ import {
 } from "@/sets/sets";
 import { inkFor } from "@/sets/swatches";
 import { approveTag, peopleOnSet, untag, type TaggedPerson } from "@/sets/tags";
+import { featureSet } from "@/contests/contests";
+import { myRoles } from "@/safety/moderation";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
@@ -74,6 +76,23 @@ function SetPage() {
   // People tagged in the set (spec 7.4): approved for everyone; waiting ones for the owner and
   // the person themselves, who can say yes or take themselves off.
   const [people, setPeople] = useState<TaggedPerson[]>([]);
+  // An admin may put a public set on Home's Featured, or take it off (S90, spec 4.7 #1.3).
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void myRoles().then((r) => {
+      if (!cancelled) setAdmin(r.includes("admin"));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  async function toggleFeatured() {
+    if (!set) return;
+    const on = !set.featured_at;
+    if (await featureSet(set.id, on))
+      setSet({ ...set, featured_at: on ? new Date().toISOString() : null });
+  }
   useEffect(() => {
     let cancelled = false;
     void peopleOnSet(setId).then((list) => {
@@ -284,6 +303,15 @@ function SetPage() {
                 </Link>
               ))}
             </p>
+          ) : null}
+          {admin && set.status === "published" && set.visibility === "public" ? (
+            <button
+              type="button"
+              onClick={() => void toggleFeatured()}
+              className="mt-1 block text-sm text-ink-soft underline-offset-2 hover:underline"
+            >
+              {set.featured_at ? t("setpage.unfeature") : t("setpage.feature")}
+            </button>
           ) : null}
           {set.remixed_from_label ? (
             set.remixed_from_set_id ? (

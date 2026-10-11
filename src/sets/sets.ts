@@ -54,6 +54,8 @@ export type SetSummary = {
   remix_mode?: RemixMode;
   remixed_from_set_id?: string | null;
   remixed_from_label?: string | null;
+  /** Stamped by the server or an admin only (spec 4.7 #1.3): on Home's Featured. */
+  featured_at?: string | null;
 };
 
 export type Placement = { slot: number; item: ItemSummary };
@@ -120,7 +122,7 @@ export async function loadSet(
   const { data: set, error: setError } = await supabase
     .from("sets")
     .select(
-      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label",
+      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label, featured_at",
     )
     .eq("id", id)
     .maybeSingle();

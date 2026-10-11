@@ -23,7 +23,8 @@ export type NotificationKind =
   | "remix"
   | "mention"
   | "tag"
-  | "poll_results";
+  | "poll_results"
+  | "contest_pick";
 
 export type Notification = {
   id: string;

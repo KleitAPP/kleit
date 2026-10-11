@@ -93,6 +93,11 @@ function words(row: Due): { text: string; path: string } {
         text: "This week's challenge has closed - see the board",
         path: row.ref_id ? `/contests/${row.ref_id}` : "/contests",
       };
+    case "contest_pick":
+      return {
+        text: "Your set was picked in a challenge - it's on Home now",
+        path: row.ref_id ? `/contests/${row.ref_id}` : "/contests",
+      };
     default:
       return { text: "Something new on Kleit", path: "/inbox" };
   }

@@ -23,6 +23,8 @@ export type Entry = {
   preview_image_id: string | null;
   likes: number;
   entered_at: string;
+  /** Set when an admin picked this entry after the close (S101): featured, badged, told. */
+  picked_at: string | null;
 };
 
 export const isOpen = (c: Contest, now = Date.now()) =>
@@ -83,3 +85,82 @@ export async function withdraw(contestId: string): Promise<boolean> {
 }
 
 export { myPublicSets };
+
+/* ── Admin contests (S101; migration 085). Every call is refused for anyone but an admin. ── */
+
+export type AdminContest = Contest & { entries: number; picks: number };
+export type Theme = { id: string; title: string; theme: string; position: number };
+
+export async function adminContests(): Promise<AdminContest[]> {
+  const { data } = await supabase.rpc("admin_contests");
+  return (data ?? []).map((c) => ({ ...c, entries: Number(c.entries), picks: Number(c.picks) }));
+}
+
+/** The themes still waiting, front of the queue first. */
+export async function waitingThemes(): Promise<Theme[]> {
+  const { data } = await supabase
+    .from("contest_themes")
+    .select("id, title, theme, position")
+    .is("used_at", null)
+    .order("position", { ascending: true })
+    .limit(100);
+  return data ?? [];
+}
+
+export async function queueTheme(title: string, theme: string): Promise<boolean> {
+  const { error } = await supabase.rpc("queue_contest_theme", { p_title: title, p_theme: theme });
+  return !error;
+}
+
+export async function dropTheme(id: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("drop_contest_theme", { p_id: id });
+  return !error && data === true;
+}
+
+export async function moveTheme(id: string, direction: "up" | "down"): Promise<boolean> {
+  const { data, error } = await supabase.rpc("move_contest_theme", {
+    p_id: id,
+    p_direction: direction,
+  });
+  return !error && data === true;
+}
+
+/** Opens the front of the queue now; null when one is already open or the queue is empty. */
+export async function openNextNow(): Promise<string | null> {
+  const { data, error } = await supabase.rpc("open_contest_now");
+  return error ? null : ((data as string | null) ?? null);
+}
+
+export async function startContest(
+  title: string,
+  theme: string,
+  days: number,
+): Promise<{ ok: true; id: string } | { ok: false; problem: "open" | "failed" }> {
+  const { data, error } = await supabase.rpc("start_contest", {
+    p_title: title,
+    p_theme: theme,
+    p_days: days,
+  });
+  if (error) return { ok: false, problem: error.code === "P0001" ? "open" : "failed" };
+  return { ok: true, id: data as string };
+}
+
+export async function closeNow(contestId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("close_contest_now", { p_contest: contestId });
+  return !error && data === true;
+}
+
+export async function pickEntry(contestId: string, setId: string, on: boolean): Promise<boolean> {
+  const { data, error } = await supabase.rpc("pick_contest_entry", {
+    p_contest: contestId,
+    p_set: setId,
+    p_on: on,
+  });
+  return !error && data === true;
+}
+
+/** An editor's pick outside a challenge (S90): on or off Home's Featured. */
+export async function featureSet(setId: string, on: boolean): Promise<boolean> {
+  const { data, error } = await supabase.rpc("feature_set", { p_set: setId, p_on: on });
+  return !error && data === true;
+}

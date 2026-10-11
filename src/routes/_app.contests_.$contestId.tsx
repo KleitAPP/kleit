@@ -162,6 +162,14 @@ function ContestPage() {
                       @{e.username} · {t("contest.likes", { count: e.likes })}
                     </span>
                   </span>
+                  {e.picked_at ? (
+                    <span
+                      className="shrink-0 rounded-pill border border-ink px-2 py-0.5 text-xs text-ink"
+                      title={t("contest.pickedWhy")}
+                    >
+                      {t("contest.picked")}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             );

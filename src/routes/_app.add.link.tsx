@@ -28,9 +28,14 @@ export const Route = createFileRoute("/_app/add/link")({
   head: () => ({
     meta: [{ title: "Clip a link" }, { name: "robots", content: "noindex, nofollow" }],
   }),
-  // ?url= is how a share from another app arrives (M8.2): the address is filled in and read at once.
-  validateSearch: (search: Record<string, unknown>): { url?: string } =>
-    typeof search["url"] === "string" && search["url"] ? { url: search["url"] } : {},
+  // ?url= is how a share from another app or the browser extension arrives (M8.2, M9.1): the
+  // address is filled in and read at once. ?image= is the picture the person right-clicked.
+  validateSearch: (search: Record<string, unknown>): { url?: string; image?: string } => ({
+    ...(typeof search["url"] === "string" && search["url"] ? { url: search["url"] } : {}),
+    ...(typeof search["image"] === "string" && /^https?:\/\//.test(search["image"])
+      ? { image: search["image"] }
+      : {}),
+  }),
   component: AddLink,
 });
 
@@ -64,7 +69,7 @@ const SAVE_WORDS: Record<SaveProblem, string> = {
 
 function AddLink() {
   const navigate = useNavigate();
-  const shared = Route.useSearch().url;
+  const { url: shared, image: sharedImage } = Route.useSearch();
   const [stage, setStage] = useState<Stage>({ at: "paste" });
   const [url, setUrl] = useState(shared ?? "");
 
@@ -92,8 +97,12 @@ function AddLink() {
     if (result.ok) {
       setTitle(result.page.title ?? "");
       setPrice(result.page.priceCents != null ? (result.page.priceCents / 100).toFixed(2) : "");
-      setImage(result.page.images[0] ?? null);
-      setStage({ at: "details", page: result.page, readProblem: null });
+      // A picture the person pointed at (the extension's right-click) comes first and is chosen.
+      const images = sharedImage
+        ? [sharedImage, ...result.page.images.filter((i) => i !== sharedImage)]
+        : result.page.images;
+      setImage(images[0] ?? null);
+      setStage({ at: "details", page: { ...result.page, images }, readProblem: null });
       return;
     }
     // Two problems are final: not an address, or a site that asked not to be clipped. The rest
@@ -112,6 +121,7 @@ function AddLink() {
     } catch {
       /* the server would have said bad-url */
     }
+    if (sharedImage) setImage(sharedImage);
     setStage({
       at: "details",
       page: {
@@ -119,7 +129,7 @@ function AddLink() {
         priceCents: null,
         currency: null,
         storeName: domain,
-        images: [],
+        images: sharedImage ? [sharedImage] : [],
         sourceUrl: trimmed,
         sourceDomain: domain,
       },

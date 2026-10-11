@@ -9,7 +9,7 @@
  * mark or the colours change, and commit what changes.
  *
  * What it makes:
- *   web     public/apple-touch-icon.png (180), public/icon-512.png
+ *   web     public/apple-touch-icon.png (180), public/icon-512.png; extension/icons/icon-*.png
  *   iOS     Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png (1024, opaque - Apple's rule)
  *           Assets.xcassets/Splash.imageset/splash-2732x2732*.png
  *   Android mipmap-<density>/ic_launcher_foreground.png (the adaptive layer; the mark inside the safe
@@ -82,6 +82,14 @@ async function png(svg, path) {
 // one the browser tab's favicon.ico already carries at small sizes.
 await png(picture(180, 106, "#FFFFFF", ACCENT), join(ROOT, "public/apple-touch-icon.png"));
 await png(picture(512, 300, "#FFFFFF", ACCENT), join(ROOT, "public/icon-512.png"));
+
+// The browser extension's icons (M9.1): the same icon at the four sizes Chrome asks for.
+for (const size of [16, 32, 48, 128]) {
+  await png(
+    picture(size, Math.round(size * 0.58), "#FFFFFF", ACCENT),
+    join(ROOT, `extension/icons/icon-${size}.png`),
+  );
+}
 
 // iOS: one 1024 icon, opaque.
 await png(

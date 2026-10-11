@@ -23,3 +23,10 @@ export function siteUrl(path = ""): string {
   const base = isNativeApp() ? PUBLIC_SITE : window.location.origin;
   return `${base}${path}`;
 }
+
+/** The live site's hosts (M10). The debug routes under /dev answer everywhere but here (WA7). */
+const LIVE_HOSTS = ["kleit.app", "www.kleit.app"];
+
+export function isLiveSite(): boolean {
+  return typeof window !== "undefined" && LIVE_HOSTS.includes(window.location.hostname);
+}

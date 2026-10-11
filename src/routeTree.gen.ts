@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as DeletingRouteImport } from './routes/deleting'
+import { Route as DevRouteImport } from './routes/dev'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as VibesRouteImport } from './routes/vibes'
@@ -93,6 +94,11 @@ const DeletingRoute = DeletingRouteImport.update({
   path: '/deleting',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevRoute = DevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
@@ -159,19 +165,19 @@ const AppYouRoute = AppYouRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const DevCanvasSpeedRoute = DevCanvasSpeedRouteImport.update({
-  id: '/dev/canvas-speed',
-  path: '/dev/canvas-speed',
-  getParentRoute: () => rootRouteImport,
+  id: '/canvas-speed',
+  path: '/canvas-speed',
+  getParentRoute: () => DevRoute,
 } as any)
 const DevComponentsRoute = DevComponentsRouteImport.update({
-  id: '/dev/components',
-  path: '/dev/components',
-  getParentRoute: () => rootRouteImport,
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => DevRoute,
 } as any)
 const DevScreensRoute = DevScreensRouteImport.update({
-  id: '/dev/screens',
-  path: '/dev/screens',
-  getParentRoute: () => rootRouteImport,
+  id: '/screens',
+  path: '/screens',
+  getParentRoute: () => DevRoute,
 } as any)
 const HelpSlugRoute = HelpSlugRouteImport.update({
   id: '/$slug',
@@ -460,6 +466,7 @@ const AppTemplateTemplateIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/deleting': typeof DeletingRoute
+  '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
@@ -534,6 +541,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/deleting': typeof DeletingRoute
+  '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
@@ -611,6 +619,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/deleting': typeof DeletingRoute
+  '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
@@ -689,6 +698,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/deleting'
+    | '/dev'
     | '/help'
     | '/suspended'
     | '/vibes'
@@ -763,6 +773,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/deleting'
+    | '/dev'
     | '/help'
     | '/suspended'
     | '/vibes'
@@ -839,6 +850,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/deleting'
+    | '/dev'
     | '/help'
     | '/suspended'
     | '/vibes'
@@ -916,13 +928,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   DeletingRoute: typeof DeletingRoute
+  DevRoute: typeof DevRouteWithChildren
   HelpRoute: typeof HelpRouteWithChildren
   SuspendedRoute: typeof SuspendedRoute
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
-  DevCanvasSpeedRoute: typeof DevCanvasSpeedRoute
-  DevComponentsRoute: typeof DevComponentsRoute
-  DevScreensRoute: typeof DevScreensRoute
   JoinCodeRoute: typeof JoinCodeRoute
   JoinEmailRoute: typeof JoinEmailRoute
   JoinInviteRoute: typeof JoinInviteRoute
@@ -945,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/deleting'
       fullPath: '/deleting'
       preLoaderRoute: typeof DeletingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev': {
+      id: '/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof DevRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -1040,24 +1057,24 @@ declare module '@tanstack/react-router' {
     }
     '/dev/canvas-speed': {
       id: '/dev/canvas-speed'
-      path: '/dev/canvas-speed'
+      path: '/canvas-speed'
       fullPath: '/dev/canvas-speed'
       preLoaderRoute: typeof DevCanvasSpeedRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DevRoute
     }
     '/dev/components': {
       id: '/dev/components'
-      path: '/dev/components'
+      path: '/components'
       fullPath: '/dev/components'
       preLoaderRoute: typeof DevComponentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DevRoute
     }
     '/dev/screens': {
       id: '/dev/screens'
-      path: '/dev/screens'
+      path: '/screens'
       fullPath: '/dev/screens'
       preLoaderRoute: typeof DevScreensRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DevRoute
     }
     '/help/$slug': {
       id: '/help/$slug'
@@ -1578,6 +1595,20 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface DevRouteChildren {
+  DevCanvasSpeedRoute: typeof DevCanvasSpeedRoute
+  DevComponentsRoute: typeof DevComponentsRoute
+  DevScreensRoute: typeof DevScreensRoute
+}
+
+const DevRouteChildren: DevRouteChildren = {
+  DevCanvasSpeedRoute: DevCanvasSpeedRoute,
+  DevComponentsRoute: DevComponentsRoute,
+  DevScreensRoute: DevScreensRoute,
+}
+
+const DevRouteWithChildren = DevRoute._addFileChildren(DevRouteChildren)
+
 interface HelpRouteChildren {
   HelpSlugRoute: typeof HelpSlugRoute
 }
@@ -1591,13 +1622,11 @@ const HelpRouteWithChildren = HelpRoute._addFileChildren(HelpRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   DeletingRoute: DeletingRoute,
+  DevRoute: DevRouteWithChildren,
   HelpRoute: HelpRouteWithChildren,
   SuspendedRoute: SuspendedRoute,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,
-  DevCanvasSpeedRoute: DevCanvasSpeedRoute,
-  DevComponentsRoute: DevComponentsRoute,
-  DevScreensRoute: DevScreensRoute,
   JoinCodeRoute: JoinCodeRoute,
   JoinEmailRoute: JoinEmailRoute,
   JoinInviteRoute: JoinInviteRoute,

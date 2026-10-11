@@ -60,6 +60,9 @@ select throws_ok($$ select start_contest('AC second (ignore)', '', 3) $$, 'P0001
 select is(open_contest_now(), null, 'admin: the queue does not open either while one is open');
 select pg_temp.back();
 insert into contest_entries (contest_id, user_id, set_id) values ((select id from ac_ids where name = 'c1'), 'adad0000-0000-4000-8000-000000000002', 'ad000000-0000-4000-8000-000000000001');
+-- now() is the transaction's start for the whole test, so a contest opened here cannot close
+-- "later" within it: pretend it opened yesterday before closing it by hand.
+update contests set opens_at = now() - interval '1 day' where id = (select id from ac_ids where name = 'c1');
 select pg_temp.act_as('adad0000-0000-4000-8000-000000000001');
 select throws_ok($$ select pick_contest_entry((select id from ac_ids where name = 'c1'), 'ad000000-0000-4000-8000-000000000001', true) $$, 'P0001', null, 'admin: no picking while it is open');
 select is(close_contest_now((select id from ac_ids where name = 'c1')), true, 'admin: closed early');

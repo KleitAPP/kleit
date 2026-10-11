@@ -37,6 +37,9 @@ type DmSetting = (typeof DM_CHOICES)[number];
 /** Spec 11 #1 / gap C10: the default for new sets; each set can differ. */
 const COMMENT_CHOICES = ["everyone", "following", "off"] as const;
 type CommentsDefault = (typeof COMMENT_CHOICES)[number];
+/** Spec 7.4 #4: who may mention you in a comment; "people I follow" by default. */
+const MENTION_CHOICES = ["everyone", "following", "nobody"] as const;
+type MentionSetting = (typeof MENTION_CHOICES)[number];
 
 type Switches = {
   is_private: boolean;
@@ -59,6 +62,7 @@ function Privacy() {
   const [busy, setBusy] = useState<keyof Switches | null>(null);
   const [dm, setDm] = useState<DmSetting | null>(null);
   const [commentsDefault, setCommentsDefault] = useState<CommentsDefault | null>(null);
+  const [mention, setMention] = useState<MentionSetting | null>(null);
   const [bulk, setBulk] = useState<"linkOnly" | "lockDown" | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -108,6 +112,22 @@ function Privacy() {
     } else setSaved(true);
   }
 
+  async function chooseMention(next: MentionSetting) {
+    if (mention === null) return;
+    const before = mention;
+    setMention(next);
+    setFailed(false);
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    const { error } = me
+      ? await supabase.from("profiles").update({ mention_setting: next }).eq("user_id", me)
+      : { error: new Error("signed out") };
+    if (error) {
+      setMention(before);
+      setFailed(true);
+    } else setSaved(true);
+  }
+
   async function chooseDm(next: DmSetting) {
     if (dm === null) return;
     const before = dm;
@@ -133,12 +153,15 @@ function Privacy() {
       const { data: profile } = await supabase
         .from("profiles")
         .select(
-          "is_private, findable_by_email, findable_by_phone, suggestable, dm_setting, comments_default",
+          "is_private, findable_by_email, findable_by_phone, suggestable, dm_setting, comments_default, mention_setting",
         )
         .eq("user_id", me)
         .maybeSingle();
       if (!cancelled && profile) {
-        const { dm_setting, comments_default, ...switches } = profile;
+        const { dm_setting, comments_default, mention_setting, ...switches } = profile;
+        setMention(
+          (MENTION_CHOICES.find((c) => c === mention_setting) ?? "following") as MentionSetting,
+        );
         setNow(switches);
         setCommentsDefault(
           (COMMENT_CHOICES.find((c) => c === comments_default) ?? "everyone") as CommentsDefault,
@@ -239,6 +262,19 @@ function Privacy() {
             label={t(`social.setting.${c}`)}
             selected={commentsDefault === c}
             onToggle={() => void chooseComments(c)}
+          />
+        ))}
+      </div>
+
+      <h2 className="mt-6 text-base font-medium text-ink">{t("privacy.mentions")}</h2>
+      <p className="text-sm text-ink-soft">{t("privacy.mentionsWhy")}</p>
+      <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={t("privacy.mentions")}>
+        {MENTION_CHOICES.map((c) => (
+          <Chip
+            key={c}
+            label={t(`privacy.mention.${c}`)}
+            selected={mention === c}
+            onToggle={() => void chooseMention(c)}
           />
         ))}
       </div>

@@ -1394,6 +1394,7 @@ export type Database = {
           findable_by_email: boolean
           findable_by_phone: boolean
           is_private: boolean
+          mention_setting: string
           points: number
           style_vibes: string[]
           suggestable: boolean
@@ -1415,6 +1416,7 @@ export type Database = {
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
+          mention_setting?: string
           points?: number
           style_vibes?: string[]
           suggestable?: boolean
@@ -1436,6 +1438,7 @@ export type Database = {
           findable_by_email?: boolean
           findable_by_phone?: boolean
           is_private?: boolean
+          mention_setting?: string
           points?: number
           style_vibes?: string[]
           suggestable?: boolean

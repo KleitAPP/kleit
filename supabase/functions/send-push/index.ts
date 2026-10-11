@@ -47,25 +47,45 @@ function words(row: Due): { text: string; path: string } {
   const set = row.ref_type === "set" && row.ref_id ? `/set/${row.ref_id}` : null;
   switch (row.kind) {
     case "vote":
-      return { text: n > 1 ? `${n} new votes on your poll` : "A new vote on your poll", path: row.ref_id ? `/poll/${row.ref_id}` : "/you" };
+      return {
+        text: n > 1 ? `${n} new votes on your poll` : "A new vote on your poll",
+        path: row.ref_id ? `/poll/${row.ref_id}` : "/you",
+      };
     case "comment":
       return { text: `${who} commented on your set`, path: set ?? "/inbox" };
     case "like":
-      return { text: n > 1 ? `${who} and ${n - 1} other${n - 1 === 1 ? "" : "s"} liked your set` : `${who} liked your set`, path: set ?? "/inbox" };
+      return {
+        text:
+          n > 1
+            ? `${who} and ${n - 1} other${n - 1 === 1 ? "" : "s"} liked your set`
+            : `${who} liked your set`,
+        path: set ?? "/inbox",
+      };
     case "follow":
-      return { text: `${who} started following you`, path: row.ref_id ? `/u/${row.actor_username ?? ""}` : "/you/people" };
+      return {
+        text: `${who} started following you`,
+        path: row.ref_id ? `/u/${row.actor_username ?? ""}` : "/you/people",
+      };
     case "follow_request":
       return { text: `${who} asked to follow you`, path: "/you/people" };
     case "message":
-      return { text: `${who} sent you a message`, path: row.ref_id ? `/inbox/${row.ref_id}` : "/inbox" };
+      return {
+        text: `${who} sent you a message`,
+        path: row.ref_id ? `/inbox/${row.ref_id}` : "/inbox",
+      };
     case "message_request":
       return { text: `${who} wants to message you`, path: "/inbox" };
+    case "mention":
+      return { text: `${who} mentioned you in a comment`, path: set ?? "/inbox" };
     case "remix":
       return { text: `${who} remixed your set`, path: set ?? "/you" };
     case "group_invite":
       return { text: `${who} invited you to a group`, path: "/groups" };
     case "contest_results":
-      return { text: "This week's challenge has closed - see the board", path: row.ref_id ? `/contests/${row.ref_id}` : "/contests" };
+      return {
+        text: "This week's challenge has closed - see the board",
+        path: row.ref_id ? `/contests/${row.ref_id}` : "/contests",
+      };
     default:
       return { text: "Something new on Kleit", path: "/inbox" };
   }
@@ -73,10 +93,20 @@ function words(row: Due): { text: string; path: string } {
 
 type Send = { ok: boolean; dropped: boolean; detail?: string };
 
-async function send(key: string, userId: string, text: string, path: string, collapse: string): Promise<Send> {
+async function send(
+  key: string,
+  userId: string,
+  text: string,
+  path: string,
+  collapse: string,
+): Promise<Send> {
   const response = await fetch("https://api.onesignal.com/notifications?c=push", {
     method: "POST",
-    headers: { Authorization: `Key ${key}`, "Content-Type": "application/json", Accept: "application/json" },
+    headers: {
+      Authorization: `Key ${key}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
       target_channel: "push",
@@ -107,10 +137,16 @@ Deno.serve(async (request) => {
   const given = request.headers.get("x-sweep-key") ?? "";
   if (!sameSecret(given, secret)) return Response.json({ problem: "not-allowed" }, { status: 401 });
 
-  const server = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const server = createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
   const key = Deno.env.get("ONESIGNAL_REST_API_KEY");
   const forgotten = key ? await forget(server, key) : 0;
-  const { data: sw } = await server.from("app_settings").select("value").eq("key", "push_open").maybeSingle();
+  const { data: sw } = await server
+    .from("app_settings")
+    .select("value")
+    .eq("key", "push_open")
+    .maybeSingle();
   if (sw?.value !== true) return Response.json({ forgotten, skipped: "switch-off" });
   if (!key) return Response.json({ forgotten, skipped: "no-key" });
 
@@ -127,7 +163,14 @@ Deno.serve(async (request) => {
   for (const [userId, list] of byUser) {
     const jobs: { ids: number[]; text: string; path: string; collapse: string }[] =
       list.length >= BUNDLE_AT
-        ? [{ ids: list.map((r) => r.id), text: `${list.length} new things on Kleit`, path: "/inbox", collapse: "bundle" }]
+        ? [
+            {
+              ids: list.map((r) => r.id),
+              text: `${list.length} new things on Kleit`,
+              path: "/inbox",
+              collapse: "bundle",
+            },
+          ]
         : list.map((r) => ({ ids: [r.id], ...words(r), collapse: `${r.kind}:${r.ref_id ?? ""}` }));
     for (const job of jobs) {
       try {
@@ -139,7 +182,10 @@ Deno.serve(async (request) => {
           failed.push(...job.ids);
         }
       } catch (problem) {
-        console.error(`[send-push] ${userId}:`, problem instanceof Error ? problem.message : String(problem));
+        console.error(
+          `[send-push] ${userId}:`,
+          problem instanceof Error ? problem.message : String(problem),
+        );
         failed.push(...job.ids);
       }
     }
@@ -147,7 +193,13 @@ Deno.serve(async (request) => {
   if (sent.length) await server.rpc("mark_pushes", { p_ids: sent, p_state: "sent" });
   if (dropped.length) await server.rpc("mark_pushes", { p_ids: dropped, p_state: "dropped" });
   if (failed.length) await server.rpc("mark_pushes", { p_ids: failed, p_state: "failed" });
-  return Response.json({ claimed: rows.length, sent: sent.length, dropped: dropped.length, failed: failed.length, forgotten });
+  return Response.json({
+    claimed: rows.length,
+    sent: sent.length,
+    dropped: dropped.length,
+    failed: failed.length,
+    forgotten,
+  });
 });
 
 type Cleanup = { id: number; user_id: string; service: string };
@@ -176,7 +228,10 @@ async function forget(server: any, key: string): Promise<number> {
         console.error(`[send-push] forget ${row.id}: ${response.status}`);
       }
     } catch (problem) {
-      console.error(`[send-push] forget ${row.id}:`, problem instanceof Error ? problem.message : String(problem));
+      console.error(
+        `[send-push] forget ${row.id}:`,
+        problem instanceof Error ? problem.message : String(problem),
+      );
     }
   }
   return done;

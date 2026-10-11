@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
@@ -209,7 +210,7 @@ export function SocialBar({
                       className="whitespace-pre-wrap break-words text-base text-ink"
                       aria-label={name}
                     >
-                      {c.body}
+                      {withMentions(c.body)}
                     </p>
                   )}
                   {!c.deleted_at ? (
@@ -288,4 +289,29 @@ export function SocialBar({
       </Sheet>
     </section>
   );
+}
+
+/** "@name" in a comment is a link to that person (spec 7.4 #4); the rest is the text as typed. */
+function withMentions(body: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /(^|[^A-Za-z0-9_])@([A-Za-z0-9_]{3,30})/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(body)) !== null) {
+    const start = m.index + m[1]!.length;
+    out.push(body.slice(last, start));
+    out.push(
+      <Link
+        key={`${start}-${m[2]}`}
+        to="/u/$username"
+        params={{ username: m[2]! }}
+        className="font-medium text-ink underline-offset-2 hover:underline"
+      >
+        @{m[2]}
+      </Link>,
+    );
+    last = start + 1 + m[2]!.length;
+  }
+  out.push(body.slice(last));
+  return out;
 }

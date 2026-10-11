@@ -20,7 +20,8 @@ export type NotificationKind =
   | "report_resolved"
   | "strike"
   | "appeal_decided"
-  | "remix";
+  | "remix"
+  | "mention";
 
 export type Notification = {
   id: string;

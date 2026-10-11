@@ -326,6 +326,20 @@ try {
     "sign up from the link: the Welcome screen opens",
     welcome.replace(/\s+/g, " ").slice(0, 120),
   );
+  // 7b. …and once signed in, the person lands back on the poll they came from (spec 8.2 #2).
+  //     The sign-in itself is stood in for by the owner's session (a code needs a mailbox).
+  await gp.evaluate(
+    ([key, value]) => window.localStorage.setItem(key, value),
+    [STORAGE_KEY, JSON.stringify(session)],
+  );
+  await gp.goto(`${SITE}/`);
+  await gp.waitForURL(/\/poll\/[0-9a-f-]+$/, { timeout: 20_000 }).catch(() => undefined);
+  check(
+    /\/poll\/[0-9a-f-]+$/.test(gp.url()),
+    "sign up from the link: afterwards the person is back on the poll, not on Home",
+    new URL(gp.url()).pathname,
+  );
+  await gp.evaluate((key) => window.localStorage.removeItem(key), STORAGE_KEY);
 
   // 8. The owner sees totals, never names, and the poll knows about the guest.
   await page.reload();

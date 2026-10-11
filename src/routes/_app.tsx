@@ -10,7 +10,8 @@ import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 import { supabase } from "@/integrations/supabase/client";
 import { appSettingsQuery } from "@/app/appSettings";
-import { watchIncoming } from "@/native/incoming";
+import { takeNext } from "@/auth/next";
+import { destinationFor, pollIdFor, setIdFor, watchIncoming } from "@/native/incoming";
 import { startPush } from "@/native/push";
 import { OfflineBanner } from "@/offline/OfflineBanner";
 import { watchOutbox } from "@/offline/outbox";
@@ -91,6 +92,19 @@ function AppShell() {
   useEffect(() => {
     if (allowed === true) watchOutbox();
   }, [allowed]);
+
+  // Back to the set a shared page sent the person from (spec 8.2 #2), once they are in.
+  useEffect(() => {
+    if (allowed !== true) return;
+    const next = takeNext();
+    if (!next) return;
+    void destinationFor(new URL(next, window.location.origin).toString(), {
+      set: setIdFor,
+      poll: pollIdFor,
+    }).then((path) => {
+      if (path && path !== "/not-available") void navigate({ to: path } as never);
+    });
+  }, [allowed, navigate]);
 
   // Shares and links from other apps (M8.2/M8.7, the phone only): a store page shared to Kleit
   // becomes Clip a link; one of our own links becomes the set or poll.

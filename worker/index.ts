@@ -332,7 +332,7 @@ ${STYLE}${POLL_STYLE}</head>
   <section class="card" id="signup" hidden>
     <h2>Send one back</h2>
     <p>Sign up to see who voted, and make your own set in about a minute.</p>
-    <a class="button" href="/welcome">Sign up</a>
+    <a class="button" href="/welcome?next=${encodeURIComponent(`/p/${code}`)}">Sign up</a>
   </section>
 </main>
 <footer class="wrap foot">
@@ -917,7 +917,7 @@ ${STYLE}</head>
   <section class="card">
     <h2>Send one back</h2>
     <p>Make your own set in about a minute and send it to ${esc(who)}.</p>
-    <a class="button" href="/welcome">Sign up</a>
+    <a class="button" href="/welcome?next=${encodeURIComponent(`/s/${code}`)}">Sign up</a>
   </section>
   ${sources.length ? `<section class="sources"><h2>Sources</h2><ul>${sources.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : ""}
 </main>

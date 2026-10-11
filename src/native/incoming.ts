@@ -65,13 +65,13 @@ export async function destinationFor(
   return url.pathname + url.search;
 }
 
-async function setIdFor(code: string): Promise<string | null> {
+export async function setIdFor(code: string): Promise<string | null> {
   const { data } = await supabase.rpc("shared_set", { p_code: code });
   const id = (data as { id?: string } | null)?.id;
   return typeof id === "string" ? id : null;
 }
 
-async function pollIdFor(code: string): Promise<string | null> {
+export async function pollIdFor(code: string): Promise<string | null> {
   const { data } = await supabase.rpc("shared_poll", { p_code: code });
   const id = (data as { id?: string } | null)?.id;
   return typeof id === "string" ? id : null;

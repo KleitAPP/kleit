@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 
+import { rememberNext } from "@/auth/next";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
 
@@ -10,10 +12,21 @@ import { t } from "@/i18n/en";
  */
 export const Route = createFileRoute("/welcome")({
   head: () => ({ meta: [{ title: "Kleit" }, { name: "robots", content: "noindex, nofollow" }] }),
+  // ?next= is where a shared page's Sign up wants the person back afterwards (spec 8.2 #2).
+  validateSearch: (search: Record<string, unknown>): { next?: string; back?: string } => ({
+    ...(typeof search["next"] === "string" && search["next"].startsWith("/")
+      ? { next: search["next"] }
+      : {}),
+    ...(typeof search["back"] === "string" ? { back: search["back"] } : {}),
+  }),
   component: Welcome,
 });
 
 function Welcome() {
+  const { next } = Route.useSearch();
+  useEffect(() => {
+    rememberNext(next);
+  }, [next]);
   return (
     <main className="flex min-h-dvh flex-col bg-canvas px-6">
       <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">

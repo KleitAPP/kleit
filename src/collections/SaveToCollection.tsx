@@ -15,16 +15,22 @@ import {
  * "Save to a folder" - a sheet over the set page. Each folder is a switch: on puts the set in,
  * off takes it out, at once, no Save button (the entry is the whole state). A new folder is made
  * from here too, Only me by default.
+ *
+ * With several sets (`setIds`, the You tab's Select mode - spec 7.1 #10) a folder is "in" only
+ * when every chosen set is in it; switching it on puts them all in, off takes them all out.
  */
 export function SaveToCollection({
   setId,
+  setIds,
   open,
   onOpenChange,
 }: {
   setId: string;
+  setIds?: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const ids = setIds && setIds.length > 0 ? setIds : [setId];
   const [folders, setFolders] = useState<CollectionSummary[] | null>(null);
   const [holding, setHolding] = useState<Set<string>>(new Set());
   const [newName, setNewName] = useState("");
@@ -33,22 +39,31 @@ export function SaveToCollection({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    void Promise.all([myCollections(), collectionsHolding(setId)]).then(([list, held]) => {
-      if (cancelled) return;
-      setFolders(list);
-      setHolding(held);
-    });
+    void Promise.all([myCollections(), ...ids.map((id) => collectionsHolding(id))]).then(
+      ([list, ...held]) => {
+        if (cancelled) return;
+        setFolders(list);
+        // A folder counts as holding the choice only when it holds every chosen set.
+        const all = new Set<string>();
+        for (const folder of held[0] ?? []) if (held.every((h) => h.has(folder))) all.add(folder);
+        setHolding(all);
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [open, setId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, ids.join(",")]);
 
   async function toggle(folder: CollectionSummary) {
     setBusy(folder.id);
     const on = holding.has(folder.id);
-    const ok = on
-      ? await removeSetFromCollection(folder.id, setId)
-      : await addSetToCollection(folder.id, setId);
+    const results = await Promise.all(
+      ids.map((id) =>
+        on ? removeSetFromCollection(folder.id, id) : addSetToCollection(folder.id, id),
+      ),
+    );
+    const ok = results.every(Boolean);
     if (ok) {
       const next = new Set(holding);
       if (on) next.delete(folder.id);
@@ -64,7 +79,7 @@ export function SaveToCollection({
     setBusy("new");
     const id = await createCollection(name);
     if (id) {
-      await addSetToCollection(id, setId);
+      await Promise.all(ids.map((setIdToAdd) => addSetToCollection(id, setIdToAdd)));
       setFolders([
         { id, name, visibility: "only_me", owner_id: "", updated_at: new Date().toISOString() },
         ...(folders ?? []),

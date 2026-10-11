@@ -2,9 +2,17 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
+import { EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
-import { createQuickDraft, myDrafts, mySets, type SetSummary } from "@/sets/sets";
+import { SaveToCollection } from "@/collections/SaveToCollection";
+import {
+  createQuickDraft,
+  deleteSet,
+  myDrafts,
+  mySets,
+  refreshPreview,
+  type SetSummary,
+} from "@/sets/sets";
 import { isClosed, myPolls, type PollSummary } from "@/polls/polls";
 import { t, type MessageKey } from "@/i18n/en";
 import { myRoles } from "@/safety/moderation";
@@ -34,6 +42,10 @@ import {
  * setting decides who); Hidden is your published sets set to Only me (spec 7.1a). Drafts and
  * Hidden are yours alone, and the screen says so rather than leaving you to wonder. Recently
  * deleted (S26) is reachable from here too, quietly, at the bottom.
+ *
+ * Select (spec 7.1 #10): tick many sets on the Sets or Hidden tab and change who can see them,
+ * put them in a folder, or delete them, in one go. Each change is the same row update the set
+ * page makes, so the row policies decide exactly as they do one at a time.
  */
 export const Route = createFileRoute("/_app/you")({
   head: () => ({ meta: [{ title: "You" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -41,6 +53,14 @@ export const Route = createFileRoute("/_app/you")({
 });
 
 type Tab = "sets" | "drafts" | "hidden" | "polls";
+type Visibility = SetSummary["visibility"];
+const VISIBILITY: ReadonlyArray<{ id: Visibility; label: string }> = [
+  { id: "public", label: t("vis.public") },
+  { id: "link", label: t("vis.link") },
+  { id: "followers", label: t("vis.followers") },
+  { id: "friends", label: t("vis.friends") },
+  { id: "only_me", label: t("vis.onlyMe") },
+];
 
 const TABS: readonly TabItem<Tab>[] = [
   { id: "sets", label: t("profile.sets") },
@@ -86,6 +106,61 @@ function YourProfile() {
   useEffect(() => {
     void myRoles().then((r) => setModerator(r.includes("admin") || r.includes("moderator")));
   }, []);
+
+  // Select mode (spec 7.1 #10): which sets are ticked, and which sheet is open for them.
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulk, setBulk] = useState<"visibility" | "folder" | "delete" | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const pickedIds = [...picked];
+
+  function stopSelecting() {
+    setSelecting(false);
+    setPicked(new Set());
+    setBulk(null);
+  }
+
+  function togglePick(id: string) {
+    setPicked((before) => {
+      const next = new Set(before);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkVisibility(next: Visibility) {
+    if (pickedIds.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("sets").update({ visibility: next }).in("id", pickedIds);
+    setBulkBusy(false);
+    if (error) {
+      setNotice(t("select.failed"));
+      return;
+    }
+    for (const id of pickedIds) refreshPreview(id);
+    setSets(
+      (list) => list?.map((s) => (picked.has(s.id) ? { ...s, visibility: next } : s)) ?? null,
+    );
+    setNotice(t("select.visibilityDone", { count: pickedIds.length }));
+    stopSelecting();
+  }
+
+  async function bulkDelete() {
+    if (pickedIds.length === 0) return;
+    setBulkBusy(true);
+    const results = await Promise.all(pickedIds.map((id) => deleteSet(id)));
+    setBulkBusy(false);
+    const gone = new Set(pickedIds.filter((_, i) => results[i]));
+    setSets((list) => list?.filter((s) => !gone.has(s.id)) ?? null);
+    setNotice(
+      gone.size === pickedIds.length
+        ? t("select.deleteDone", { count: gone.size })
+        : t("select.failed"),
+    );
+    stopSelecting();
+  }
 
   useEffect(() => {
     if (tab !== "polls" || polls !== null) return;
@@ -217,36 +292,97 @@ function YourProfile() {
         ))}
       </ul>
 
-      <Tabs items={TABS} current={tab} onChange={setTab} label={t("tabs.you")}>
+      <Tabs
+        items={TABS}
+        current={tab}
+        onChange={(next) => {
+          stopSelecting();
+          setTab(next);
+        }}
+        label={t("tabs.you")}
+      >
         {tab === "sets" ? null : (
           <p className="mt-3 text-sm text-ink-soft">{t("profile.onlyYou")}</p>
         )}
 
+        {notice ? (
+          <p
+            role="status"
+            className="mt-3 rounded-md border border-line bg-surface p-3 text-sm text-ink"
+          >
+            {notice}
+          </p>
+        ) : null}
+
         {(tab === "sets" || tab === "hidden") && shown && shown.length > 0 ? (
-          <ul className="mt-4 divide-y divide-line">
-            {shown.map((d) => (
-              <li key={d.id}>
-                <Link
-                  to="/set/$setId"
-                  params={{ setId: d.id }}
-                  className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
-                >
-                  <span className="truncate">{d.title || t("profile.draftUntitled")}</span>
-                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
-                    {d.visibility === "public"
-                      ? t("vis.public")
-                      : d.visibility === "link"
-                        ? t("vis.link")
-                        : d.visibility === "only_me"
-                          ? t("vis.onlyMe")
-                          : d.visibility === "friends"
-                            ? t("vis.friends")
-                            : t("vis.followers")}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-sm text-ink-soft">
+                {selecting ? t("select.count", { count: picked.size }) : ""}
+              </span>
+              <button
+                type="button"
+                onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
+                className="min-h-10 rounded-pill px-3 text-sm font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+              >
+                {selecting ? t("select.cancel") : t("select.start")}
+              </button>
+            </div>
+            <ul className="mt-1 divide-y divide-line">
+              {shown.map((d) => {
+                const who =
+                  d.visibility === "public"
+                    ? t("vis.public")
+                    : d.visibility === "link"
+                      ? t("vis.link")
+                      : d.visibility === "only_me"
+                        ? t("vis.onlyMe")
+                        : d.visibility === "friends"
+                          ? t("vis.friends")
+                          : t("vis.followers");
+                return (
+                  <li key={d.id}>
+                    {selecting ? (
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={picked.has(d.id)}
+                        onClick={() => togglePick(d.id)}
+                        className="flex min-h-12 w-full items-center gap-3 py-3 text-left text-base text-ink"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`flex size-6 shrink-0 items-center justify-center rounded-sm border ${picked.has(d.id) ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface"}`}
+                        >
+                          {picked.has(d.id) ? "✓" : ""}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {d.title || t("profile.draftUntitled")}
+                        </span>
+                        <span className="ml-3 shrink-0 text-sm text-ink-soft">{who}</span>
+                      </button>
+                    ) : (
+                      <Link
+                        to="/set/$setId"
+                        params={{ setId: d.id }}
+                        className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
+                      >
+                        <span className="truncate">{d.title || t("profile.draftUntitled")}</span>
+                        <span className="ml-3 shrink-0 text-sm text-ink-soft">{who}</span>
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            {selecting && picked.size > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <ActionPill label={t("send.whoCanSee")} onClick={() => setBulk("visibility")} />
+                <ActionPill label={t("collections.saveTo")} onClick={() => setBulk("folder")} />
+                <ActionPill label={t("setpage.delete")} onClick={() => setBulk("delete")} danger />
+              </div>
+            ) : null}
+          </>
         ) : tab === "drafts" && drafts && drafts.length > 0 ? (
           <ul className="mt-4 divide-y divide-line">
             {drafts.map((d) => (
@@ -320,6 +456,69 @@ function YourProfile() {
         <Trash2 className="size-4" aria-hidden="true" />
         {t("profile.bin")}
       </Link>
+
+      <Sheet
+        open={bulk === "visibility"}
+        onOpenChange={(open) => {
+          if (!open) setBulk(null);
+        }}
+        title={t("send.whoCanSee")}
+        description={t("select.visibilityWhat", { count: picked.size })}
+      >
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t("send.whoCanSee")}>
+          {VISIBILITY.map((v) => (
+            <ActionPill
+              key={v.id}
+              label={v.label}
+              onClick={() => {
+                if (!bulkBusy) void bulkVisibility(v.id);
+              }}
+            />
+          ))}
+        </div>
+      </Sheet>
+      <SaveToCollection
+        setId={pickedIds[0] ?? ""}
+        setIds={pickedIds}
+        open={bulk === "folder"}
+        onOpenChange={(open) => {
+          if (!open) setBulk(null);
+        }}
+      />
+      <Sheet
+        open={bulk === "delete"}
+        onOpenChange={(open) => {
+          if (!open) setBulk(null);
+        }}
+        title={t("select.deleteTitle", { count: picked.size })}
+        description={t("setpage.deleteWarning")}
+        action={
+          <PrimaryButton onClick={() => void bulkDelete()} disabled={bulkBusy}>
+            {t("select.deleteConfirm", { count: picked.size })}
+          </PrimaryButton>
+        }
+      />
     </div>
+  );
+}
+
+/** One of the Select mode's actions: a pill that does something, not a toggle. */
+function ActionPill({
+  label,
+  onClick,
+  danger,
+}: {
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-10 rounded-pill border border-line bg-surface px-4 text-sm font-medium transition-colors duration-fast hover:bg-surface-2 ${danger ? "text-danger" : "text-ink"}`}
+    >
+      {label}
+    </button>
   );
 }

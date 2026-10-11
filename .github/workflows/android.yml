@@ -3,17 +3,18 @@
 # nothing is signed for a store here - that is M8.1b, after the Play Console account exists.
 name: android
 
+# Not on every push (2026-10-11: the organization's free Actions minutes ran out - WA19). The
+# web app inside the APK is proven by `app` and the core loop on every push; the APK itself is
+# rebuilt when the native shell changes, or by hand ("Run workflow") when a phone needs a fresh one.
 on:
   push:
     branches: [main]
     paths:
-      - "src/**"
-      - "public/**"
       - "android/**"
       - "capacitor.config.ts"
       - "package.json"
       - "bun.lock"
-      - "vite.config.ts"
+      - "src/native/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 

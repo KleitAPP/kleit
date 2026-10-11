@@ -7,8 +7,18 @@ name: app
 on:
   push:
     branches: [main]
+    # Words alone change nothing the checks look at (WA19: minutes).
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
   pull_request:
   workflow_dispatch:
+
+# A newer push to main makes the older run's answer moot; stop it (WA19: minutes). The core loop
+# and the attack keep their own groups and are never cut short - their `finally` puts things back.
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

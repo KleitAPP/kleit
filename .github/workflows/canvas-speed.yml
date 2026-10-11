@@ -3,15 +3,13 @@
 # and shows whether a change made the canvas slower where it is easiest to measure.
 name: canvas-speed
 
+# By hand and monthly (2026-10-11: at eleven minutes a run this was the dearest workflow per run,
+# and the organization's free Actions minutes ran out - WA19). The numbers it prints change
+# only when the canvas code does; run it after a canvas change, not on every one.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "src/canvas/**"
-      - "src/routes/dev.canvas-speed.tsx"
-      - "scripts/check-canvas-speed.mjs"
-      - ".github/workflows/canvas-speed.yml"
+  schedule:
+    - cron: "41 6 1 * *"
 
 permissions:
   contents: read

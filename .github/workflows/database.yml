@@ -206,6 +206,9 @@ jobs:
       # Download my data (S25): the gateway checks the person's token; the function reads as them.
       - name: Deploy export-data
         run: supabase functions deploy export-data --project-ref "$SUPABASE_PROJECT_REF"
+      # Reads saved pieces' store pages for price drops (migration 088); hourly, with the sweep secret.
+      - name: Deploy price-watch
+        run: supabase functions deploy price-watch --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault
@@ -396,6 +399,16 @@ jobs:
           curl -sS -o /tmp/push.json -w "  http %{http_code}\n" -X POST "$BASE/functions/v1/send-push" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
           cat /tmp/push.json; echo
           grep -Eq '"skipped":"(switch-off|no-key)"|"claimed":' /tmp/push.json || { echo "::error::send-push gave an unexpected answer"; exit 1; }
+      - name: Prove the price watch answers (and stays shut)
+        # Migration 088: the function is live, refuses a caller without the secret, and with it
+        # reports what it checked - usually nothing, because a saved piece comes round weekly.
+        run: |
+          BASE="https://$SUPABASE_PROJECT_REF.supabase.co"
+          NO="$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$BASE/functions/v1/price-watch" -H "Content-Type: application/json" -d '{}')"
+          test "$NO" = "401" || { echo "::error::price-watch answered $NO to a caller with no secret"; exit 1; }
+          curl -sS -o /tmp/watch.json -w "  http %{http_code}\n" -X POST "$BASE/functions/v1/price-watch" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
+          cat /tmp/watch.json; echo
+          grep -Eq '"checked":[0-9]+' /tmp/watch.json || { echo "::error::price-watch gave an unexpected answer"; exit 1; }
       - name: Prove the export door is shut to strangers
         # S25: a signed-out caller and the public key both get 401 - the ZIP is made only for the
         # person whose token asks. (The ZIP itself is read back by the core-loop test as its account.)

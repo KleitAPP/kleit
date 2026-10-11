@@ -937,6 +937,13 @@ try {
     "attacker: cannot read or mint beta invites; a stranger cannot probe codes",
     `${(invites.data ?? []).length} rows / ${mint.error?.code ?? "minted"} / ${probe.error?.code ?? "answered"}`,
   );
+  const watch = await a.rpc("record_price_check", { p_item: pub.id, p_status: "ok", p_cents: 1 });
+  const claimWatch = await a.rpc("claim_price_checks", { p_limit: 1 });
+  check(
+    watch.error?.code === "42501" && claimWatch.error?.code === "42501",
+    "attacker: cannot record a price reading or claim the watch's list",
+    `${watch.error?.code ?? "recorded"} / ${claimWatch.error?.code ?? "claimed"}`,
+  );
   const themes = await a.from("contest_themes").select("id").limit(1);
   const feature = await a.rpc("feature_set", { p_set: pub.id, p_on: true });
   const startC = await a.rpc("start_contest", {

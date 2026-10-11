@@ -24,7 +24,8 @@ export type NotificationKind =
   | "mention"
   | "tag"
   | "poll_results"
-  | "contest_pick";
+  | "contest_pick"
+  | "price_drop";
 
 export type Notification = {
   id: string;
@@ -40,6 +41,7 @@ export type Notification = {
     | "contest"
     | "report"
     | "strike"
+    | "item"
     | null;
   ref_id: string | null;
   bundled_count: number;

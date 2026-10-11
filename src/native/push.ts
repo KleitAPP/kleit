@@ -132,6 +132,7 @@ export const PUSH_KINDS = [
   { id: "message", kinds: ["message", "message_request"] },
   { id: "group_invite", kinds: ["group_invite"] },
   { id: "contest_results", kinds: ["contest_results", "contest_pick"] },
+  { id: "price_drop", kinds: ["price_drop"] },
 ] as const;
 export type PushKindId = (typeof PUSH_KINDS)[number]["id"];
 

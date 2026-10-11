@@ -2,15 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
+import { Heart } from "lucide-react";
+
 import {
   buyUrlFor,
   closetItemUses,
   deleteClosetItem,
   imageUrlFor,
   inMyCloset,
+  isSaved,
   myScanStates,
   oneItem,
   priceLabel,
+  saveItem,
+  unsaveItem,
   type ItemSummary,
   type ScanState,
 } from "@/items/items";
@@ -51,6 +56,7 @@ type Loaded =
       imageUrl: string | null;
       state: ScanState | null;
       mine: boolean;
+      saved: boolean;
     };
 
 function ItemPage() {
@@ -70,18 +76,36 @@ function ItemPage() {
         if (!cancelled) setLoaded({ at: "missing" });
         return;
       }
-      const [imageUrl, states, mine] = await Promise.all([
+      const [imageUrl, states, mine, saved] = await Promise.all([
         imageUrlFor(item),
         myScanStates([item.id]),
         item.kind === "own" ? inMyCloset(item.id) : Promise.resolve(false),
+        item.kind === "product" ? isSaved(item.id) : Promise.resolve(false),
       ]);
       if (!cancelled)
-        setLoaded({ at: "found", item, imageUrl, state: states.get(item.id) ?? null, mine });
+        setLoaded({
+          at: "found",
+          item,
+          imageUrl,
+          state: states.get(item.id) ?? null,
+          mine,
+          saved,
+        });
     })();
     return () => {
       cancelled = true;
     };
   }, [itemId]);
+
+  // Hearting (S39): a save is a row of yours; the policy only takes a cleared product.
+  async function toggleSaved() {
+    if (loaded.at !== "found" || busy) return;
+    setBusy(true);
+    const next = !loaded.saved;
+    const ok = next ? await saveItem(loaded.item.id) : await unsaveItem(loaded.item.id);
+    setBusy(false);
+    if (ok) setLoaded({ ...loaded, saved: next });
+  }
 
   async function askToRemove() {
     setProblem(null);
@@ -116,10 +140,16 @@ function ItemPage() {
     );
   }
 
-  const { item, imageUrl, state, mine } = loaded;
+  const { item, imageUrl, state, mine, saved } = loaded;
   const name =
     item.title?.trim() || (item.kind === "own" ? t("item.yourPiece") : t("item.untitled"));
   const price = priceLabel(item);
+  const was =
+    item.price_was_cents != null &&
+    item.price_cents != null &&
+    item.price_was_cents > item.price_cents
+      ? priceLabel({ price_cents: item.price_was_cents, price_currency: item.price_currency })
+      : null;
   const buy = buyUrlFor(item);
   const store = item.store_name?.trim() || item.source_domain || "";
   const note =
@@ -141,15 +171,42 @@ function ItemPage() {
 
       <div className="mt-4 flex items-start justify-between gap-3">
         <h1 className="font-display text-2xl text-ink">{name}</h1>
-        <ReportButton type="item" id={itemId} />
+        <div className="flex shrink-0 items-center gap-1">
+          {item.kind === "product" ? (
+            <button
+              type="button"
+              aria-pressed={saved}
+              aria-label={saved ? t("item.saved") : t("item.save")}
+              title={t("item.saveWhy")}
+              disabled={busy}
+              onClick={() => void toggleSaved()}
+              className={`flex min-h-11 items-center gap-1 rounded-pill border px-3 text-sm ${saved ? "border-ink bg-ink text-canvas" : "border-line bg-surface text-ink"}`}
+            >
+              <Heart className="size-4" aria-hidden="true" />
+              {saved ? t("item.saved") : t("item.save")}
+            </button>
+          ) : null}
+          <ReportButton type="item" id={itemId} />
+        </div>
       </div>
       {item.kind === "own" ? (
         <p className="mt-1 text-xs font-semibold tracking-wide text-ink-soft">{t("item.own")}</p>
       ) : (
         <p className="mt-1 text-base text-ink-soft">
           {[price, store ? t("piece.from", { site: store }) : null].filter(Boolean).join(" · ")}
+          {was ? (
+            <>
+              {" "}
+              <s className="text-ink-soft">{t("item.was", { price: was })}</s>
+            </>
+          ) : null}
         </p>
       )}
+      {item.dead_link_at ? (
+        <p role="status" className="mt-2 text-sm text-ink-soft">
+          {t("item.gone")}
+        </p>
+      ) : null}
       <p className="mt-1 text-sm text-ink-soft">
         {t("item.added", { date: dateLabel(item.created_at) })}
       </p>

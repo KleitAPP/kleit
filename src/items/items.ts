@@ -23,10 +23,14 @@ export type ItemSummary = {
   image_id: string | null;
   image_bucket: "item-images" | "closet-photos";
   created_at: string;
+  /** The price before the last drop the watch saw (migration 088); null once it rose again. */
+  price_was_cents?: number | null;
+  /** Set when the store page answered "gone" twice: Buy no longer points at it. */
+  dead_link_at?: string | null;
 };
 
 const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
+  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at";
 
 /** Your closet: the pieces you own, newest first. Private by default; the row policy enforces it. */
 export async function myCloset(): Promise<ItemSummary[]> {
@@ -163,6 +167,30 @@ export async function mySavedItems(): Promise<ItemSummary[]> {
   return data.flatMap((row) => (row.item ? [row.item as unknown as ItemSummary] : []));
 }
 
+/* ── Hearting (S39; spec 11 #4). A save is of a cleared product; the policy refuses anything else. ── */
+
+export async function isSaved(itemId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("saved_items")
+    .select("item_id")
+    .eq("item_id", itemId)
+    .maybeSingle();
+  return !!data;
+}
+
+export async function saveItem(itemId: string): Promise<boolean> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return false;
+  const { error } = await supabase.from("saved_items").insert({ user_id: me, item_id: itemId });
+  return !error || error.code === "23505";
+}
+
+export async function unsaveItem(itemId: string): Promise<boolean> {
+  const { error } = await supabase.from("saved_items").delete().eq("item_id", itemId);
+  return !error;
+}
+
 /** One item, if the row policy lets you see it. Null otherwise - and null for "does not exist". */
 export async function oneItem(id: string): Promise<ItemSummary | null> {
   const { data } = await supabase.from("items").select(ITEM_FIELDS).eq("id", id).maybeSingle();
@@ -242,10 +270,11 @@ export function priceLabel(
  * own browser (spec 8.2 #14). Null when the item has no store to buy it from.
  */
 export function buyUrlFor(
-  item: Pick<ItemSummary, "id" | "source_url">,
+  item: Pick<ItemSummary, "id" | "source_url" | "dead_link_at">,
   setId?: string,
 ): string | null {
-  if (!item.source_url) return null;
+  // A page that answered "gone" twice (migration 088) is not somewhere to send anyone.
+  if (!item.source_url || item.dead_link_at) return null;
   const base = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
   if (!base) return null;
   const url = new URL("/functions/v1/buy-redirect", base);

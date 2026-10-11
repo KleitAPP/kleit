@@ -3,7 +3,16 @@ import { useEffect, useState } from "react";
 
 import { Chip, EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { supabase } from "@/integrations/supabase/client";
-import { buyUrlFor, imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
+import {
+  buyUrlFor,
+  imageUrlFor,
+  priceLabel,
+  saveItem,
+  savedItemIds,
+  unsaveItem,
+  type ItemSummary,
+} from "@/items/items";
+import { Heart } from "lucide-react";
 import {
   autoTitle,
   deleteSet,
@@ -76,6 +85,30 @@ function SetPage() {
   // People tagged in the set (spec 7.4): approved for everyone; waiting ones for the owner and
   // the person themselves, who can say yes or take themselves off.
   const [people, setPeople] = useState<TaggedPerson[]>([]);
+  // Hearting a store piece from someone's set (S39): which of these you already saved.
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const ids = placements.filter((p) => p.item.kind === "product").map((p) => p.item.id);
+    if (ids.length === 0) return;
+    let cancelled = false;
+    void savedItemIds(ids).then((s) => {
+      if (!cancelled) setSaved(s);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [placements]);
+  async function toggleSaved(itemId: string) {
+    const on = !saved.has(itemId);
+    const ok = on ? await saveItem(itemId) : await unsaveItem(itemId);
+    if (!ok) return;
+    setSaved((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(itemId);
+      else next.delete(itemId);
+      return next;
+    });
+  }
   // An admin may put a public set on Home's Featured, or take it off (S90, spec 4.7 #1.3).
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -418,17 +451,31 @@ function SetPage() {
                         .join(" · ")}
                 </p>
               </div>
-              {buy ? (
-                <a
-                  href={buy}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t("piece.buyA11y", { name, store })}
-                  className="shrink-0 rounded-pill bg-brand px-4 py-2 text-sm font-medium text-brand-ink"
-                >
-                  {t("piece.buyAt", { store })}
-                </a>
-              ) : null}
+              <div className="flex shrink-0 items-center gap-2">
+                {item.kind === "product" ? (
+                  <button
+                    type="button"
+                    aria-pressed={saved.has(item.id)}
+                    aria-label={`${saved.has(item.id) ? t("item.saved") : t("item.save")}: ${name}`}
+                    title={t("item.saveWhy")}
+                    onClick={() => void toggleSaved(item.id)}
+                    className={`flex size-11 items-center justify-center rounded-pill border ${saved.has(item.id) ? "border-ink bg-ink text-canvas" : "border-line bg-surface text-ink"}`}
+                  >
+                    <Heart className="size-4" aria-hidden="true" />
+                  </button>
+                ) : null}
+                {buy ? (
+                  <a
+                    href={buy}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={t("piece.buyA11y", { name, store })}
+                    className="rounded-pill bg-brand px-4 py-2 text-sm font-medium text-brand-ink"
+                  >
+                    {t("piece.buyAt", { store })}
+                  </a>
+                ) : null}
+              </div>
             </li>
           );
         })}

@@ -192,6 +192,25 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "saved-pieces",
+    group: "Your closet",
+    title: "Saving pieces and price drops",
+    body: [
+      "Tap the heart on any piece from a store to save it. Saved pieces sit under You > My items.",
+      "About once a week Kleit looks at the store page of each saved piece. If the price has dropped, everyone who saved it is told, and the piece shows the old price crossed out. If the page has gone, Buy stops pointing at it - the piece stays in your sets.",
+      "You can turn price-drop pushes off under Settings > Notifications and keep the rest.",
+    ],
+  },
+  {
+    slug: "invite-only",
+    group: "Getting started",
+    title: "Invite codes",
+    body: [
+      "While Kleit is in its private beta, finishing sign-up needs an invite code. If a friend sent you an invite link, the code is already filled in; otherwise you'll be asked for it after you sign in.",
+      "A code is eight letters and digits. If yours isn't accepted, check it with whoever gave it to you - a code can be used only so many times and can end. No code? Ask a friend who's in, or send us a note through the Contact page.",
+    ],
+  },
+  {
     slug: "download-data",
     group: "Your account",
     title: "Downloading your data",

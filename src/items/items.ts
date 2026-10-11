@@ -178,6 +178,13 @@ export async function isSaved(itemId: string): Promise<boolean> {
   return !!data;
 }
 
+/** Which of these pieces you have saved - one question for a whole list. */
+export async function savedItemIds(ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const { data } = await supabase.from("saved_items").select("item_id").in("item_id", ids);
+  return new Set((data ?? []).map((r) => r.item_id));
+}
+
 export async function saveItem(itemId: string): Promise<boolean> {
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;

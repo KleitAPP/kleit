@@ -50,6 +50,10 @@ export type SetSummary = {
   updated_at: string;
   /** True for a Creative-mode set (layout version 2); its pieces sit at positions, not slots. */
   creative?: boolean;
+  /** Who may remix it (spec 7.4 #2); and the credit when it is itself a remix. */
+  remix_mode?: RemixMode;
+  remixed_from_set_id?: string | null;
+  remixed_from_label?: string | null;
 };
 
 export type Placement = { slot: number; item: ItemSummary };
@@ -115,7 +119,9 @@ export async function loadSet(
     );
   const { data: set, error: setError } = await supabase
     .from("sets")
-    .select("id, title, status, visibility, share_code, tags, layout, updated_at")
+    .select(
+      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label",
+    )
     .eq("id", id)
     .maybeSingle();
   if (setError && isNetworkError(setError))
@@ -353,6 +359,48 @@ export async function restoreSet(setId: string): Promise<boolean> {
 export async function eraseSet(setId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc("erase_set", { p_set_id: setId });
   return !error && data === true;
+}
+
+/**
+ * Remix (spec 7.4; migration 079): someone's set becomes a new draft of yours, credited. The
+ * server copies the layout and the pieces you may use and says how many it could not.
+ */
+export type RemixMode = "anyone" | "followers" | "off";
+export async function remixSet(
+  setId: string,
+): Promise<
+  | { ok: true; id: string; copied: number; skipped: number; creative: boolean }
+  | { ok: false; problem: "off" | "followers" | "not-found" | "failed" }
+> {
+  const { data, error } = await supabase.rpc("remix_set", { p_set_id: setId });
+  if (error) {
+    const m = error.message ?? "";
+    return {
+      ok: false,
+      problem: /remix_off/.test(m)
+        ? "off"
+        : /remix_followers/.test(m)
+          ? "followers"
+          : /not_found/.test(m)
+            ? "not-found"
+            : "failed",
+    };
+  }
+  const r = data as { id?: string; copied?: number; skipped?: number; creative?: boolean } | null;
+  if (!r?.id) return { ok: false, problem: "failed" };
+  return {
+    ok: true,
+    id: r.id,
+    copied: r.copied ?? 0,
+    skipped: r.skipped ?? 0,
+    creative: !!r.creative,
+  };
+}
+
+/** Who may remix this set of yours (spec 7.4 #2). */
+export async function setRemixMode(setId: string, mode: RemixMode): Promise<boolean> {
+  const { error } = await supabase.from("sets").update({ remix_mode: mode }).eq("id", setId);
+  return !error;
 }
 
 /** "Black boots + 3 more" - a title written for you (spec 5.1 #15). */

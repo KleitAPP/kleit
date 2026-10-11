@@ -60,6 +60,8 @@ function words(row: Due): { text: string; path: string } {
       return { text: `${who} sent you a message`, path: row.ref_id ? `/inbox/${row.ref_id}` : "/inbox" };
     case "message_request":
       return { text: `${who} wants to message you`, path: "/inbox" };
+    case "remix":
+      return { text: `${who} remixed your set`, path: set ?? "/you" };
     case "group_invite":
       return { text: `${who} invited you to a group`, path: "/groups" };
     case "contest_results":

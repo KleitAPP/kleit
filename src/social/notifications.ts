@@ -19,7 +19,8 @@ export type NotificationKind =
   | "contest_results"
   | "report_resolved"
   | "strike"
-  | "appeal_decided";
+  | "appeal_decided"
+  | "remix";
 
 export type Notification = {
   id: string;

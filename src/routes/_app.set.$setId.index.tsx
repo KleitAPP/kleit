@@ -8,8 +8,11 @@ import {
   autoTitle,
   deleteSet,
   loadSet,
+  remixSet,
+  setRemixMode,
   templates,
   type Placement,
+  type RemixMode,
   type SetSummary,
   type Template,
   refreshPreview,
@@ -66,6 +69,40 @@ function SetPage() {
   const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [remixing, setRemixing] = useState(false);
+
+  /** Remix (spec 7.4): a new draft of yours, credited; then straight into the editor. */
+  async function remix() {
+    if (!set || remixing) return;
+    setRemixing(true);
+    setNotice(t("setpage.remixing"));
+    const result = await remixSet(set.id);
+    if (!result.ok) {
+      setRemixing(false);
+      setNotice(
+        result.problem === "off"
+          ? t("setpage.remixOff")
+          : result.problem === "followers"
+            ? t("setpage.remixFollowers")
+            : t("setpage.remixFailed"),
+      );
+      return;
+    }
+    const go = () =>
+      void navigate({
+        to: result.creative ? "/set/$setId/canvas" : "/set/$setId/edit",
+        params: { setId: result.id },
+      });
+    if (result.skipped > 0) {
+      setNotice(t("setpage.remixSkipped", { count: result.skipped }));
+      window.setTimeout(go, 1800);
+    } else go();
+  }
+
+  async function chooseRemixMode(mode: RemixMode) {
+    if (!set) return;
+    if (await setRemixMode(set.id, mode)) setSet({ ...set, remix_mode: mode });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -210,6 +247,19 @@ function SetPage() {
           {set.status === "draft" ? (
             <p className="mt-1 text-sm text-ink-soft">{t("setpage.draft")}</p>
           ) : null}
+          {set.remixed_from_label ? (
+            set.remixed_from_set_id ? (
+              <Link
+                to="/set/$setId"
+                params={{ setId: set.remixed_from_set_id }}
+                className="mt-1 block text-sm text-ink-soft underline-offset-2 hover:underline"
+              >
+                {set.remixed_from_label}
+              </Link>
+            ) : (
+              <p className="mt-1 text-sm text-ink-soft">{set.remixed_from_label}</p>
+            )
+          ) : null}
         </div>
         {mine ? (
           <button
@@ -330,6 +380,20 @@ function SetPage() {
 
       <SocialBar setId={setId} me={me} mine={mine} commentsSetting={commentsSetting} />
 
+      {set.status === "published" && (mine || set.remix_mode !== "off") ? (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => void remix()}
+            disabled={remixing}
+            className="flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+          >
+            {t("setpage.remix")}
+          </button>
+          <p className="mt-2 text-sm text-ink-soft">{t("setpage.remixWhat")}</p>
+        </div>
+      ) : null}
+
       {mine ? (
         <div className="mt-6">
           <PrimaryButton
@@ -385,6 +449,23 @@ function SetPage() {
                   label={v.label}
                   selected={v.id === chosen.id}
                   onToggle={() => void changeVisibility(v.id)}
+                />
+              ))}
+            </div>
+          </li>
+          <li className="py-3">
+            <p className="text-base text-ink">{t("setpage.remixMode")}</p>
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              role="group"
+              aria-label={t("setpage.remixMode")}
+            >
+              {(["anyone", "followers", "off"] as const).map((m) => (
+                <Chip
+                  key={m}
+                  label={t(`remix.${m}`)}
+                  selected={(set.remix_mode ?? "anyone") === m}
+                  onToggle={() => void chooseRemixMode(m)}
                 />
               ))}
             </div>

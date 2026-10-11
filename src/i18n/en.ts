@@ -475,6 +475,7 @@ export const en = {
   "notify.someone": "someone",
   "notify.markRead": "Mark all read",
   "notify.group_invite": "@{name} invited you to a group",
+  "notify.remix": "@{name} remixed your set",
   "notify.contest_results": "The results are in for a challenge you entered",
   "groups.title": "Groups",
   "groups.new": "New group",
@@ -986,6 +987,21 @@ export const en = {
   "setpage.resetConfirm": "Reset the link",
   "setpage.resetDone": "Done. The old link no longer opens this set.",
   "setpage.resetFailed": "That didn't work. Have another go in a moment.",
+  "setpage.remix": "Remix",
+  "setpage.remixWhat":
+    "Make your own version. It starts as a draft of yours, credited to the original.",
+  "setpage.remixing": "Making your copy…",
+  "setpage.remixSkipped":
+    "{count} of the pieces couldn't come along: they're someone's own. Opening your copy…",
+  "setpage.remixSkipped.one":
+    "1 of the pieces couldn't come along: it's someone's own. Opening your copy…",
+  "setpage.remixOff": "The person who made this set has turned remixing off.",
+  "setpage.remixFollowers": "Only people who follow them can remix this set.",
+  "setpage.remixFailed": "That didn't work. Have another go in a moment.",
+  "setpage.remixMode": "Who can remix it",
+  "remix.anyone": "Anyone",
+  "remix.followers": "Followers",
+  "remix.off": "No one",
   "setpage.embed": "Embed on a website",
   "setpage.embedCopied":
     "Embed code copied. Paste it into a blog post or a page; it stops working if you reset the link or make the set private.",
@@ -1110,7 +1126,7 @@ export const en = {
   "notify.saveFailed": "That didn't save. Check your connection and try again.",
   "notify.kindsTitle": "What reaches your phone",
   "notify.kind.vote": "Votes on your polls",
-  "notify.kind.comment": "Comments and answers",
+  "notify.kind.comment": "Comments, answers and remixes",
   "notify.kind.follow": "New followers and follow requests",
   "notify.kind.message": "Messages",
   "notify.kind.group_invite": "Group invitations",

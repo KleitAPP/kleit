@@ -2550,6 +2550,7 @@ export type Database = {
         }
         Returns: Json
       }
+      remix_set: { Args: { p_set_id: string }; Returns: Json }
       reopen_poll: { Args: { p_poll_id: string }; Returns: boolean }
       request_account_deletion: { Args: never; Returns: string }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }

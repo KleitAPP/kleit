@@ -130,6 +130,7 @@ type SharedSet = {
     backgroundAsset?: string | null;
   } | null;
   visibility: "public" | "link";
+  remixed_from?: string | null;
   published_at: string | null;
   owner: { username: string; display_name: string };
   preview: string | null;
@@ -784,7 +785,7 @@ function renderEmbed(set: SharedSet, code: string, base: string, env: Env): stri
 ${STYLE}${EMBED_STYLE}</head>
 <body class="embed">
 <main class="embed-wrap">
-  <p class="embed-head"><a class="embed-mark" href="${esc(pageUrl)}" target="_top" rel="noopener">Kleit</a> · <span class="embed-title">${esc(title)}</span> <span class="embed-by">by ${esc(who)}</span></p>
+  <p class="embed-head"><a class="embed-mark" href="${esc(pageUrl)}" target="_top" rel="noopener">Kleit</a> · <span class="embed-title">${esc(title)}</span> <span class="embed-by">by ${esc(who)}${set.remixed_from ? ` · ${esc(set.remixed_from)}` : ""}</span></p>
   ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">
     <ul class="pieces">${pieces}</ul>
@@ -906,6 +907,7 @@ ${STYLE}</head>
 <main class="wrap">
   <h1>${esc(title)}</h1>
   <p class="by">by ${esc(who)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
+  ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
   ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">

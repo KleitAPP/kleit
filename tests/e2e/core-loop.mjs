@@ -423,6 +423,31 @@ try {
       `${before} → ${binAfter?.length ?? 0} in the bin`,
     );
   }
+  // 11. Remix (spec 7.4): the first set, remixed from its own page, opens as a new draft in
+  //     the editor with the same piece on it.
+  await page.goto(`${SITE}/set/${first.setId}`);
+  await page.getByRole("button", { name: "Remix", exact: true }).click();
+  await page.waitForURL(/\/set\/[0-9a-f-]+\/(edit|canvas)$/, { timeout: 20_000 });
+  const remixId = page.url().match(/\/set\/([0-9a-f-]+)\//)?.[1] ?? "";
+  const { data: remixRow } = await admin
+    .from("sets")
+    .select("status, owner_id")
+    .eq("id", remixId)
+    .maybeSingle();
+  const { data: remixPieces } = await admin.from("set_items").select("id").eq("set_id", remixId);
+  check(
+    remixId !== "" &&
+      remixId !== first.setId &&
+      remixRow?.status === "draft" &&
+      remixRow.owner_id === user.id,
+    "remix: a new draft of the remixer's opens in the editor",
+    remixId.slice(0, 8),
+  );
+  check(
+    (remixPieces ?? []).length === 1,
+    "remix: the piece came along",
+    `${(remixPieces ?? []).length} piece(s)`,
+  );
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

@@ -24,12 +24,13 @@ insert into votes (poll_id, option_id, device_hash, ip_hash) values
   ('af000000-0000-4000-8000-000000000011', 'af000000-0000-4000-8000-000000000021', 'dev1', 'ip1'),
   ('af000000-0000-4000-8000-000000000013', 'af000000-0000-4000-8000-000000000023', 'dev2', 'ip2');
 
-select is(private.tell_poll_results(), 1, 'one poll is due: closed by the clock, with a vote');
+-- The live project has polls of its own; the counts here are about this file's polls only.
+select ok(private.tell_poll_results() >= 1, 'the poll closed by the clock, with a vote, is due');
 select is((select count(*)::int from notifications where kind = 'poll_results' and ref_id = 'af000000-0000-4000-8000-000000000011'), 1, 'the owner is told');
 select is((select count(*)::int from notifications where kind = 'poll_results' and ref_id in ('af000000-0000-4000-8000-000000000012', 'af000000-0000-4000-8000-000000000013')), 0, 'an empty poll and an open poll tell nothing');
 select is(private.tell_poll_results(), 0, 'run again: nobody is told twice');
 update polls set closed_at = now() where id = 'af000000-0000-4000-8000-000000000013';
-select is(private.tell_poll_results(), 1, 'closed by hand: told at the next tick');
+select ok(private.tell_poll_results() >= 1 and (select count(*) from notifications where kind = 'poll_results' and ref_id = 'af000000-0000-4000-8000-000000000013') = 1, 'closed by hand: told at the next tick');
 
 select * from finish();
 rollback;

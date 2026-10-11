@@ -1729,7 +1729,15 @@ export type Database = {
           tagged_by?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "set_tags_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       set_versions: {
         Row: {
@@ -2713,6 +2721,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      set_people: {
+        Args: { p_set_id: string }
+        Returns: {
+          state: string
+          user_id: string
+          username: string
+        }[]
+      }
       set_social: {
         Args: { p_set: string }
         Returns: {
@@ -2775,10 +2791,6 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
-      }
-      set_people: {
-        Args: { p_set_id: string }
-        Returns: { state: string; user_id: string; username: string }[]
       }
       shared_poll: { Args: { p_code: string }; Returns: Json }
       shared_set: { Args: { p_code: string }; Returns: Json }

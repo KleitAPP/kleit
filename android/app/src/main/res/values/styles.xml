@@ -16,7 +16,10 @@
     </style>
 
 
+    <!-- The launch window: paper and the centred mark (scripts/build-icons.mjs). On Android 12+
+         the system shows the app icon on the same paper first (windowSplashScreenBackground). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="android:background">@drawable/splash_window</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
     </style>
 </resources>

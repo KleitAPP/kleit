@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(5);
+select plan(6);
 
 insert into auth.users (id, email) values ('afafafaf-0000-4000-8000-000000000001', 'pr-owner@test.kleit');
 insert into profiles (user_id, username, age_confirmed_at, terms_version) values ('afafafaf-0000-4000-8000-000000000001', 'prowner', now(), 't');
@@ -30,7 +30,9 @@ select is((select count(*)::int from notifications where kind = 'poll_results' a
 select is((select count(*)::int from notifications where kind = 'poll_results' and ref_id in ('af000000-0000-4000-8000-000000000012', 'af000000-0000-4000-8000-000000000013')), 0, 'an empty poll and an open poll tell nothing');
 select is(private.tell_poll_results(), 0, 'run again: nobody is told twice');
 update polls set closed_at = now() where id = 'af000000-0000-4000-8000-000000000013';
-select ok(private.tell_poll_results() >= 1 and (select count(*) from notifications where kind = 'poll_results' and ref_id = 'af000000-0000-4000-8000-000000000013') = 1, 'closed by hand: told at the next tick');
+-- Two statements, not one AND: Postgres may run an uncorrelated subquery before the function call.
+select ok(private.tell_poll_results() >= 1, 'closed by hand: due at the next tick');
+select is((select count(*)::int from notifications where kind = 'poll_results' and ref_id = 'af000000-0000-4000-8000-000000000013'), 1, 'closed by hand: told');
 
 select * from finish();
 rollback;

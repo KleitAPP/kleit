@@ -865,6 +865,11 @@ export const en = {
   "photo.checkingWhy":
     "Every photo is looked at before it appears anywhere. This is usually a few seconds.",
   "photo.clean": "Added. It's in your closet.",
+  "photo.manyProgress": "Adding {done} of {total}…",
+  "photo.manyDone": "{count} added to your closet. Each one is checked on its own.",
+  "photo.manyDone.one": "1 added to your closet. It's being checked.",
+  "photo.manyFailed": "{count} couldn't be added. Try those again one at a time.",
+  "photo.manyFailed.one": "1 couldn't be added. Try it again on its own.",
   "photo.review": "This one needs a person to look at it first. We'll let you know.",
   "photo.animated": "Moving pictures can't be added. Choose a still photo.",
   "photo.blocked": "This photo can't be added. If you think that's wrong, you can appeal.",

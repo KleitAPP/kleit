@@ -31,6 +31,10 @@ import { usePermissionPrimer } from "@/native/primers";
  *     state with its own words, because an item that is still being screened is invisible to
  *     everyone including its owner's followers, and pretending otherwise would have people
  *     wondering why nobody can see their jumper.
+ *
+ * Many at once (spec 4.5 #2; S36 "one or many"): choosing several photos adds them one after
+ * another with their backgrounds kept, a running count on screen, and a plain tally at the end.
+ * Each one goes through exactly the same preparation and screening as a single photo.
  */
 export const Route = createFileRoute("/_app/add/photo")({
   head: () => ({
@@ -45,6 +49,7 @@ type Stage =
   | { at: "editing"; source: HTMLCanvasElement; base: HTMLCanvasElement | null }
   | { at: "working" }
   | { at: "done"; state: "clean" | "review" | "blocked" | "checking" }
+  | { at: "many"; total: number; done: number; added: number; failed: number }
   | { at: "failed"; problem: AddProblem };
 
 const PROBLEM_WORDS: Record<AddProblem, string> = {
@@ -95,6 +100,19 @@ function AddPhoto() {
     setStage({ at: "editing", source: prepared.canvas, base });
   }
 
+  /** Several photos: one after another, backgrounds kept, a tally at the end. */
+  async function addMany(files: File[]) {
+    let added = 0;
+    let failed = 0;
+    setStage({ at: "many", total: files.length, done: 0, added, failed });
+    for (const [index, file] of files.entries()) {
+      const result = await addOwnPhoto(file);
+      if (result.ok) added++;
+      else failed++;
+      setStage({ at: "many", total: files.length, done: index + 1, added, failed });
+    }
+  }
+
   async function finishEditing(cutout: Cutout) {
     setStage({ at: "working" });
     try {
@@ -122,10 +140,16 @@ function AddPhoto() {
         ref={picker}
         type="file"
         accept="image/*"
+        multiple
         className="sr-only"
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
+          const file = files[0];
           if (!file) return;
+          if (files.length > 1) {
+            void addMany(files);
+            return;
+          }
           chosen.current = file;
           setStage({ at: "chosen", file, preview: URL.createObjectURL(file) });
         }}
@@ -170,6 +194,23 @@ function AddPhoto() {
         </p>
       ) : null}
 
+      {stage.at === "many" ? (
+        <div className="mt-8" role="status">
+          <p className="text-base text-ink">
+            {stage.done < stage.total
+              ? t("photo.manyProgress", { done: stage.done, total: stage.total })
+              : t("photo.manyDone", { count: stage.added })}
+          </p>
+          {stage.done < stage.total ? (
+            <p className="mt-2 text-sm text-ink-soft">{t("photo.checkingWhy")}</p>
+          ) : stage.failed > 0 ? (
+            <p className="mt-2 text-sm text-ink-soft">
+              {t("photo.manyFailed", { count: stage.failed })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {stage.at === "failed" ? (
         <p role="alert" className="mt-8 text-base text-ink">
           {PROBLEM_WORDS[stage.problem]}
@@ -188,9 +229,9 @@ function AddPhoto() {
               {t("photo.cutOut")}
             </button>
           </>
-        ) : stage.at === "working" ? (
+        ) : stage.at === "working" || (stage.at === "many" && stage.done < stage.total) ? (
           <PrimaryButton disabled>{t("loading")}</PrimaryButton>
-        ) : stage.at === "done" ? (
+        ) : stage.at === "done" || stage.at === "many" ? (
           <PrimaryButton onClick={() => void navigate({ to: "/you/closet" })}>
             {t("photo.seeCloset")}
           </PrimaryButton>

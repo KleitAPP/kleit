@@ -245,9 +245,21 @@ export type Database = {
         Relationships: []
       }
       beta_invite_uses: {
-        Row: { code: string; used_at: string; user_id: string }
-        Insert: { code: string; used_at?: string; user_id: string }
-        Update: { code?: string; used_at?: string; user_id?: string }
+        Row: {
+          code: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          used_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
             foreignKeyName: "beta_invite_uses_code_fkey"
@@ -2271,8 +2283,8 @@ export type Database = {
         Returns: {
           code: string
           created_at: string
-          disabled_at: string | null
-          expires_at: string | null
+          disabled_at: string
+          expires_at: string
           label: string
           used_by: string[]
           uses_left: number
@@ -2311,6 +2323,7 @@ export type Database = {
         Args: { p_requester: string }
         Returns: boolean
       }
+      beta_only: { Args: never; Returns: boolean }
       blocked_people: {
         Args: never
         Returns: {
@@ -2325,6 +2338,7 @@ export type Database = {
         Returns: boolean
       }
       cancel_account_deletion: { Args: never; Returns: boolean }
+      check_beta_invite: { Args: { p_code: string }; Returns: boolean }
       claim_cleanups: {
         Args: { p_limit?: number }
         Returns: {
@@ -2408,8 +2422,6 @@ export type Database = {
           target_id: string
         }[]
       }
-      beta_only: { Args: never; Returns: boolean }
-      check_beta_invite: { Args: { p_code: string }; Returns: boolean }
       close_contest_now: { Args: { p_contest: string }; Returns: boolean }
       closet_item_uses: { Args: { p_item_id: string }; Returns: number }
       contact_resolve: {
@@ -2557,6 +2569,15 @@ export type Database = {
         Args: { p_ids: number[]; p_state: string }
         Returns: undefined
       }
+      mint_beta_invites: {
+        Args: {
+          p_count: number
+          p_days: number
+          p_label: string
+          p_uses: number
+        }
+        Returns: string[]
+      }
       moderate: {
         Args: { p_action: string; p_note?: string; p_report: string }
         Returns: undefined
@@ -2581,10 +2602,6 @@ export type Database = {
           target_username: string
           title: string
         }[]
-      }
-      mint_beta_invites: {
-        Args: { p_count: number; p_days: number; p_label: string; p_uses: number }
-        Returns: string[]
       }
       move_contest_theme: {
         Args: { p_direction: string; p_id: string }

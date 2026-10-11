@@ -18,6 +18,7 @@ import {
   refreshPreview,
 } from "@/sets/sets";
 import { inkFor } from "@/sets/swatches";
+import { approveTag, peopleOnSet, untag, type TaggedPerson } from "@/sets/tags";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import { t } from "@/i18n/en";
@@ -70,6 +71,27 @@ function SetPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [remixing, setRemixing] = useState(false);
+  // People tagged in the set (spec 7.4): approved for everyone; waiting ones for the owner and
+  // the person themselves, who can say yes or take themselves off.
+  const [people, setPeople] = useState<TaggedPerson[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    void peopleOnSet(setId).then((list) => {
+      if (!cancelled) setPeople(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setId]);
+  const myTag = me ? people.find((p) => p.user_id === me) : undefined;
+
+  async function sayYesToTag() {
+    if (await approveTag(setId))
+      setPeople((list) => list.map((p) => (p.user_id === me ? { ...p, state: "approved" } : p)));
+  }
+  async function removeMe() {
+    if (me && (await untag(setId, me))) setPeople((list) => list.filter((p) => p.user_id !== me));
+  }
 
   /** Remix (spec 7.4): a new draft of yours, credited; then straight into the editor. */
   async function remix() {
@@ -247,6 +269,22 @@ function SetPage() {
           {set.status === "draft" ? (
             <p className="mt-1 text-sm text-ink-soft">{t("setpage.draft")}</p>
           ) : null}
+          {people.length > 0 ? (
+            <p className="mt-1 flex flex-wrap gap-x-2 text-sm text-ink-soft">
+              <span>{t("setpage.with")}</span>
+              {people.map((p) => (
+                <Link
+                  key={p.user_id}
+                  to="/u/$username"
+                  params={{ username: p.username }}
+                  className="underline-offset-2 hover:underline"
+                >
+                  @{p.username}
+                  {p.state === "pending" ? ` (${t("setpage.withWaiting")})` : ""}
+                </Link>
+              ))}
+            </p>
+          ) : null}
           {set.remixed_from_label ? (
             set.remixed_from_set_id ? (
               <Link
@@ -376,6 +414,27 @@ function SetPage() {
           <h2 className="text-base font-medium text-ink">{t("setpage.sources")}</h2>
           <p className="mt-1 text-sm text-ink-soft">{sources.join(" · ")}</p>
         </section>
+      ) : null}
+
+      {myTag ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {myTag.state === "pending" ? (
+            <button
+              type="button"
+              onClick={() => void sayYesToTag()}
+              className="min-h-12 rounded-pill bg-brand px-5 text-base font-medium text-brand-ink"
+            >
+              {t("setpage.tagApprove")}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void removeMe()}
+            className="min-h-12 rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("setpage.tagRemoveMe")}
+          </button>
+        </div>
       ) : null}
 
       <SocialBar setId={setId} me={me} mine={mine} commentsSetting={commentsSetting} />

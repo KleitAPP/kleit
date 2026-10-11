@@ -75,6 +75,8 @@ function words(row: Due): { text: string; path: string } {
       };
     case "message_request":
       return { text: `${who} wants to message you`, path: "/inbox" };
+    case "tag":
+      return { text: `${who} tagged you in a set`, path: set ?? "/inbox" };
     case "mention":
       return { text: `${who} mentioned you in a comment`, path: set ?? "/inbox" };
     case "remix":

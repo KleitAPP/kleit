@@ -21,7 +21,8 @@ export type NotificationKind =
   | "strike"
   | "appeal_decided"
   | "remix"
-  | "mention";
+  | "mention"
+  | "tag";
 
 export type Notification = {
   id: string;

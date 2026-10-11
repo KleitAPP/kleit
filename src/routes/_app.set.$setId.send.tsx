@@ -8,6 +8,7 @@ import { t } from "@/i18n/en";
 import { parseTags } from "@/search/search";
 import { siteUrl } from "@/lib/site";
 import { noteSetSent } from "@/native/review";
+import { peopleOnSet, tagPerson, untag, type TaggedPerson } from "@/sets/tags";
 
 /**
  * S46 Publish and S47 Send, as one screen (design pack W10, W11; spec 5.2, 7.1; decision 5).
@@ -50,6 +51,46 @@ function SendSet() {
   const [problem, setProblem] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
   const [tagText, setTagText] = useState("");
+  // People in the set (spec 7.4): named by username; a tag waits for them unless they follow you.
+  const [people, setPeople] = useState<TaggedPerson[]>([]);
+  const [personText, setPersonText] = useState("");
+  const [personNote, setPersonNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void peopleOnSet(setId).then((list) => {
+      if (!cancelled) setPeople(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setId]);
+
+  async function addPerson() {
+    const name = personText.trim();
+    if (!name) return;
+    setPersonNote(null);
+    const result = await tagPerson(setId, name);
+    if (!result.ok) {
+      setPersonNote(
+        result.problem === "no-such-person"
+          ? t("send.tagNobody")
+          : result.problem === "refused"
+            ? t("send.tagRefused")
+            : t("send.tagFailed"),
+      );
+      return;
+    }
+    setPeople((list) => [
+      ...list.filter((p) => p.user_id !== result.person.user_id),
+      result.person,
+    ]);
+    setPersonText("");
+  }
+
+  async function removePerson(userId: string) {
+    if (await untag(setId, userId)) setPeople((list) => list.filter((p) => p.user_id !== userId));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +224,63 @@ function SendSet() {
           className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
         />
       </label>
+
+      <div className="mt-4">
+        <span className="text-sm text-ink-soft">{t("send.people")}</span>
+        <form
+          className="mt-1 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void addPerson();
+          }}
+        >
+          <input
+            type="text"
+            value={personText}
+            onChange={(e) => setPersonText(e.target.value)}
+            placeholder={t("send.peopleHint")}
+            aria-label={t("send.people")}
+            autoCapitalize="none"
+            autoCorrect="off"
+            className="min-h-12 min-w-0 flex-1 rounded-md border border-line bg-surface px-3 text-base text-ink"
+          />
+          <button
+            type="submit"
+            disabled={!personText.trim()}
+            className="min-h-12 shrink-0 rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+          >
+            {t("send.tagAdd")}
+          </button>
+        </form>
+        {people.length > 0 ? (
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {people.map((p) => (
+              <li key={p.user_id}>
+                <button
+                  type="button"
+                  onClick={() => void removePerson(p.user_id)}
+                  aria-label={t("send.tagRemove", { name: p.username })}
+                  className="flex min-h-10 items-center gap-1 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
+                >
+                  @{p.username}
+                  {p.state === "pending" ? (
+                    <span className="text-ink-soft"> · {t("send.tagWaiting")}</span>
+                  ) : null}
+                  <span aria-hidden="true" className="ml-1 text-ink-soft">
+                    ×
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {personNote ? (
+          <p role="alert" className="mt-2 text-sm text-danger">
+            {personNote}
+          </p>
+        ) : null}
+        <p className="mt-1 text-sm text-ink-soft">{t("send.peopleWhy")}</p>
+      </div>
 
       {/* G5: alt text lives under Advanced - offered, never in the way. */}
       <details className="mt-4 rounded-md border border-line bg-surface p-3">

@@ -1704,6 +1704,33 @@ export type Database = {
           },
         ]
       }
+      set_tags: {
+        Row: {
+          created_at: string
+          id: string
+          set_id: string
+          state: string
+          tagged_by: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          set_id: string
+          state?: string
+          tagged_by: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          set_id?: string
+          state?: string
+          tagged_by?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       set_versions: {
         Row: {
           id: string
@@ -2748,6 +2775,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      set_people: {
+        Args: { p_set_id: string }
+        Returns: { state: string; user_id: string; username: string }[]
       }
       shared_poll: { Args: { p_code: string }; Returns: Json }
       shared_set: { Args: { p_code: string }; Returns: Json }

@@ -75,6 +75,11 @@ function words(row: Due): { text: string; path: string } {
       };
     case "message_request":
       return { text: `${who} wants to message you`, path: "/inbox" };
+    case "poll_results":
+      return {
+        text: "Your poll closed - see how it went",
+        path: row.ref_id ? `/poll/${row.ref_id}` : "/you",
+      };
     case "tag":
       return { text: `${who} tagged you in a set`, path: set ?? "/inbox" };
     case "mention":

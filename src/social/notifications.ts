@@ -22,7 +22,8 @@ export type NotificationKind =
   | "appeal_decided"
   | "remix"
   | "mention"
-  | "tag";
+  | "tag"
+  | "poll_results";
 
 export type Notification = {
   id: string;

@@ -126,7 +126,7 @@ export async function readPushSetting(): Promise<boolean> {
  * never a push, whatever the list says.
  */
 export const PUSH_KINDS = [
-  { id: "vote", kinds: ["vote"] },
+  { id: "vote", kinds: ["vote", "poll_results"] },
   { id: "comment", kinds: ["comment", "ask_answer", "ask_chosen", "remix", "mention", "tag"] },
   { id: "follow", kinds: ["follow", "follow_request"] },
   { id: "message", kinds: ["message", "message_request"] },

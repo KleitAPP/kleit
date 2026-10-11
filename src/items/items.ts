@@ -30,7 +30,7 @@ export type ItemSummary = {
 };
 
 const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at";
+  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
 
 /** Your closet: the pieces you own, newest first. Private by default; the row policy enforces it. */
 export async function myCloset(): Promise<ItemSummary[]> {

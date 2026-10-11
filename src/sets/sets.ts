@@ -61,7 +61,7 @@ export type SetSummary = {
 export type Placement = { slot: number; item: ItemSummary };
 
 const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at";
+  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
 
 /** The person's default for comments on a new set (spec 11 #1). */
 export async function commentsDefault(me: string): Promise<"everyone" | "following" | "off"> {

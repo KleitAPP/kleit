@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Chip, Toast } from "@/components/kleit";
+import { Chip, PrimaryButton, Sheet, Toast } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { refreshPreview } from "@/sets/sets";
 
 /**
  * S19 — Privacy (design pack §2.1; spec 3.6).
@@ -19,6 +20,11 @@ import { t } from "@/i18n/en";
  *    fast taps on different switches could have the first one's failure undo the second one's
  *    success. Each row is now locked while its own save is in flight, and every state change goes
  *    through the updater form so it works from whatever the latest state is, not a stale copy.
+ *
+ * Two one-tap changes to every set at once (spec 7.1 #5, #10; migration 077): "make all my
+ * sets link-only" and "Lock down". Each asks once, in plain words, because the second cannot be
+ * undone in one tap - every link ever sent dies - and both are one server function, so there is
+ * no half-done state. After a lock-down the chat pictures come down too, set by set.
  */
 export const Route = createFileRoute("/_app/settings_/privacy")({
   head: () => ({ meta: [{ title: "Privacy" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -53,6 +59,38 @@ function Privacy() {
   const [busy, setBusy] = useState<keyof Switches | null>(null);
   const [dm, setDm] = useState<DmSetting | null>(null);
   const [commentsDefault, setCommentsDefault] = useState<CommentsDefault | null>(null);
+  const [bulk, setBulk] = useState<"linkOnly" | "lockDown" | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function runBulk(which: "linkOnly" | "lockDown") {
+    setBulkBusy(true);
+    const { data, error } = await supabase.rpc(
+      which === "lockDown" ? "lock_down" : "make_all_link_only",
+    );
+    setBulkBusy(false);
+    setBulk(null);
+    if (error || typeof data !== "number") {
+      setNotice(t("privacy.bulkFailed"));
+      return;
+    }
+    setNotice(
+      t(which === "lockDown" ? "privacy.lockDownDone" : "privacy.linkOnlyDone", { count: data }),
+    );
+    if (which === "lockDown") {
+      // The chat pictures of what was public come down with the links (spec 7.1 #8).
+      const { data: who } = await supabase.auth.getUser();
+      const me = who.user?.id;
+      if (!me) return;
+      const { data: mine } = await supabase
+        .from("sets")
+        .select("id")
+        .eq("owner_id", me)
+        .eq("status", "published")
+        .not("preview_image_id", "is", null);
+      for (const row of mine ?? []) refreshPreview(row.id);
+    }
+  }
 
   async function chooseComments(next: CommentsDefault) {
     if (commentsDefault === null) return;
@@ -204,6 +242,55 @@ function Privacy() {
           />
         ))}
       </div>
+
+      <h2 className="mt-8 text-base font-medium text-ink">{t("privacy.links")}</h2>
+      <p className="text-sm text-ink-soft">{t("privacy.linksWhy")}</p>
+      <div className="mt-2 flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setBulk("linkOnly")}
+          className="flex min-h-12 w-full items-center justify-between rounded-md border border-line bg-surface px-4 text-left text-base text-ink transition-colors duration-fast hover:bg-surface-2"
+        >
+          {t("privacy.linkOnly")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setBulk("lockDown")}
+          className="flex min-h-12 w-full flex-col items-start justify-center rounded-md border border-danger bg-surface px-4 py-2 text-left transition-colors duration-fast hover:bg-surface-2"
+        >
+          <span className="text-base font-medium text-danger">{t("privacy.lockDown")}</span>
+          <span className="text-sm text-ink-soft">{t("privacy.lockDownHint")}</span>
+        </button>
+      </div>
+      {notice ? (
+        <p
+          role="status"
+          className="mt-3 rounded-md border border-line bg-surface p-3 text-sm text-ink"
+        >
+          {notice}
+        </p>
+      ) : null}
+
+      <Sheet
+        open={bulk !== null}
+        onOpenChange={(open) => {
+          if (!open) setBulk(null);
+        }}
+        title={bulk === "lockDown" ? t("privacy.lockDown") : t("privacy.linkOnly")}
+        description={
+          bulk === "lockDown" ? t("privacy.lockDownWarning") : t("privacy.linkOnlyWarning")
+        }
+        action={
+          <PrimaryButton
+            onClick={() => {
+              if (bulk) void runBulk(bulk);
+            }}
+            disabled={bulkBusy}
+          >
+            {bulk === "lockDown" ? t("privacy.lockDownConfirm") : t("privacy.linkOnlyConfirm")}
+          </PrimaryButton>
+        }
+      />
 
       {saved ? (
         <Toast message={t("privacy.saved")} tone="positive" onDismiss={() => setSaved(false)} />

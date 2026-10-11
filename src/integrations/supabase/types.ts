@@ -2421,10 +2421,12 @@ export type Database = {
       }
       leave_conversation: { Args: { p_id: string }; Returns: undefined }
       level_of: { Args: { p_points: number }; Returns: number }
+      lock_down: { Args: never; Returns: number }
       log_private_view: {
         Args: { p_reason: string; p_target: string; p_what: string }
         Returns: undefined
       }
+      make_all_link_only: { Args: never; Returns: number }
       mark_cleanup: { Args: { p_id: number }; Returns: undefined }
       mark_purged: { Args: { p_item: string }; Returns: undefined }
       mark_pushes: {

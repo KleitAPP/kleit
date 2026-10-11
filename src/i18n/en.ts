@@ -373,6 +373,22 @@ export const en = {
   "privacy.findEmail": "Let people find me by email",
   "privacy.findPhone": "Let people find me by phone number",
   "privacy.suggest": "Suggest my account to others",
+  "privacy.links": "Your links",
+  "privacy.linksWhy": "Two one-tap changes for every set you have at once.",
+  "privacy.linkOnly": "Make all my sets link-only",
+  "privacy.linkOnlyWarning":
+    "Every Public set becomes Link-only: it leaves your profile and search, and only people with the link can open it. The links keep working. Followers, Friends and Only me sets stay as they are.",
+  "privacy.linkOnlyConfirm": "Make them link-only",
+  "privacy.linkOnlyDone": "Done. {count} sets are now link-only.",
+  "privacy.linkOnlyDone.one": "Done. 1 set is now link-only.",
+  "privacy.lockDown": "Lock down",
+  "privacy.lockDownHint": "Every set to Only me, every link dead",
+  "privacy.lockDownWarning":
+    "Every set becomes Only me and every link you've ever sent stops working, including links already in chats. Previews already sent can't be pulled back. Your open polls close. Nothing is deleted: you can open sets up again one at a time from Hidden.",
+  "privacy.lockDownConfirm": "Lock everything down",
+  "privacy.lockDownDone": "Locked down. {count} sets are now Only me and every old link is dead.",
+  "privacy.lockDownDone.one": "Locked down. 1 set is now Only me and its old link is dead.",
+  "privacy.bulkFailed": "That didn't work. Have another go in a moment.",
   "privacy.saved": "Saved",
   "privacy.failed":
     "That didn't save, so the setting is back as it was. Have another go in a moment.",

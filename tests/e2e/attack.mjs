@@ -900,6 +900,33 @@ try {
     "stranger: and comes back when the victim does",
     String(pageBack.status),
   );
+
+  // Lock down (spec 7.1 #5): one call, and every link the victim ever sent is dead - the share
+  // page, the embed, and the attacker's own signed-in read of the public set.
+  const { data: locked, error: lockError } = await victim.client.rpc("lock_down");
+  const lockedPage = await fetch(`${SITE}/s/${pub.share_code}`);
+  const lockedEmbed = await fetch(`${SITE}/e/${pub.share_code}`);
+  const { data: afterLock } = await attacker.client.from("sets").select("id").eq("id", pub.id);
+  check(
+    !lockError && typeof locked === "number" && locked >= 2,
+    "victim: Lock down touches every set in one call",
+    lockError ? lockError.message : `${locked} sets`,
+  );
+  check(
+    lockedPage.status === 404 && lockedEmbed.status === 404 && (afterLock ?? []).length === 0,
+    "stranger and attacker: after Lock down the old link, the embed and the read are all dead",
+    `${lockedPage.status}/${lockedEmbed.status}/${(afterLock ?? []).length}`,
+  );
+  const { error: notYours } = await attacker.client.rpc("lock_down");
+  const { data: otherStillLocked } = await admin
+    .from("sets")
+    .select("visibility")
+    .eq("id", pub.id)
+    .maybeSingle();
+  check(
+    !notYours && otherStillLocked?.visibility === "only_me",
+    "attacker: their own Lock down changes nothing of the victim's",
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

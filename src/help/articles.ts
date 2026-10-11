@@ -79,6 +79,42 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "remix",
+    group: "Sets and sharing",
+    title: "Remixing a set",
+    body: [
+      'Remix makes your own version of a set you can see: the same layout and the pieces you\'re allowed to use land in a new draft of yours, credited "Remixed from @name". The credit stays on it.',
+      "Each set's maker chooses who may remix it - anyone, followers, or no one - from the set's options. Someone's own closet piece only comes along if they've made it shareable.",
+    ],
+  },
+  {
+    slug: "recently-deleted",
+    group: "Sets and sharing",
+    title: "Recently deleted",
+    body: [
+      "A deleted set or closet piece waits 30 days in Recently deleted (at the bottom of You, and of your closet) with Restore and Delete now. After 30 days it goes for good on its own.",
+      "Deleting a set makes its link stop working at once, but a preview already sent in a chat can't be pulled back.",
+    ],
+  },
+  {
+    slug: "lock-down",
+    group: "Safety",
+    title: "Lock down: every link dead in one tap",
+    body: [
+      "Settings > Privacy > Lock down turns every set of yours to Only me and gives each a new link, so every link you've ever sent stops working - in chats too - and your open polls close. Nothing is deleted; open sets up again one at a time from Hidden.",
+      "Next to it, Make all my sets link-only takes every Public set off your profile and out of search without breaking its links.",
+    ],
+  },
+  {
+    slug: "embed-and-extension",
+    group: "Sets and sharing",
+    title: "Putting a set on a website, and clipping from a computer",
+    body: [
+      "A set's options include Embed on a website: it copies one line you can paste into a blog or a page, and the embed stops working if you reset the link or make the set private.",
+      "On a computer, the Kleit browser extension for Chrome and Edge adds a button to clip the page you're on, or right-click a picture to clip just that.",
+    ],
+  },
+  {
     slug: "buy-links",
     group: "Sets and sharing",
     title: "Buy buttons and what we earn",
@@ -153,6 +189,22 @@ export const ARTICLES: Article[] = [
     body: [
       "Settings > Delete account hides everything at once and deletes it for good after seven days; sign in during those days and press Undo to keep it. What stays: other people's remixes of your sets (credited to a deleted account), your votes in poll totals without your name, store pieces you clipped (with no name), and messages you sent, which show as unavailable.",
       "If you can't sign in, the page at /delete-account explains how to ask us to do it for you.",
+    ],
+  },
+  {
+    slug: "download-data",
+    group: "Your account",
+    title: "Downloading your data",
+    body: [
+      "Settings > Download my data makes one ZIP of everything Kleit holds about you - your profile, sets, folders, closet photos, comments, messages and more - with a link that works for seven days and only for you. One new file a day.",
+    ],
+  },
+  {
+    slug: "notifications",
+    group: "Your account",
+    title: "Notifications on your phone",
+    body: [
+      "In the app, Settings > Notifications turns pushes on and lets you choose which kinds reach your phone. Likes never buzz your phone, nothing arrives between 10 pm and 8 am your time, a busy hour arrives as one push, and never more than 20 a day.",
     ],
   },
   {

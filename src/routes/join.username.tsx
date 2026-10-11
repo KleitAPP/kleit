@@ -11,6 +11,7 @@ import {
 } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
 import { hasAgreed, rememberAgreement } from "@/auth/agreement";
+import { betaOnly, forgetInvite, peekInvite } from "@/auth/beta";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
@@ -62,6 +63,17 @@ function PickUsername() {
       cancelled = true;
     };
   }, [navigate]);
+  // The invite-only beta (S111): with the switch on and no code kept from an invite link, the
+  // invite screen comes first. The database refuses without one either way.
+  useEffect(() => {
+    let cancelled = false;
+    void betaOnly().then((on) => {
+      if (!cancelled && on && !peekInvite()) void navigate({ to: "/join/invite", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const name = tidyUsername(typed);
   const shape = name === "" ? null : usernameShapeProblem(name);
@@ -97,10 +109,19 @@ function PickUsername() {
   async function take() {
     setClaiming(true);
     setRefusal(null);
-    const result = await claimProfile(name, "");
+    const result = await claimProfile(name, "", "v0.1", peekInvite());
     setClaiming(false);
     if (result.ok) {
+      forgetInvite();
       void navigate({ to: "/join/name" });
+      return;
+    }
+    if (result.problem === "invite-needed") {
+      void navigate({ to: "/join/invite" });
+      return;
+    }
+    if (result.problem === "invite-bad") {
+      void navigate({ to: "/join/invite", search: { bad: true } });
       return;
     }
     if (result.problem === "taken") {

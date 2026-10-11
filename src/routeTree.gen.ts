@@ -31,6 +31,7 @@ import { Route as HelpSlugRouteImport } from './routes/help.$slug'
 import { Route as JoinIndexRouteImport } from './routes/join.index'
 import { Route as JoinCodeRouteImport } from './routes/join.code'
 import { Route as JoinEmailRouteImport } from './routes/join.email'
+import { Route as JoinInviteRouteImport } from './routes/join.invite'
 import { Route as JoinNameRouteImport } from './routes/join.name'
 import { Route as JoinUsernameRouteImport } from './routes/join.username'
 import { Route as AppAddLinkRouteImport } from './routes/_app.add.link'
@@ -43,6 +44,7 @@ import { Route as AppInboxConversationIdRouteImport } from './routes/_app.inbox_
 import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppModContactRouteImport } from './routes/_app.mod_.contact'
 import { Route as AppModContestsRouteImport } from './routes/_app.mod_.contests'
+import { Route as AppModInvitesRouteImport } from './routes/_app.mod_.invites'
 import { Route as AppModLogRouteImport } from './routes/_app.mod_.log'
 import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
 import { Route as AppModTakedownsRouteImport } from './routes/_app.mod_.takedowns'
@@ -191,6 +193,11 @@ const JoinEmailRoute = JoinEmailRouteImport.update({
   path: '/join/email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinInviteRoute = JoinInviteRouteImport.update({
+  id: '/join/invite',
+  path: '/join/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinNameRoute = JoinNameRouteImport.update({
   id: '/join/name',
   path: '/join/name',
@@ -250,6 +257,11 @@ const AppModContactRoute = AppModContactRouteImport.update({
 const AppModContestsRoute = AppModContestsRouteImport.update({
   id: '/mod_/contests',
   path: '/mod/contests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModInvitesRoute = AppModInvitesRouteImport.update({
+  id: '/mod_/invites',
+  path: '/mod/invites',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModLogRoute = AppModLogRouteImport.update({
@@ -466,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/invite': typeof JoinInviteRoute
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/join/': typeof JoinIndexRoute
@@ -479,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/contact': typeof AppModContactRoute
   '/mod/contests': typeof AppModContestsRoute
+  '/mod/invites': typeof AppModInvitesRoute
   '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
@@ -538,6 +552,7 @@ export interface FileRoutesByTo {
   '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/invite': typeof JoinInviteRoute
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/': typeof AppIndexRoute
@@ -552,6 +567,7 @@ export interface FileRoutesByTo {
   '/item/$itemId': typeof AppItemItemIdRoute
   '/mod/contact': typeof AppModContactRoute
   '/mod/contests': typeof AppModContestsRoute
+  '/mod/invites': typeof AppModInvitesRoute
   '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
@@ -613,6 +629,7 @@ export interface FileRoutesById {
   '/help/$slug': typeof HelpSlugRoute
   '/join/code': typeof JoinCodeRoute
   '/join/email': typeof JoinEmailRoute
+  '/join/invite': typeof JoinInviteRoute
   '/join/name': typeof JoinNameRoute
   '/join/username': typeof JoinUsernameRoute
   '/_app/': typeof AppIndexRoute
@@ -627,6 +644,7 @@ export interface FileRoutesById {
   '/_app/item/$itemId': typeof AppItemItemIdRoute
   '/_app/mod_/contact': typeof AppModContactRoute
   '/_app/mod_/contests': typeof AppModContestsRoute
+  '/_app/mod_/invites': typeof AppModInvitesRoute
   '/_app/mod_/log': typeof AppModLogRoute
   '/_app/mod_/switches': typeof AppModSwitchesRoute
   '/_app/mod_/takedowns': typeof AppModTakedownsRoute
@@ -689,6 +707,7 @@ export interface FileRouteTypes {
     | '/help/$slug'
     | '/join/code'
     | '/join/email'
+    | '/join/invite'
     | '/join/name'
     | '/join/username'
     | '/join/'
@@ -702,6 +721,7 @@ export interface FileRouteTypes {
     | '/item/$itemId'
     | '/mod/contact'
     | '/mod/contests'
+    | '/mod/invites'
     | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
@@ -761,6 +781,7 @@ export interface FileRouteTypes {
     | '/help/$slug'
     | '/join/code'
     | '/join/email'
+    | '/join/invite'
     | '/join/name'
     | '/join/username'
     | '/'
@@ -775,6 +796,7 @@ export interface FileRouteTypes {
     | '/item/$itemId'
     | '/mod/contact'
     | '/mod/contests'
+    | '/mod/invites'
     | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
@@ -835,6 +857,7 @@ export interface FileRouteTypes {
     | '/help/$slug'
     | '/join/code'
     | '/join/email'
+    | '/join/invite'
     | '/join/name'
     | '/join/username'
     | '/_app/'
@@ -849,6 +872,7 @@ export interface FileRouteTypes {
     | '/_app/item/$itemId'
     | '/_app/mod_/contact'
     | '/_app/mod_/contests'
+    | '/_app/mod_/invites'
     | '/_app/mod_/log'
     | '/_app/mod_/switches'
     | '/_app/mod_/takedowns'
@@ -901,6 +925,7 @@ export interface RootRouteChildren {
   DevScreensRoute: typeof DevScreensRoute
   JoinCodeRoute: typeof JoinCodeRoute
   JoinEmailRoute: typeof JoinEmailRoute
+  JoinInviteRoute: typeof JoinInviteRoute
   JoinNameRoute: typeof JoinNameRoute
   JoinUsernameRoute: typeof JoinUsernameRoute
   JoinIndexRoute: typeof JoinIndexRoute
@@ -1062,6 +1087,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/invite': {
+      id: '/join/invite'
+      path: '/join/invite'
+      fullPath: '/join/invite'
+      preLoaderRoute: typeof JoinInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/name': {
       id: '/join/name'
       path: '/join/name'
@@ -1144,6 +1176,13 @@ declare module '@tanstack/react-router' {
       path: '/mod/contests'
       fullPath: '/mod/contests'
       preLoaderRoute: typeof AppModContestsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mod_/invites': {
+      id: '/_app/mod_/invites'
+      path: '/mod/invites'
+      fullPath: '/mod/invites'
+      preLoaderRoute: typeof AppModInvitesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/mod_/log': {
@@ -1435,6 +1474,7 @@ interface AppRouteChildren {
   AppItemItemIdRoute: typeof AppItemItemIdRoute
   AppModContactRoute: typeof AppModContactRoute
   AppModContestsRoute: typeof AppModContestsRoute
+  AppModInvitesRoute: typeof AppModInvitesRoute
   AppModLogRoute: typeof AppModLogRoute
   AppModSwitchesRoute: typeof AppModSwitchesRoute
   AppModTakedownsRoute: typeof AppModTakedownsRoute
@@ -1495,6 +1535,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppItemItemIdRoute: AppItemItemIdRoute,
   AppModContactRoute: AppModContactRoute,
   AppModContestsRoute: AppModContestsRoute,
+  AppModInvitesRoute: AppModInvitesRoute,
   AppModLogRoute: AppModLogRoute,
   AppModSwitchesRoute: AppModSwitchesRoute,
   AppModTakedownsRoute: AppModTakedownsRoute,
@@ -1559,6 +1600,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevScreensRoute: DevScreensRoute,
   JoinCodeRoute: JoinCodeRoute,
   JoinEmailRoute: JoinEmailRoute,
+  JoinInviteRoute: JoinInviteRoute,
   JoinNameRoute: JoinNameRoute,
   JoinUsernameRoute: JoinUsernameRoute,
   JoinIndexRoute: JoinIndexRoute,

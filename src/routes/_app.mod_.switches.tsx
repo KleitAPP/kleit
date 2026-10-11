@@ -24,6 +24,7 @@ const SWITCHES = [
   "comments_open",
   "public_links_open",
   "push_open",
+  "beta_only",
 ] as const;
 type Key = (typeof SWITCHES)[number];
 

@@ -63,7 +63,15 @@ export async function suggestUsernames(taken: string): Promise<string[]> {
 }
 
 export type ClaimProblem =
-  "taken" | "shape" | "already-have-one" | "signed-out" | "refused" | "offline" | "unknown";
+  | "taken"
+  | "shape"
+  | "already-have-one"
+  | "signed-out"
+  | "refused"
+  | "offline"
+  | "invite-needed"
+  | "invite-bad"
+  | "unknown";
 
 /**
  * Finishes sign-up: writes the profile and files the 18+ record, both inside the database.
@@ -73,12 +81,14 @@ export async function claimProfile(
   username: string,
   displayName: string,
   termsVersion = "v0.1",
+  invite: string | null = null,
 ): Promise<{ ok: true } | { ok: false; problem: ClaimProblem }> {
   try {
     const { error } = await supabase.rpc("claim_profile", {
       p_username: username,
       p_display_name: displayName,
       p_terms_version: termsVersion,
+      ...(invite ? { p_invite: invite } : {}),
     });
     if (!error) return { ok: true };
     const code = error.code ?? "";
@@ -87,6 +97,9 @@ export async function claimProfile(
     if (code === "42501") return { ok: false, problem: "signed-out" };
     // A banned identity coming back (migration 063): refused, and told only that much.
     if (code === "P0007") return { ok: false, problem: "refused" };
+    // The invite-only beta (migration 087): a code is needed, or the kept one is no good.
+    if (code === "P0008") return { ok: false, problem: "invite-needed" };
+    if (code === "P0009") return { ok: false, problem: "invite-bad" };
     return { ok: false, problem: "unknown" };
   } catch {
     return { ok: false, problem: "offline" };

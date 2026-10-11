@@ -201,6 +201,7 @@ const TOOLS: readonly { to: string; label: MessageKey; hint: MessageKey }[] = [
   { to: "/mod/users", label: "mod.users", hint: "mod.toolsUsers" },
   { to: "/mod/switches", label: "mod.switches", hint: "mod.toolsSwitches" },
   { to: "/mod/contests", label: "mod.contests", hint: "mod.toolsContests" },
+  { to: "/mod/invites", label: "mod.invites", hint: "mod.toolsInvites" },
   { to: "/mod/log", label: "mod.log", hint: "mod.toolsLog" },
 ];
 

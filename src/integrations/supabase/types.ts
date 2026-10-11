@@ -244,6 +244,50 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_invite_uses: {
+        Row: { code: string; used_at: string; user_id: string }
+        Insert: { code: string; used_at?: string; user_id: string }
+        Update: { code?: string; used_at?: string; user_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "beta_invite_uses_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "beta_invites"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      beta_invites: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          disabled_at: string | null
+          expires_at: string | null
+          label: string
+          uses_left: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          disabled_at?: string | null
+          expires_at?: string | null
+          label?: string
+          uses_left?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          disabled_at?: string | null
+          expires_at?: string | null
+          label?: string
+          uses_left?: number
+        }
+        Relationships: []
+      }
       blocked_identities: {
         Row: {
           created_at: string
@@ -2222,6 +2266,18 @@ export type Database = {
         Args: { p_conversation: string }
         Returns: boolean
       }
+      admin_beta_invites: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          disabled_at: string | null
+          expires_at: string | null
+          label: string
+          used_by: string[]
+          uses_left: number
+        }[]
+      }
       admin_contests: {
         Args: never
         Returns: {
@@ -2280,6 +2336,7 @@ export type Database = {
       claim_profile: {
         Args: {
           p_display_name?: string
+          p_invite?: string
           p_terms_version?: string
           p_username: string
         }
@@ -2351,6 +2408,8 @@ export type Database = {
           target_id: string
         }[]
       }
+      beta_only: { Args: never; Returns: boolean }
+      check_beta_invite: { Args: { p_code: string }; Returns: boolean }
       close_contest_now: { Args: { p_contest: string }; Returns: boolean }
       closet_item_uses: { Args: { p_item_id: string }; Returns: number }
       contact_resolve: {
@@ -2379,6 +2438,7 @@ export type Database = {
         Args: { p_item_id: string; p_keep_in_sets?: boolean }
         Returns: number
       }
+      disable_beta_invite: { Args: { p_code: string }; Returns: boolean }
       drop_contest_theme: { Args: { p_id: string }; Returns: boolean }
       erase_closet_item: { Args: { p_item_id: string }; Returns: undefined }
       erase_set: { Args: { p_set_id: string }; Returns: boolean }
@@ -2521,6 +2581,10 @@ export type Database = {
           target_username: string
           title: string
         }[]
+      }
+      mint_beta_invites: {
+        Args: { p_count: number; p_days: number; p_label: string; p_uses: number }
+        Returns: string[]
       }
       move_contest_theme: {
         Args: { p_direction: string; p_id: string }

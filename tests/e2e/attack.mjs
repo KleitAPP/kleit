@@ -927,6 +927,30 @@ try {
     !notYours && otherStillLocked?.visibility === "only_me",
     "attacker: their own Lock down changes nothing of the victim's",
   );
+
+  // The beta invites (migration 087) and the admin contest tools (085) are the admins' alone.
+  const invites = await a.from("beta_invites").select("code").limit(1);
+  const mint = await a.rpc("mint_beta_invites", { p_label: "x", p_count: 1, p_uses: 1, p_days: 1 });
+  const probe = await anon.rpc("check_beta_invite", { p_code: "ABCD2345" });
+  check(
+    (invites.data ?? []).length === 0 && mint.error?.code === "42501" && !!probe.error,
+    "attacker: cannot read or mint beta invites; a stranger cannot probe codes",
+    `${(invites.data ?? []).length} rows / ${mint.error?.code ?? "minted"} / ${probe.error?.code ?? "answered"}`,
+  );
+  const themes = await a.from("contest_themes").select("id").limit(1);
+  const feature = await a.rpc("feature_set", { p_set: pub.id, p_on: true });
+  const startC = await a.rpc("start_contest", {
+    p_title: "attack (ignore)",
+    p_theme: "",
+    p_days: 1,
+  });
+  check(
+    (themes.data ?? []).length === 0 &&
+      feature.error?.code === "42501" &&
+      startC.error?.code === "42501",
+    "attacker: cannot see the theme queue, feature a set or start a challenge",
+    `${(themes.data ?? []).length} rows / ${feature.error?.code ?? "featured"} / ${startC.error?.code ?? "started"}`,
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

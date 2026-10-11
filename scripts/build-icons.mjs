@@ -21,7 +21,8 @@
  * The icon is the mark in white on the Studio accent (#C0442B): the one brand-coloured thing in
  * the app, and the only surface that reads at 48 px among a hundred other icons. The launch
  * screen is the mark in ink on the paper canvas (#FAF9F7), the first screen's own colours, so
- * the app does not flash a different colour before it is up.
+ * the app does not flash a different colour before it is up - and in dark mode the dark canvas
+ * with the light ink, for the same reason (values-night, drawable-night, the -dark appearance).
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -55,6 +56,9 @@ const MARK_H = 140;
 const ACCENT = "#C0442B";
 const PAPER = "#FAF9F7";
 const INK = "#161513";
+// Dark mode's canvas and ink (src/theme/kleit-theme.css), for the night launch window.
+const PAPER_DARK = "#151412";
+const INK_DARK = "#F2F0EB";
 
 /** A square picture: the mark, `markHeight` tall, centred on a flat colour (or on nothing). */
 function picture(size, markHeight, colour, background) {
@@ -115,8 +119,16 @@ for (const [name, scale] of Object.entries(DENSITIES)) {
     picture(140 * scale, 120 * scale, INK, null),
     join(ROOT, `android/app/src/main/res/drawable-${name}/splash.png`),
   );
+  await png(
+    picture(140 * scale, 120 * scale, INK_DARK, null),
+    join(ROOT, `android/app/src/main/res/drawable-night-${name}/splash.png`),
+  );
 }
 await png(picture(140, 120, INK, null), join(ROOT, "android/app/src/main/res/drawable/splash.png"));
+await png(
+  picture(140, 120, INK_DARK, null),
+  join(ROOT, "android/app/src/main/res/drawable-night/splash.png"),
+);
 writeFileSync(
   join(ROOT, "android/app/src/main/res/drawable/splash_window.xml"),
   `<?xml version="1.0" encoding="utf-8"?>
@@ -133,10 +145,45 @@ writeFileSync(
   join(ROOT, "android/app/src/main/res/values/splash.xml"),
   `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="splash_background">${PAPER}</color>\n</resources>\n`,
 );
+mkdirSync(join(ROOT, "android/app/src/main/res/values-night"), { recursive: true });
+writeFileSync(
+  join(ROOT, "android/app/src/main/res/values-night/splash.xml"),
+  `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="splash_background">${PAPER_DARK}</color>\n</resources>\n`,
+);
 
 // iOS: one square image set, drawn aspect-fill by LaunchScreen.storyboard, so the paper fills
 // any screen and the centred mark stays whole.
 const splash = picture(2732, 420, INK, PAPER);
-for (const name of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) {
+const splashDark = picture(2732, 420, INK_DARK, PAPER_DARK);
+const SPLASH_FILES = [
+  ["splash-2732x2732-2.png", "1x"],
+  ["splash-2732x2732-1.png", "2x"],
+  ["splash-2732x2732.png", "3x"],
+];
+for (const [name] of SPLASH_FILES) {
   await png(splash, join(ROOT, "ios/App/App/Assets.xcassets/Splash.imageset", name));
+  await png(
+    splashDark,
+    join(ROOT, "ios/App/App/Assets.xcassets/Splash.imageset", name.replace(".png", "-dark.png")),
+  );
 }
+// The image set's own index: the same picture per scale, with a dark appearance for each.
+writeFileSync(
+  join(ROOT, "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json"),
+  JSON.stringify(
+    {
+      images: SPLASH_FILES.flatMap(([filename, scale]) => [
+        { idiom: "universal", filename, scale },
+        {
+          idiom: "universal",
+          filename: filename.replace(".png", "-dark.png"),
+          scale,
+          appearances: [{ appearance: "luminosity", value: "dark" }],
+        },
+      ]),
+      info: { version: 1, author: "xcode" },
+    },
+    null,
+    2,
+  ) + "\n",
+);

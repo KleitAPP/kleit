@@ -10,6 +10,7 @@ import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 import { supabase } from "@/integrations/supabase/client";
 import { appSettingsQuery } from "@/app/appSettings";
+import { watchIncoming } from "@/native/incoming";
 import { startPush } from "@/native/push";
 import { OfflineBanner } from "@/offline/OfflineBanner";
 import { watchOutbox } from "@/offline/outbox";
@@ -90,6 +91,17 @@ function AppShell() {
   useEffect(() => {
     if (allowed === true) watchOutbox();
   }, [allowed]);
+
+  // Shares and links from other apps (M8.2/M8.7, the phone only): a store page shared to Kleit
+  // becomes Clip a link; one of our own links becomes the set or poll.
+  useEffect(() => {
+    if (allowed !== true) return;
+    watchIncoming((path) => {
+      const [to, query] = path.split("?");
+      const search = query ? Object.fromEntries(new URLSearchParams(query)) : undefined;
+      void navigate({ to, search } as never);
+    });
+  }, [allowed, navigate]);
 
   if (allowed !== true) return <LaunchSplash />;
 

@@ -6,5 +6,6 @@ import UIKit
 class KleitViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(CutoutPlugin())
+        bridge?.registerPluginInstance(IncomingPlugin())
     }
 }

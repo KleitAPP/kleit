@@ -22,6 +22,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- "Share" from a store app or a browser: the page's address arrives as text and
+                 becomes Clip a link with the address filled in (M8.2, IncomingPlugin). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- A kleit.app set or poll link tapped in a chat opens inside the app (M8.7). The
+                 "autoVerify" needs kleit.app/.well-known/assetlinks.json with the signing
+                 certificate's fingerprint, which arrives with the signed build (M8.1b). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="kleit.app" android:pathPrefix="/s/" />
+                <data android:scheme="https" android:host="kleit.app" android:pathPrefix="/p/" />
+                <data android:scheme="https" android:host="www.kleit.app" android:pathPrefix="/s/" />
+                <data android:scheme="https" android:host="www.kleit.app" android:pathPrefix="/p/" />
+            </intent-filter>
+
         </activity>
 
         <!-- Ask Play services for the cutout model at install time (M8.3). -->

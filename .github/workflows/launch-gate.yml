@@ -19,6 +19,8 @@ on:
       - "scripts/check-cutout.mjs"
       - "src/offline/**"
       - "scripts/check-offline.mjs"
+      - "src/native/**"
+      - "scripts/check-incoming.mjs"
       - "scripts/fixtures/**"
       - ".github/workflows/launch-gate.yml"
   schedule:
@@ -68,3 +70,6 @@ jobs:
       # queue in order, and a lost connection is told apart from a refusal (M8.5).
       - name: The offline store keeps and replays in order
         run: node scripts/check-offline.mjs
+      # A share or a link that reaches the phone app goes to the right screen (M8.2 / M8.7).
+      - name: A share or a link that reaches the app lands on the right screen
+        run: node scripts/check-incoming.mjs

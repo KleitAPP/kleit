@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Chip, PrimaryButton } from "@/components/kleit";
 import {
@@ -28,6 +28,9 @@ export const Route = createFileRoute("/_app/add/link")({
   head: () => ({
     meta: [{ title: "Clip a link" }, { name: "robots", content: "noindex, nofollow" }],
   }),
+  // ?url= is how a share from another app arrives (M8.2): the address is filled in and read at once.
+  validateSearch: (search: Record<string, unknown>): { url?: string } =>
+    typeof search["url"] === "string" && search["url"] ? { url: search["url"] } : {},
   component: AddLink,
 });
 
@@ -61,8 +64,9 @@ const SAVE_WORDS: Record<SaveProblem, string> = {
 
 function AddLink() {
   const navigate = useNavigate();
+  const shared = Route.useSearch().url;
   const [stage, setStage] = useState<Stage>({ at: "paste" });
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(shared ?? "");
 
   // The details, editable (name and price - spec 4.1 #9), and the picture picked.
   const [title, setTitle] = useState("");
@@ -70,8 +74,18 @@ function AddLink() {
   const [image, setImage] = useState<string | null>(null);
   const [own, setOwn] = useState(false);
 
-  async function read() {
-    const trimmed = url.trim();
+  // A shared address does not wait for a tap.
+  useEffect(() => {
+    if (shared && stage.at === "paste") void readAddress(shared);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shared]);
+
+  function read() {
+    return readAddress(url);
+  }
+
+  async function readAddress(address: string) {
+    const trimmed = address.trim();
     if (!trimmed) return;
     setStage({ at: "reading" });
     const result = await readLink(trimmed);

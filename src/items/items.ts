@@ -289,3 +289,14 @@ export function buyUrlFor(
   if (setId) url.searchParams.set("set", setId);
   return url.toString();
 }
+
+/** "Sets with this item" (spec 9 #2; migration 093): public published sets, newest first, as the caller may see them. */
+export type SetWithItem = { id: string; title: string; preview_image_id: string | null };
+export async function setsWithItem(itemId: string): Promise<SetWithItem[]> {
+  const { data } = await supabase.rpc("sets_with_item", { p_item: itemId, p_limit: 24 });
+  return (data ?? []).map((s) => ({
+    id: s.id,
+    title: s.title,
+    preview_image_id: s.preview_image_id ?? null,
+  }));
+}

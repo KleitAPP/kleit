@@ -1204,6 +1204,8 @@ export const en = {
   "myItems.what": "Pieces from the catalogue you've hearted.",
   "myItems.empty": "Nothing saved yet. Tap the heart on any piece from a store.",
   "item.yourPiece": "Your piece",
+  "item.inSets": "In {count} sets",
+  "item.inSets.one": "In 1 set",
   "item.save": "Save",
   "item.saved": "Saved",
   "item.saveWhy": "Saved pieces sit under My items, and you're told if the price drops.",

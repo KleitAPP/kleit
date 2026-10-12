@@ -18,8 +18,11 @@ import {
   unsaveItem,
   type ItemSummary,
   type ScanState,
+  setsWithItem,
+  type SetWithItem,
 } from "@/items/items";
 import { t } from "@/i18n/en";
+import { previewUrl } from "@/search/search";
 import { ReportButton } from "@/safety/ReportButton";
 
 /**
@@ -34,9 +37,9 @@ import { ReportButton } from "@/safety/ReportButton";
  * it in normal text, the tap is counted with a random id and never a name, and the store opens
  * in the phone's own browser - `target="_blank"` here, the system browser inside the app at M8.
  *
- * "Sets with this item" and "Find similar" are on the design and not on this page yet. They
- * read from `public_item_stats` (M3.1) and the photo search (M6); a heading over nothing would
- * be a promise, so they arrive with their data.
+ * "Sets with this item" (spec 9 #2) lists the public published sets the piece sits on, through
+ * `sets_with_item` (migration 093); nothing is shown when there are none. "Find similar" waits for
+ * the photo search (M10, CL40) - a heading over nothing would be a promise.
  *
  * Remove from closet (spec 7.1 #7, #11; S26): shown only when the piece is in YOUR closet - the
  * closet table answers nobody else, so the question "is this mine?" is the database's. A piece
@@ -66,22 +69,26 @@ function ItemPage() {
   const [removing, setRemoving] = useState<{ uses: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [inSets, setInSets] = useState<SetWithItem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     setLoaded({ at: "loading" });
+    setInSets([]);
     void (async () => {
       const item = await oneItem(itemId);
       if (!item) {
         if (!cancelled) setLoaded({ at: "missing" });
         return;
       }
-      const [imageUrl, states, mine, saved] = await Promise.all([
+      const [imageUrl, states, mine, saved, sets] = await Promise.all([
         imageUrlFor(item),
         myScanStates([item.id]),
         item.kind === "own" ? inMyCloset(item.id) : Promise.resolve(false),
         item.kind === "product" ? isSaved(item.id) : Promise.resolve(false),
+        setsWithItem(item.id),
       ]);
+      if (!cancelled) setInSets(sets);
       if (!cancelled)
         setLoaded({
           at: "found",
@@ -234,6 +241,35 @@ function ItemPage() {
           {/* Beside the button, in normal text (spec 8.2 #7). */}
           <p className="mt-2 text-sm text-ink-soft">{t("disclosure.commission")}</p>
         </div>
+      ) : null}
+
+      {inSets.length > 0 ? (
+        <section className="mt-6" aria-labelledby="in-sets">
+          <h2 id="in-sets" className="text-base font-medium text-ink">
+            {t("item.inSets", { count: inSets.length })}
+          </h2>
+          <ul className="mt-2 grid grid-cols-2 gap-3">
+            {inSets.map((s) => {
+              const url = previewUrl(s);
+              return (
+                <li key={s.id}>
+                  <Link
+                    to="/set/$setId"
+                    params={{ setId: s.id }}
+                    className="block overflow-hidden rounded-md bg-surface shadow-card"
+                  >
+                    <div className="aspect-square w-full bg-surface-2">
+                      {url ? (
+                        <img src={url} alt="" loading="lazy" className="size-full object-cover" />
+                      ) : null}
+                    </div>
+                    <p className="truncate px-3 py-2 text-sm text-ink">{s.title || "…"}</p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       ) : null}
 
       {mine ? (

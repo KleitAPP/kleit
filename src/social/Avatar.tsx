@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { KleitMark } from "@/brand/KleitMark";
 
-import { avatarSrc } from "./avatar";
+import { avatarSrc } from "./profilePhoto";
 
 /**
  * A person's photo in a circle, or the mark when they have none - or when the picture gate says

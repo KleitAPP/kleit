@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/components/kleit";
 import { Avatar } from "@/social/Avatar";
-import { myPhotoState } from "@/social/avatar";
+import { myPhotoState } from "@/social/profilePhoto";
 import { PhotoSheet } from "@/social/PhotoSheet";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import {

@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
-import { removeProfilePhoto, uploadProfilePhoto, type PhotoState } from "./avatar";
+import { removeProfilePhoto, uploadProfilePhoto, type PhotoState } from "./profilePhoto";
 
 /**
  * The profile-photo sheet on You (S12; spec 3.5): choose a photo from the phone, or take the

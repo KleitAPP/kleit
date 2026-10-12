@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { avatarSrc } from "@/social/avatar";
+import { avatarSrc } from "@/social/profilePhoto";
 import { asAccountLabel, type AccountLabel } from "@/social/labels";
 import type { SetHit } from "@/search/search";
 

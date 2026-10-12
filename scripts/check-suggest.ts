@@ -34,7 +34,15 @@ const kinds: Array<[string, ReturnType<typeof categoryOf>]> = [
   ["Tie-dye tee", "top"],
   ["Ring detail top", "top"],
   ["Puffer vest", "outer"],
-  ["Sweater vest", "top"],
+  ["Jacket dress", "dress"],
+  ["Shoe bag", "bag"],
+  ["Boot socks", "accessory"],
+  ["Oxford shirt", "top"],
+  ["Knit beanie", "accessory"],
+  ["Flat cap", "accessory"],
+  ["Dress watch", "accessory"],
+  ["Straight jeans in black", "bottom"],
+  ["Two-piece set", null],
   ["Gold hoop earrings", "accessory"],
   ["Piece 1", null],
   ["", null],
@@ -159,9 +167,15 @@ check(
 );
 const ownVsStore = completeLook([tee], [1], [jeansA, ownJeans]);
 check(
-  ownVsStore[0]?.item.id === jeansA.id,
-  "…but the same store's pair in the price band ties with it, and the pool's order decides (your things come first in the real pool)",
+  ownVsStore[0]?.item.id === ownJeans.id,
+  "…and even the same store's pair in the price band: what you have beats what you would buy",
   ownVsStore[0]?.item.title ?? "",
+);
+const unknownOnSet = completeLook([mystery1], [1], [mystery2, tee]);
+check(
+  unknownOnSet[0]?.item.id === tee.id,
+  "a piece of no known kind already on the set means the next unknown is not 'new'",
+  unknownOnSet[0]?.item.title ?? "",
 );
 const unknowns = completeLook([tee], [1, 2], [mystery1, mystery2]);
 check(

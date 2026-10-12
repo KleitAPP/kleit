@@ -17,15 +17,15 @@ export const CATEGORIES: readonly Category[] = [
   "accessory",
 ];
 
-// In the order they are tried: the first rule that matches wins, so a "denim jacket" is outerwear
-// before it is denim, "boot cut jeans" are trousers before they are boots, and a "shirt dress" is
-// a dress before it is a shirt. "Dress" as a describing word ("dress shirt", "dress shoes") is
-// taken out first.
+// A product name ends with what the thing IS ("Cropped Wool Blazer", "Boot Socks", "Shoe Bag"),
+// so the last word is read first; only a name whose last word says nothing ("… in Navy", "Two-
+// piece Set") is read whole. Within a read, the first rule that matches wins, so a "denim jacket"
+// is outerwear before it is denim and "boot cut jeans" are trousers before they are boots.
 const RULES: ReadonlyArray<readonly [Category, RegExp]> = [
   ["bottom", /\b(jeans|trousers?|pants|leggings?|joggers?|chinos|sweatpants|culottes|skorts?)\b/],
   [
     "outer",
-    /\b(coats?|jackets?|blazers?|parkas?|trench|puffers?|anoraks?|overcoats?|cardigans?|windbreakers?|gilets?|bombers?|raincoats?|ponchos?|capes?|shackets?|fleeces?|outerwear)\b/,
+    /\b(coats?|jackets?|blazers?|parkas?|trench|puffers?|anoraks?|overcoats?|cardigans?|windbreakers?|gilets?|vests?|bombers?|raincoats?|ponchos?|capes?|shackets?|outerwear)\b/,
   ],
   [
     "shoes",
@@ -42,7 +42,7 @@ const RULES: ReadonlyArray<readonly [Category, RegExp]> = [
   ["bottom", /\b(skirts?|shorts|cargos?|capris?|tights|bermudas?|flares?|bottoms?)\b/],
   [
     "top",
-    /\b(tops?|tees?|t-?shirts?|shirts?|blouses?|sweaters?|jumpers?|sweatshirts?|hoodies?|knits?|tanks?|camisoles?|camis?|bodysuits?|polos?|turtlenecks?|pullovers?|crewnecks?|tunics?|crop|corsets?|bustiers?|henleys?|vests?)\b/,
+    /\b(tops?|tees?|t-?shirts?|shirts?|blouses?|sweaters?|jumpers?|sweatshirts?|hoodies?|tanks?|camisoles?|camis?|bodysuits?|polos?|turtlenecks?|pullovers?|crewnecks?|tunics?|crop|corsets?|bustiers?|henleys?)\b/,
   ],
   [
     "accessory",
@@ -50,13 +50,19 @@ const RULES: ReadonlyArray<readonly [Category, RegExp]> = [
   ],
 ];
 
+function firstRule(words: string): Category | null {
+  for (const [category, rule] of RULES) if (rule.test(words)) return category;
+  return null;
+}
+
 /** The category a name suggests, or null when it says nothing. */
 export function categoryOf(title: string | null | undefined): Category | null {
   if (!title) return null;
   const words = title
     .toLowerCase()
-    .replace(/\bdress (shirts?|shoes?|pants|trousers|socks)\b/g, "$1")
-    .replace(/[^a-z0-9\s-]/g, " ");
-  for (const [category, rule] of RULES) if (rule.test(words)) return category;
-  return null;
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .trim();
+  if (!words) return null;
+  const last = words.split(/\s+/).pop() ?? "";
+  return firstRule(last) ?? firstRule(words);
 }

@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(9);
+select plan(11);
 
 insert into auth.users (id, email) values
   ('ba000000-0000-4000-8000-000000000001', 'ba-asker@test.kleit'),
@@ -15,10 +15,16 @@ insert into profiles (user_id, username, age_confirmed_at, terms_version) values
 insert into items (id, owner_id, kind, title, source_url, source_domain) values
   ('ba000000-0000-4000-8000-000000000011', 'ba000000-0000-4000-8000-000000000001', 'product', 'ba cleared boots', 'https://shop.example.com/boots', 'shop.example.com'),
   ('ba000000-0000-4000-8000-000000000012', 'ba000000-0000-4000-8000-000000000001', 'product', 'ba pending bag', 'https://shop.example.com/bag', 'shop.example.com'),
-  ('ba000000-0000-4000-8000-000000000013', 'ba000000-0000-4000-8000-000000000001', 'own', 'ba own scarf', null, null);
+  ('ba000000-0000-4000-8000-000000000013', 'ba000000-0000-4000-8000-000000000001', 'own', 'ba own scarf', null, null),
+  ('ba000000-0000-4000-8000-000000000014', 'ba000000-0000-4000-8000-000000000001', 'product', 'ba deleted hat', 'https://shop.example.com/hat', 'shop.example.com'),
+  ('ba000000-0000-4000-8000-000000000015', 'ba000000-0000-4000-8000-000000000001', 'product', 'ba removed belt', 'https://shop.example.com/belt', 'shop.example.com');
 insert into item_flags (item_id, scan_state, scanned_at) values
   ('ba000000-0000-4000-8000-000000000011', 'clean', now()),
-  ('ba000000-0000-4000-8000-000000000013', 'clean', now());
+  ('ba000000-0000-4000-8000-000000000013', 'clean', now()),
+  ('ba000000-0000-4000-8000-000000000014', 'clean', now()),
+  ('ba000000-0000-4000-8000-000000000015', 'clean', now());
+update items set deleted_at = now() where id = 'ba000000-0000-4000-8000-000000000014';
+update items set takedown_state = 'removed' where id = 'ba000000-0000-4000-8000-000000000015';
 -- The friend's two public sets: one with the boots on it, one without.
 insert into sets (id, owner_id, title, status, visibility, share_code, published_at) values
   ('ba000000-0000-4000-8000-000000000021', 'ba000000-0000-4000-8000-000000000002', 'with boots', 'published', 'public', 'bawithboots00001', now()),
@@ -38,6 +44,8 @@ select lives_ok($$ insert into ask_posts (id, author_id, question, item_id) valu
 select throws_ok($$ insert into ask_posts (author_id, question, item_id) values ('ba000000-0000-4000-8000-000000000001', 'Build around this: bag', 'ba000000-0000-4000-8000-000000000012') $$, '42501', null, 'a piece still being checked cannot');
 select throws_ok($$ insert into ask_posts (author_id, question, item_id) values ('ba000000-0000-4000-8000-000000000001', 'Build around this: scarf', 'ba000000-0000-4000-8000-000000000013') $$, '42501', null, 'a piece of your own cannot (nobody else could place it)');
 select throws_ok($$ insert into ask_posts (author_id, question, item_id) values ('ba000000-0000-4000-8000-000000000001', 'Build around this: ?', 'ba000000-0000-4000-8000-0000000000ff') $$, '42501', null, 'a piece that does not exist cannot');
+select throws_ok($$ insert into ask_posts (author_id, question, item_id) values ('ba000000-0000-4000-8000-000000000001', 'Build around this: hat', 'ba000000-0000-4000-8000-000000000014') $$, '42501', null, 'a cleared piece since deleted cannot');
+select throws_ok($$ insert into ask_posts (author_id, question, item_id) values ('ba000000-0000-4000-8000-000000000001', 'Build around this: belt', 'ba000000-0000-4000-8000-000000000015') $$, '42501', null, 'a cleared piece since taken down cannot');
 select lives_ok($$ insert into ask_posts (id, author_id, question) values ('ba000000-0000-4000-8000-000000000032', 'ba000000-0000-4000-8000-000000000001', 'What goes with wide jeans?') $$, 'a plain question is as it was');
 
 -- 2. The lock is set once.

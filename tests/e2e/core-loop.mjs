@@ -681,11 +681,6 @@ try {
   const shuffleButton = page.getByRole("button", { name: "Shuffle", exact: true });
   await shuffleButton.waitFor();
   // Enabled once the pool has arrived (this account has its screened photos).
-  await page.waitForFunction(
-    () => !document.querySelector('button[title^="Fills the empty slots"]')?.disabled,
-    null,
-    { timeout: 20_000 },
-  );
   await shuffleButton.click();
   await page.getByRole("button", { name: /Slot 1:/ }).waitFor({ timeout: 20_000 });
   await wait(1500);
@@ -699,15 +694,55 @@ try {
     "shuffle: one tap fills slots from the account's own pieces",
     `${(afterShuffle ?? []).length} piece(s)`,
   );
+  // The pieces the helpers can draw from, as the database holds them: the account's cleared
+  // closet, hearts and clips - so the checks below know how many swaps are even possible.
+  const { data: closetRows } = await admin
+    .from("closet_items")
+    .select("item_id")
+    .eq("user_id", user.id)
+    .is("deleted_at", null);
+  const { data: savedRows } = await admin
+    .from("saved_items")
+    .select("item_id")
+    .eq("user_id", user.id);
+  const { data: drawerRows } = await admin
+    .from("drawer_items")
+    .select("item_id")
+    .eq("user_id", user.id);
+  const poolIds = [
+    ...new Set(
+      [...(closetRows ?? []), ...(savedRows ?? []), ...(drawerRows ?? [])].map((r) => r.item_id),
+    ),
+  ];
+  const { data: cleanRows } = poolIds.length
+    ? await admin
+        .from("item_flags")
+        .select("item_id")
+        .in("item_id", poolIds)
+        .eq("scan_state", "clean")
+    : { data: [] };
+  const poolSize = (cleanRows ?? []).length;
+  const piecesOn = async () =>
+    (await admin.from("set_items").select("item_id, position").eq("set_id", helperSetId)).data ??
+    [];
+  // The fills land one by one; read the rows until they stop changing.
+  const settled = async () => {
+    let last = -1;
+    for (let i = 0; i < 30; i++) {
+      const rows = await piecesOn();
+      if (rows.length === last) return rows;
+      last = rows.length;
+      await wait(700);
+    }
+    return piecesOn();
+  };
+  await settled();
   const completeButton = page.getByRole("button", { name: "Complete the look" });
   if (!(await completeButton.isDisabled())) {
     await completeButton.click();
-    await wait(2500);
+    await wait(1500);
   }
-  const { data: afterComplete } = await admin
-    .from("set_items")
-    .select("item_id, position")
-    .eq("set_id", helperSetId);
+  const afterComplete = await settled();
   check(
     (afterComplete ?? []).length >= (afterShuffle ?? []).length &&
       new Set((afterComplete ?? []).map((r) => r.item_id)).size === (afterComplete ?? []).length,
@@ -724,11 +759,12 @@ try {
     .select("item_id, position")
     .eq("set_id", helperSetId);
   const slotOneAfter = (afterSwipe ?? []).find((r) => r.position?.slot === 0)?.item_id;
-  const poolSize = (afterComplete ?? []).length;
+  // A swap needs a cleared piece that is not already on the set.
+  const swappable = poolSize - (afterComplete ?? []).length;
   check(
-    poolSize < 2 || (!!slotOneAfter && slotOneAfter !== slotOneBefore),
+    swappable < 1 || (!!slotOneAfter && slotOneAfter !== slotOneBefore),
     "swipe: the slot's next piece replaces the one that was there",
-    `${String(slotOneBefore).slice(0, 8)} → ${String(slotOneAfter).slice(0, 8)}`,
+    `${String(slotOneBefore).slice(0, 8)} → ${String(slotOneAfter).slice(0, 8)} (${poolSize} in the pool, ${swappable} swappable)`,
   );
   await a11y(page, "the quick builder with the helpers");
 

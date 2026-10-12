@@ -725,6 +725,8 @@ export const en = {
   "ask.answerWithPiece": "Answer with one of your public sets that has this piece on it",
   "ask.noSetsWithPiece":
     "None of your public sets has it yet. Start one with it, publish it, and come back.",
+  "ask.startFailed": "That piece can't be placed right now. Try again in a moment.",
+  "ask.pieceGone": "The piece this question was built around isn't on Kleit any more.",
   "notify.ask_answer": "@{name} answered your question",
   "notify.ask_answerMore": "{count} new answers to your question",
   "notify.ask_answerMore.one": "1 new answer to your question",

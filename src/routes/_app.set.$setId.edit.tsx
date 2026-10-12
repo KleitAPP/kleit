@@ -75,7 +75,8 @@ function QuickBuilder() {
   /** Where each slot stands in its swipe ring: the piece it started from and the index shown. */
   const cursors = useRef<Record<number, { origin: ItemSummary; index: number }>>({});
   const swipe = useRef<{ slot: number; x: number } | null>(null);
-  const swiped = useRef(false);
+  /** When a sideways swipe last ended: the click the browser may send right after it is not a tap. */
+  const swipedAt = useRef(0);
   const saveTimer = useRef<number | null>(null);
   const pending = useRef<QuickLayout | null>(null);
   /** Always the newest layout - for code that runs after an await and must not use a stale copy. */
@@ -95,7 +96,7 @@ function QuickBuilder() {
       }
       setAll(tpls);
       // The helpers' pool arrives on its own; nothing on the screen waits for it.
-      void myPool().then((p) => {
+      void myPool(drawer).then((p) => {
         if (!cancelled) setPool(p);
       });
       published.current = loaded.set.status === "published";
@@ -322,14 +323,13 @@ function QuickBuilder() {
               <button
                 type="button"
                 onClick={() => {
-                  // A sideways swipe just happened on this slot: that was the tap.
-                  if (swiped.current) {
-                    swiped.current = false;
-                    return;
-                  }
+                  // A sideways swipe just ended on this slot: the click that follows it is not
+                  // a tap. (A touch swipe sends no click at all, so the window closes by itself.)
+                  if (Date.now() - swipedAt.current < 500) return;
                   setPicking(i);
                 }}
                 onPointerDown={(e) => {
+                  swipedAt.current = 0;
                   if (placed) swipe.current = { slot: i, x: e.clientX };
                 }}
                 onPointerUp={(e) => {
@@ -338,7 +338,7 @@ function QuickBuilder() {
                   if (!start || start.slot !== i) return;
                   const dx = e.clientX - start.x;
                   if (Math.abs(dx) < 40) return;
-                  swiped.current = true;
+                  swipedAt.current = Date.now();
                   void cycle(i, dx < 0 ? 1 : -1);
                 }}
                 onPointerCancel={() => {

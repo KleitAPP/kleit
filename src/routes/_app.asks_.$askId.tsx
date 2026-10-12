@@ -39,6 +39,7 @@ function AskPage() {
   const [problem, setProblem] = useState(false);
   const [piece, setPiece] = useState<(ItemSummary & { url: string | null }) | null>(null);
   const [starting, setStarting] = useState(false);
+  const [startProblem, setStartProblem] = useState(false);
   const navigate = useNavigate();
 
   async function refresh() {
@@ -91,10 +92,11 @@ function AskPage() {
     const itemId = ask?.item_id;
     if (!itemId || starting) return;
     setStarting(true);
+    setStartProblem(false);
     const setId = await startSetWith(itemId);
     setStarting(false);
     if (setId) void navigate({ to: "/set/$setId/edit", params: { setId } });
-    else setProblem(true);
+    else setStartProblem(true);
   }
 
   return (
@@ -127,8 +129,18 @@ function AskPage() {
                 {t("ask.startWith")}
               </button>
             ) : null}
+            {startProblem ? (
+              <p role="alert" className="mt-2 text-sm text-danger">
+                {t("ask.startFailed")}
+              </p>
+            ) : null}
           </div>
         </section>
+      ) : ask.item_id ? (
+        // The locked piece is no longer one the reader may see (taken down, deleted).
+        <p role="status" className="mt-4 text-sm text-ink-soft">
+          {t("ask.pieceGone")}
+        </p>
       ) : null}
       {mine && open ? (
         <div className="mt-3">
@@ -151,11 +163,11 @@ function AskPage() {
           }}
         >
           <p className="text-base text-ink">
-            {piece ? t("ask.answerWithPiece") : t("ask.answerWith")}
+            {ask.item_id ? t("ask.answerWithPiece") : t("ask.answerWith")}
           </p>
           {sets.length === 0 ? (
             <p className="text-sm text-ink-soft">
-              {piece ? t("ask.noSetsWithPiece") : t("ask.noPublicSets")}
+              {ask.item_id ? t("ask.noSetsWithPiece") : t("ask.noPublicSets")}
             </p>
           ) : (
             <div

@@ -179,10 +179,16 @@ export async function myPublicSets(
   return sets.filter((s) => carrying.has(s.id));
 }
 
-/** A new Quick draft with the locked piece in its first slot: the way into a build-around. */
+/**
+ * A new Quick draft with the locked piece in its first slot: the way into a build-around. The
+ * piece is read first, as the person: one they may no longer see (taken down since) makes no
+ * draft at all, rather than an empty one with nothing said.
+ */
 export async function startSetWith(itemId: string): Promise<string | null> {
+  const { data: piece } = await supabase.from("items").select("id").eq("id", itemId).maybeSingle();
+  if (!piece) return null;
   const setId = await createQuickDraft();
   if (!setId) return null;
-  await placeItem(setId, 0, itemId);
+  if (!(await placeItem(setId, 0, itemId))) return null;
   return setId;
 }

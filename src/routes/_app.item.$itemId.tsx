@@ -125,7 +125,8 @@ function ItemPage() {
   async function buildAround() {
     if (loaded.at !== "found" || busy) return;
     setBusy(true);
-    const name = loaded.item.title?.trim() || t("item.untitled");
+    // A question is 200 characters at most (migration 033); a store's title can be as long.
+    const name = (loaded.item.title?.trim() || t("item.untitled")).slice(0, 150);
     const askId = await ask(t("ask.buildAroundQuestion", { name }), loaded.item.id);
     setBusy(false);
     if (askId) void navigate({ to: "/asks/$askId", params: { askId } });
@@ -256,7 +257,8 @@ function ItemPage() {
         </div>
       ) : null}
 
-      {item.kind === "product" && state === "clean" ? (
+      {/* Somebody else's catalogue piece answers no scan state (it is readable only once cleared); your own says "clean". */}
+      {item.kind === "product" && (state === null || state === "clean") ? (
         <button
           type="button"
           disabled={busy}

@@ -133,7 +133,7 @@ Deno.serve(async (request) => {
 
   put("groups.json", await rows(me, "group_members", "group_id, role, state, created_at", notes, (q) => q.eq("user_id", userId)));
   put("group_posts.json", await rows(me, "group_posts", "group_id, set_id, body, created_at", notes, (q) => q.eq("author_id", userId)));
-  put("asks.json", await rows(me, "ask_posts", "id, question, closed_at, created_at", notes, (q) => q.eq("author_id", userId)));
+  put("asks.json", await rows(me, "ask_posts", "id, question, item_id, closed_at, created_at", notes, (q) => q.eq("author_id", userId)));
   put("ask_answers.json", await rows(me, "ask_answers", "ask_id, set_id, chosen, created_at", notes, (q) => q.eq("author_id", userId)));
   put("contest_entries.json", await rows(me, "contest_entries", "contest_id, set_id, created_at", notes, (q) => q.eq("user_id", userId)));
   put("points.json", await rows(me, "points_ledger", "points, reason, ref, created_at", notes, (q) => q.eq("user_id", userId)));

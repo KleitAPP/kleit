@@ -108,7 +108,8 @@ function median(values: number[]): number | null {
  * Complete the look: the best next piece for each empty slot, greedily, by a plain score:
  *   +4 a category the set does not have yet (a known one; "unknown" counts as new once),
  *   +3 the same store as a piece already on the set,
- *   +4 a piece of your own (what you have beats what you would buy, even from the same store),
+ *   +5 a piece of your own (what you have beats what you would buy, even from the same store
+ *      and in the price band: 9 to 8),
  *   +1 a price within half to double the set's typical price.
  * Ties keep the pool's order (your own things first, then the stores', newest first).
  */
@@ -129,7 +130,8 @@ export function completeLook(
     placed.map((p) => p.price_cents).filter((c): c is number => typeof c === "number" && c > 0),
   );
   let candidates = dedupe(pool).filter((p) => !taken.has(p.id));
-  let unknownUsed = false;
+  // A piece of no known kind counts as a new kind once - including one already on the set.
+  let unknownUsed = placed.some((p) => !categoryOf(p.title));
   const picks: Pick[] = [];
   for (const slot of emptySlots) {
     if (candidates.length === 0) break;
@@ -146,7 +148,7 @@ export function completeLook(
         item.price_cents <= typical * 2
       )
         score += 1;
-      if (item.kind === "own") score += 4;
+      if (item.kind === "own") score += 5;
       if (!best || score > best.score) best = { item, score };
     }
     if (!best) break;

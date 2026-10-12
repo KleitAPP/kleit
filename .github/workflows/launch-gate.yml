@@ -76,6 +76,7 @@ jobs:
       - name: A share or a link that reaches the app lands on the right screen
         run: node scripts/check-incoming.mjs
       # The brand mini editor (M9.2): the Worker's own page, framed by a page on another origin,
-      # tapped like a shopper would, under its own script policy.
+      # tapped like a shopper would, under its own script policy. In this job because it is the
+      # job with a browser, not because it is about photos.
       - name: The brand mini editor builds a look inside a page on another origin
         run: node scripts/check-brand-page.mjs

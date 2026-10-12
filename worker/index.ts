@@ -147,18 +147,28 @@ type SharedSet = {
  */
 function pageHeaders(
   env: Env,
-  opts: { nonce?: string; framed?: boolean; robots?: string; status?: number } = {},
+  opts: {
+    nonce?: string;
+    /** The page's script talks to Turnstile (the bot check); off for a page that never does. */
+    turnstile?: boolean;
+    framed?: boolean;
+    robots?: string;
+    status?: number;
+    /** `no-store` unless a page says otherwise; only a page with nothing personal on it does. */
+    cache?: string;
+  } = {},
 ): HeadersInit {
+  const turnstile = opts.nonce && opts.turnstile !== false;
   const csp = [
     "default-src 'self'",
     opts.nonce
-      ? `script-src 'nonce-${opts.nonce}' https://challenges.cloudflare.com`
+      ? `script-src 'nonce-${opts.nonce}'${turnstile ? " https://challenges.cloudflare.com" : ""}`
       : "script-src 'none'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self'",
     `connect-src 'self' ${env.SUPABASE_URL}`,
-    opts.nonce ? "frame-src https://challenges.cloudflare.com" : "frame-src 'none'",
+    turnstile ? "frame-src https://challenges.cloudflare.com" : "frame-src 'none'",
     `frame-ancestors ${opts.framed ? "*" : "'none'"}`,
     "base-uri 'none'",
     "form-action 'self'",
@@ -170,7 +180,7 @@ function pageHeaders(
     "referrer-policy": "strict-origin-when-cross-origin",
     "x-content-type-options": "nosniff",
     "x-robots-tag": opts.robots ?? "noindex, nofollow",
-    "cache-control": "no-store",
+    "cache-control": opts.cache ?? "no-store",
     "x-kleit-surface": "share-worker",
   };
 }
@@ -887,31 +897,46 @@ async function brandPage(request: Request, env: Env): Promise<Response> {
   } catch {
     return notAvailable(env, 404, true);
   }
-  if (!DOMAIN.test(domain) || !domain.includes(".")) return notAvailable(env, 404, true);
+  if (!DOMAIN.test(domain) || !domain.includes("."))
+    return notAvailable(env, 404, true, BRAND_GONE);
   let store: BrandPieces | null = null;
   try {
     store = await askDatabase<BrandPieces>(env, "brand_pieces", { p_domain: domain });
   } catch {
-    return notAvailable(env, 503, true);
+    return notAvailable(env, 503, true, BRAND_GONE);
   }
-  if (!store) return notAvailable(env, 404, true);
+  if (!store) return notAvailable(env, 404, true, BRAND_GONE);
   const base = `${url.protocol}//${url.host}`;
   const pieces = Array.isArray(store.pieces)
-    ? store.pieces.filter((p) => UUID_SHAPE.test(p.id)).slice(0, 48)
+    ? store.pieces
+        .filter(
+          (p) => !!p && typeof p === "object" && typeof p.id === "string" && UUID_SHAPE.test(p.id),
+        )
+        .slice(0, 48)
     : [];
+  // Nothing on this page is anybody's, so a browser may keep it a minute: a brand's whole
+  // storefront loading the frame is many loads of one page, not many questions to the
+  // database. (A clipped piece shows up within the minute; a removed picture already stops at
+  // the picture door, which answers for every load of it.)
+  const cache = "public, max-age=60";
   // A store nobody has clipped from yet is a page that says so, with no script on it at all.
   if (pieces.length === 0) {
     return new Response(renderBrandEmpty(domain, base), {
       status: 200,
-      headers: pageHeaders(env, { framed: true }),
+      headers: pageHeaders(env, { framed: true, cache }),
     });
   }
   const nonce = newNonce();
   return new Response(renderBrand(domain, pieces, base, env, nonce), {
     status: 200,
-    headers: pageHeaders(env, { nonce, framed: true }),
+    headers: pageHeaders(env, { nonce, turnstile: false, framed: true, cache }),
   });
 }
+
+const BRAND_GONE = {
+  title: "This store page isn't available",
+  line: "The address may be wrong, or Kleit's public pages may be paused for a moment.",
+};
 
 function renderBrand(
   domain: string,
@@ -1036,11 +1061,20 @@ const BRAND_SCRIPT = `(function(){
   draw();
 })();`;
 
-function notAvailable(env: Env, status = 404, framed = false): Response {
+/** The one "not here" page; `words` are fixed words of ours, never anything a person typed. */
+function notAvailable(
+  env: Env,
+  status = 404,
+  framed = false,
+  words: { title: string; line: string } = {
+    title: "This set isn't available",
+    line: "It may have been made private, or the link may have been reset.",
+  },
+): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Kleit</title>${STYLE}</head>
-<body><main class="wrap"><h1>This set isn't available</h1><p>It may have been made private, or the link may have been reset.</p>
+<body><main class="wrap"><h1>${words.title}</h1><p>${words.line}</p>
 <p><a class="button" href="/welcome"${framed ? ' target="_top"' : ""}>Open Kleit</a></p></main></body></html>`;
   return new Response(html, { status, headers: pageHeaders(env, { framed }) });
 }

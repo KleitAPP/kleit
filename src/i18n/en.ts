@@ -473,6 +473,13 @@ export const en = {
   "store.pieces": "{count} pieces people have clipped",
   "store.pieces.one": "1 piece people have clipped",
   "store.none": "Nothing clipped from here yet.",
+  "keep.title": "Keep this look?",
+  "keep.line": "{count} pieces from the brand's page, ready to become a draft of yours.",
+  "keep.line.one": "1 piece from the brand's page, ready to become a draft of yours.",
+  "keep.dropped": "{count} of the link's pieces aren't on Kleit any more and were left out.",
+  "keep.dropped.one": "1 of the link's pieces isn't on Kleit any more and was left out.",
+  "keep.make": "Make it a draft",
+  "keep.notNow": "Not now",
   "keep.bringing": "Bringing your look over",
   "keep.badLink": "That link doesn't carry a look. Build one on the brand's page and tap Keep it.",
   "keep.offline":

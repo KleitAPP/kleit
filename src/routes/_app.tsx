@@ -64,6 +64,8 @@ function AppShell() {
         return;
       }
       if (where === "needs-username") {
+        // A brand-new account that arrived with a look to keep (M9.2) gets it after the name.
+        rememberNext(`${window.location.pathname}${window.location.search}`);
         void navigate({ to: "/join/username", replace: true });
         return;
       }

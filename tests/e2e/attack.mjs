@@ -431,7 +431,7 @@ try {
   //     The rows are the victim's, written by the server (the guard lets no member write a
   //     store piece by hand); they go in `finally`.
   const brandDomain = "attack-brand.kleit.example";
-  const { data: brandRows } = await admin
+  const { data: brandRows, error: brandSeedError } = await admin
     .from("items")
     .insert([
       {
@@ -456,17 +456,22 @@ try {
         image_id: `${victim.id}/attack-brand-ignore-2.jpg`,
         image_bucket: "item-images",
       },
-      {
-        owner_id: victim.id,
-        kind: "own",
-        title: "attack brand own (ignore)",
-        source_domain: brandDomain,
-      },
     ])
     .select("id, kind, title");
+  // On its own: a bulk insert through the API wants every row shaped the same.
+  const { data: brandOwnRow } = await admin
+    .from("items")
+    .insert({
+      owner_id: victim.id,
+      kind: "own",
+      title: "attack brand own (ignore)",
+      source_domain: brandDomain,
+    })
+    .select("id")
+    .single();
   const brandCleared = (brandRows ?? []).find((r) => /cleared/.test(r.title));
   const brandPending = (brandRows ?? []).find((r) => /pending/.test(r.title));
-  const brandOwn = (brandRows ?? []).find((r) => r.kind === "own");
+  const brandOwn = brandOwnRow ?? undefined;
   const brandStamp = new Date().toISOString();
   await admin.from("item_flags").upsert([
     { item_id: brandCleared?.id, scan_state: "clean", scanned_at: brandStamp },
@@ -483,7 +488,9 @@ try {
       !brandHtml.includes(brandPending?.id ?? "-") &&
       !brandHtml.includes(brandOwn?.id ?? "-"),
     "stranger: a brand's page lists the cleared store piece, not the clip still being checked nor a person's own piece",
-    `${brandPage.status} cleared=${brandHtml.includes(brandCleared?.id ?? "-")} pending=${brandHtml.includes(brandPending?.id ?? "-")} own=${brandHtml.includes(brandOwn?.id ?? "-")}`,
+    brandSeedError
+      ? `seed failed: ${brandSeedError.message}`
+      : `${brandPage.status} cleared=${brandHtml.includes(brandCleared?.id ?? "-")} pending=${brandHtml.includes(brandPending?.id ?? "-")} own=${brandHtml.includes(brandOwn?.id ?? "-")}`,
   );
   check(
     !brandHtml.includes("attackvictim") &&
@@ -494,7 +501,8 @@ try {
   );
   check(
     brandCsp.includes("frame-ancestors *") &&
-      /script-src 'nonce-[A-Za-z0-9+/=]+' https:\/\/challenges\.cloudflare\.com/.test(brandCsp) &&
+      /script-src 'nonce-[A-Za-z0-9+/=]+';/.test(brandCsp) &&
+      !brandCsp.includes("challenges.cloudflare.com") &&
       /noindex/.test(brandPage.headers.get("x-robots-tag") ?? "") &&
       (brandHtml.match(/<script nonce="/g) ?? []).length === 2 &&
       !/<script>/.test(brandHtml),

@@ -614,8 +614,30 @@ try {
     [STORAGE_KEY, JSON.stringify(session)],
   );
   await sp.goto(`${SITE}/`);
+  // Back on the Keep screen: the two pieces are shown, and nothing is written until the tap.
+  const makeButton = sp.getByRole("button", { name: "Make it a draft" });
+  await makeButton.waitFor({ timeout: 30_000 });
+  const keepWords = await sp.innerText("body");
+  const { data: draftsBefore } = await admin
+    .from("sets")
+    .select("id")
+    .eq("owner_id", user.id)
+    .eq("status", "draft")
+    .is("deleted_at", null);
+  check(
+    /Keep this look\?/.test(keepWords) &&
+      /Core loop piece 1/.test(keepWords) &&
+      /Core loop piece 2/.test(keepWords),
+    "keep it: after sign-in the Keep screen shows the two pieces and asks first",
+    keepWords.replace(/\s+/g, " ").slice(0, 100),
+  );
+  await makeButton.click();
   await sp.waitForURL(/\/set\/[0-9a-f-]+\/edit$/, { timeout: 30_000 });
   const keptId = sp.url().match(/\/set\/([0-9a-f-]+)\/edit/)?.[1] ?? "";
+  check(
+    !(draftsBefore ?? []).some((d) => d.id === keptId),
+    "keep it: the draft was made by the tap, not by the link",
+  );
   const { data: keptRow } = await admin
     .from("sets")
     .select("status, owner_id")
@@ -635,13 +657,14 @@ try {
     "keep it: after sign-in the look is a draft of theirs, the two pieces in their slots, the editor open on it",
     `${keptRow?.status ?? "no set"} · ${(keptPieces ?? []).length} piece(s)`,
   );
-  // Signed in already, the link goes straight to a new draft.
+  // Signed in already, the link opens the Keep screen at once; one tap, a new draft.
   await sp.goto(`${SITE}/keep?pieces=${brandIds[1]}`);
+  await sp.getByRole("button", { name: "Make it a draft" }).click();
   await sp.waitForURL(/\/set\/[0-9a-f-]+\/edit$/, { timeout: 30_000 });
   const keptAgain = sp.url().match(/\/set\/([0-9a-f-]+)\/edit/)?.[1] ?? "";
   check(
     keptAgain !== "" && keptAgain !== keptId,
-    "keep it: signed in, the link opens straight into a new draft",
+    "keep it: signed in, the link opens the Keep screen and one tap makes a new draft",
   );
   await shopper.close();
 } catch (error) {

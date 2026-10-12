@@ -95,10 +95,17 @@ const csp1 = page1.headers.get("content-security-policy") ?? "";
 check(page1.status === 200, "the brand page answers 200");
 check(csp1.includes("frame-ancestors *"), "it may be framed by any site", csp1.slice(0, 60));
 check(
-  /script-src 'nonce-[A-Za-z0-9+/=]+' https:\/\/challenges\.cloudflare\.com/.test(csp1) &&
-    !csp1.includes("'unsafe-inline'; script") &&
+  /script-src 'nonce-[A-Za-z0-9+/=]+';/.test(csp1) &&
+    !csp1.includes("challenges.cloudflare.com") &&
+    csp1.includes("frame-src 'none'") &&
     (html1.match(/<script nonce="/g) ?? []).length === 2,
-  "its two scripts run under the response's own nonce",
+  "its two scripts run under the response's own nonce, and no other host may run or frame anything",
+  csp1.slice(0, 120),
+);
+check(
+  page1.headers.get("cache-control") === "public, max-age=60",
+  "a browser may keep the page a minute (nothing on it is anybody's)",
+  page1.headers.get("cache-control") ?? "",
 );
 check((html1.match(/class="slot"/g) ?? []).length === 4, "four slots");
 check((html1.match(/class="pick"/g) ?? []).length === 5, "five pieces to pick from");
@@ -116,8 +123,10 @@ const upper = await ask("/e/brand/WWW.Brand.Example/");
 const empty = await ask("/e/brand/empty.example");
 const emptyHtml = await empty.text();
 check(
-  bad.status === 404 && broken.status === 404,
-  "a word with no dot, or a broken address, is 404",
+  bad.status === 404 &&
+    broken.status === 404 &&
+    /This store page isn't available/.test(await bad.text()),
+  "a word with no dot, or a broken address, is 404, in the store page's own words",
 );
 check(
   upper.status === 200 &&

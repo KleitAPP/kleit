@@ -4,6 +4,8 @@
  * is kept in this tab's session storage across the join screens and the email-code round trip,
  * and the app shell takes it once the person is in. Only a path on our own site is ever kept.
  */
+import { safeKeep } from "@/sets/keepLink";
+
 const KEY = "kleit.next";
 
 /**
@@ -16,7 +18,10 @@ const KEY = "kleit.next";
 export function safeNext(path: string | undefined): string | null {
   if (!path) return null;
   if (/^\/[sp]\/[A-Za-z0-9]{8,32}\/?$/.test(path)) return path;
-  if (/^\/keep\?pieces=[0-9a-fA-F-]{36}(,[0-9a-fA-F-]{36}){0,3}$/.test(path)) return path;
+  const kept = path.startsWith("/keep?pieces=")
+    ? safeKeep(path.slice("/keep?pieces=".length))
+    : null;
+  if (kept) return `/keep?pieces=${kept.join(",")}`;
   return null;
 }
 

@@ -1371,7 +1371,8 @@ export const en = {
   "name.label": "Display name",
   "name.done": "Done",
   "name.skip": "Skip for now",
-  "name.photoLater": "Profile photos arrive with the rest of the picture tools.",
+  "name.photoLater":
+    "You can add a profile photo any time: tap the circle next to your name on You.",
 
   "welcome.pitch": "Build an outfit, send it to the group chat, see which one wins.",
   "welcome.start": "Get started",

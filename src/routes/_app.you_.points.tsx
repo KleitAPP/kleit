@@ -25,6 +25,7 @@ const BADGES = [
   "first_contest",
   "well_liked",
   "followed",
+  "contest_pick",
 ] as const;
 type BadgeKey = `badge.${(typeof BADGES)[number]}`;
 type ReasonKey = `points.${"publish" | "like_received" | "follower" | "contest_entry"}`;

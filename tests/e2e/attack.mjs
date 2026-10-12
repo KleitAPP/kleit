@@ -958,6 +958,14 @@ try {
     "attacker: cannot see the theme queue, feature a set or start a challenge",
     `${(themes.data ?? []).length} rows / ${feature.error?.code ?? "featured"} / ${startC.error?.code ?? "started"}`,
   );
+  // The weekly recap (089) answers the signed-in with their own week; a stranger gets nothing.
+  const recapAnon = await anon.rpc("weekly_recap");
+  const recapMine = await a.rpc("weekly_recap");
+  check(
+    !!recapAnon.error && !recapMine.error && typeof recapMine.data?.me?.sets_published === "number",
+    "attacker: a stranger gets no weekly recap; a member gets their own week",
+    `${recapAnon.error?.code ?? "answered"} / ${recapMine.error?.code ?? "ok"}`,
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

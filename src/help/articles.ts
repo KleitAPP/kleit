@@ -131,6 +131,15 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "challenges",
+    group: "People",
+    title: "Weekly challenges and the recap",
+    body: [
+      "A new theme opens every Monday and closes on Friday. Enter one of your public sets from the challenge page; the week's likes decide the order, and Kleit picks a few to show on Home. Badges only, never money.",
+      "From Friday to Monday, Home shows the results: Kleit's picks, the three most-liked entries, the most-liked remix of the week, and your own week - sets published, likes received, new followers and pieces saved. Your own numbers are only yours to see. The same page is under Challenges > This week's recap any time.",
+    ],
+  },
+  {
     slug: "messages",
     group: "People",
     title: "Messages and message requests",

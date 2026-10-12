@@ -29,6 +29,9 @@ function Contests() {
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{t("contest.title")}</h1>
       <p className="mt-1 text-sm text-ink-soft">{t("contest.why")}</p>
+      <Link to="/recap" className="mt-2 inline-block min-h-11 py-2 text-sm text-ink underline">
+        {t("contest.recapLink")}
+      </Link>
       {!list ? (
         <div className="kl-skeleton mt-4 h-24 w-full rounded-md bg-surface-2" />
       ) : list.length === 0 ? (

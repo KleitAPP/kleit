@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Toast } from "@/components/kleit";
 import { ContestCard } from "@/contests/ContestCard";
+import { RecapCard } from "@/contests/RecapCard";
 import { Feed } from "@/feed/Feed";
 import { t } from "@/i18n/en";
 
@@ -108,6 +109,8 @@ function Home() {
         </section>
       )}
 
+      {/* Friday to Monday: the results are in (S94). Then this week's theme. */}
+      <RecapCard />
       <ContestCard />
 
       <section aria-label={t("feed.label")} className="mt-8">

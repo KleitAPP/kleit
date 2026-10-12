@@ -22,6 +22,7 @@ import { Route as AppContestsRouteImport } from './routes/_app.contests'
 import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppModRouteImport } from './routes/_app.mod'
+import { Route as AppRecapRouteImport } from './routes/_app.recap'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppYouRouteImport } from './routes/_app.you'
@@ -147,6 +148,11 @@ const AppInboxRoute = AppInboxRouteImport.update({
 const AppModRoute = AppModRouteImport.update({
   id: '/mod',
   path: '/mod',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRecapRoute = AppRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSearchRoute = AppSearchRouteImport.update({
@@ -476,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/mod': typeof AppModRoute
+  '/recap': typeof AppRecapRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
@@ -551,6 +558,7 @@ export interface FileRoutesByTo {
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
   '/mod': typeof AppModRoute
+  '/recap': typeof AppRecapRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
@@ -629,6 +637,7 @@ export interface FileRoutesById {
   '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/mod': typeof AppModRoute
+  '/_app/recap': typeof AppRecapRoute
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/you': typeof AppYouRoute
@@ -708,6 +717,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/inbox'
     | '/mod'
+    | '/recap'
     | '/search'
     | '/settings'
     | '/you'
@@ -783,6 +793,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/inbox'
     | '/mod'
+    | '/recap'
     | '/search'
     | '/settings'
     | '/you'
@@ -860,6 +871,7 @@ export interface FileRouteTypes {
     | '/_app/groups'
     | '/_app/inbox'
     | '/_app/mod'
+    | '/_app/recap'
     | '/_app/search'
     | '/_app/settings'
     | '/_app/you'
@@ -1032,6 +1044,13 @@ declare module '@tanstack/react-router' {
       path: '/mod'
       fullPath: '/mod'
       preLoaderRoute: typeof AppModRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/recap': {
+      id: '/_app/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AppRecapRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/search': {
@@ -1477,6 +1496,7 @@ interface AppRouteChildren {
   AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
   AppModRoute: typeof AppModRoute
+  AppRecapRoute: typeof AppRecapRoute
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppYouRoute: typeof AppYouRoute
@@ -1538,6 +1558,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
   AppModRoute: AppModRoute,
+  AppRecapRoute: AppRecapRoute,
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppYouRoute: AppYouRoute,

@@ -2981,6 +2981,7 @@ export type Database = {
         Args: { p_device_hash: string; p_poll_id: string }
         Returns: Json
       }
+      weekly_recap: { Args: never; Returns: Json }
     }
     Enums: {
       clip_trigger:

@@ -20,7 +20,45 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright";
+import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 import { deflateSync } from "node:zlib";
+
+// Accessibility (spec 21; design pack 8.3; technical pack §7 #9): axe over the real screens as the
+// loop passes them. Serious and critical WCAG 2.2 AA problems fail the run; the rest are printed.
+const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
+async function a11y(pg, label) {
+  try {
+    await pg.addScriptTag({ content: AXE });
+    const found = await pg.evaluate(async () => {
+      const r = await window.axe.run(document, {
+        runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
+      });
+      return r.violations.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        count: v.nodes.length,
+        where: v.nodes
+          .slice(0, 2)
+          .map((x) => x.target.join(" "))
+          .join(" | "),
+      }));
+    });
+    const bad = found.filter((v) => v.impact === "serious" || v.impact === "critical");
+    const words = found.map((v) => `${v.impact} ${v.id}×${v.count} (${v.where})`).join("; ");
+    check(
+      bad.length === 0,
+      `a11y: ${label} has no serious or critical WCAG problems`,
+      words || "clean",
+    );
+  } catch (problem) {
+    check(
+      false,
+      `a11y: ${label} could not be checked`,
+      problem instanceof Error ? problem.message : String(problem),
+    );
+  }
+}
 
 const SITE = process.env.KLEIT_TEST_SITE ?? "https://kleit-test.kleitapp-team.workers.dev";
 const URL_ = process.env.SUPABASE_URL;
@@ -178,10 +216,12 @@ try {
   } else {
     check(true, "sign up: the account already has its username; landed on Home");
   }
+  await a11y(page, "Home");
 
   // 2. A piece of your own, through the real screen (uploaded, screened, in the closet).
   await page.goto(`${SITE}/add/photo`);
   await page.getByRole("button", { name: "Choose a photo" }).waitFor();
+  await a11y(page, "Add a photo");
   await page
     .locator('input[type="file"]')
     .setInputFiles({ name: "piece.png", mimeType: "image/png", buffer: makePng() });
@@ -204,6 +244,7 @@ try {
     await page.getByRole("tab", { name: "Closet" }).click();
     await page.getByRole("dialog").locator("li button").first().click();
     await page.getByRole("button", { name: /Slot 1:/ }).waitFor();
+    if (caption === "core loop one") await a11y(page, "the quick builder");
     await page.getByLabel("Caption or question").fill(caption);
     await wait(1500); // the debounced autosave
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -257,6 +298,7 @@ try {
     shared.replace(/\s+/g, " ").slice(0, 200),
   );
   check(elapsed < 2500, "signed out: the page arrives in under 2.5 s", `${elapsed} ms`);
+  await a11y(gp, "the share page (signed out)");
   // CL30: the chat picture. Drawn after publish by the server; give it a moment, then read the
   // tag and fetch the file it points at.
   let ogImage = null;
@@ -283,6 +325,7 @@ try {
     /One vote per device/.test(before) && /How we handle votes/.test(before),
     "guest vote: the privacy line and 'one vote per device' show BEFORE the first tap",
   );
+  await a11y(gp, "the poll page (signed out)");
   const guestConsole = [];
   gp.on("console", (m) => guestConsole.push(`${m.type()}: ${m.text()}`));
   gp.on("pageerror", (e) => guestConsole.push(`pageerror: ${e.message}`));
@@ -390,6 +433,8 @@ try {
   // 10. Recently deleted (S26): delete the second set from its own page, find it in the bin,
   //     bring it back, then delete one set for good from the bin.
   await page.goto(`${SITE}/set/${second.setId}`);
+  await page.getByRole("button", { name: "More options" }).waitFor();
+  await a11y(page, "the set page");
   await page.getByRole("button", { name: "More options" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await page.getByRole("button", { name: "Delete the set" }).click();

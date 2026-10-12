@@ -10,7 +10,7 @@ export function SongCard({ song }: { song: Song }) {
       target="_blank"
       rel="noopener noreferrer"
       className="mt-3 flex items-center gap-3 rounded-md border border-line bg-surface p-3 transition-colors duration-fast hover:bg-surface-2"
-      aria-label={`${t("song.card")}: ${song.title}${song.artist ? ` · ${song.artist}` : ""} · ${openInLabel(song.url)}`}
+      title={openInLabel(song.url)}
     >
       <span className="size-12 shrink-0 overflow-hidden rounded-sm bg-surface-2">
         {song.cover ? (

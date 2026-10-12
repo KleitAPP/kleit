@@ -38,7 +38,7 @@ jobs:
           node-version: 22
       - name: Browser and the two libraries
         run: |
-          npm install --no-save playwright@1 @supabase/supabase-js@2
+          npm install --no-save playwright@1 @supabase/supabase-js@2 axe-core@4
           npx playwright install --with-deps chromium
       # Workers Builds deploys a push in about a minute; give it a moment so the run drives the
       # bundle the app workflow just checked, not the one before it.

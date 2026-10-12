@@ -18,7 +18,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <div className="max-w-md text-center">
         <h1 className="font-display text-2xl text-ink">{t("notFound.title")}</h1>
         <p className="mt-2 text-sm text-ink-soft">{t("notFound.body")}</p>
@@ -31,7 +31,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -282,7 +282,7 @@ function renderPoll(poll: SharedPoll, code: string, base: string, env: Env): str
       const label = o.label?.trim() || o.set.title?.trim() || `Option ${o.sort_order + 1}`;
       return `<li class="option" data-option="${o.id}">
   <div class="mini" style="background:${background}" aria-hidden="true">${pieces}</div>
-  <div class="meta"><h3>${esc(label)}</h3>${o.set.title && o.set.title !== label ? `<p class="from">${esc(o.set.title)}</p>` : ""}
+  <div class="meta"><h2 class="piece-name">${esc(label)}</h2>${o.set.title && o.set.title !== label ? `<p class="from">${esc(o.set.title)}</p>` : ""}
     <div class="bar" hidden><div class="fill"></div></div><p class="pct" hidden></p>
     <button class="vote" type="button" data-option="${o.id}" aria-label="Vote for ${esc(label)}">Vote</button>
   </div>
@@ -773,9 +773,9 @@ function renderEmbed(set: SharedSet, code: string, base: string, env: Env): stri
           ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(name)}" loading="lazy">`
           : `<div class="noimg" aria-hidden="true"></div>`;
       const buy = p.buyable
-        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy ${esc(name)} at ${esc(p.store_name ?? "the store")}, opens store site">Buy at ${esc(p.store_name ?? "the store")}</a>`
+        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a>`
         : "";
-      return `<li class="piece">${img}<div class="meta"><h3>${esc(name)}</h3>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
+      return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
     })
     .join("");
   const hasBuy = set.pieces.some((p) => p.buyable);
@@ -807,7 +807,7 @@ html,body.embed{margin:0;padding:0;background:transparent}
 .embed-mark{font-weight:700;color:#1f1d1a;text-decoration:none}
 .embed-title{color:#1f1d1a;font-weight:600}
 .embed-foot{margin:8px 0 0;font-size:14px}
-.embed-foot a{color:#d9552b;font-weight:600}
+.embed-foot a{color:#c0442b;font-weight:600}
 .embed .disclosure{margin-top:6px}
 </style>`;
 
@@ -861,7 +861,7 @@ function songCard(song: SharedSet["song"]): string {
     )
       ? `<img class="song-cover" src="${esc(song.cover)}" alt="" loading="lazy">`
       : `<span class="song-cover" aria-hidden="true"></span>`;
-  return `<a class="song" href="${esc(song.url)}" target="_blank" rel="noopener noreferrer" aria-label="Song: ${esc(song.title ?? "")}${song.artist ? ` by ${esc(song.artist)}` : ""}, opens in ${service}">${cover}<span class="song-words"><span class="song-title">${esc(song.title ?? "")}</span><span class="song-artist">${song.artist ? `${esc(song.artist)} · ` : ""}Open in ${service}</span></span></a>`;
+  return `<a class="song" href="${esc(song.url)}" target="_blank" rel="noopener noreferrer" title="Opens in ${service}">${cover}<span class="song-words"><span class="song-title">${esc(song.title ?? "")}</span><span class="song-artist">${song.artist ? `${esc(song.artist)} · ` : ""}Open in ${service}</span></span></a>`;
 }
 
 /** The creator's photo (design pack §9 #2), through the same gate as every picture; nothing when they have none. */
@@ -923,9 +923,9 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
           ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(name)}" loading="lazy">`
           : `<div class="noimg" aria-hidden="true"></div>`;
       const buy = p.buyable
-        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy ${esc(name)} at ${esc(p.store_name ?? "the store")}, opens store site">Buy at ${esc(p.store_name ?? "the store")}</a>`
+        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a>`
         : "";
-      return `<li class="piece">${img}<div class="meta"><h3>${esc(name)}</h3>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${p.source_domain ? `<p class="from">from ${esc(p.source_domain)}</p>` : ""}${buy}</div></li>`;
+      return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${p.source_domain ? `<p class="from">from ${esc(p.source_domain)}</p>` : ""}${buy}</div></li>`;
     })
     .join("");
 
@@ -989,11 +989,11 @@ const POLL_STYLE = `<style>
 .mini{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px;align-content:start}
 .mini img,.mini .noimg{width:100%;aspect-ratio:1;object-fit:contain;background:rgba(255,255,255,.6);border-radius:4px;display:block}
 .option .meta{padding:10px 10px 10px 0}
-.vote{margin-top:8px;padding:10px 16px;border:0;border-radius:999px;background:#d9552b;color:#fff;font-weight:600;font-size:15px;cursor:pointer;min-height:44px}
+.vote{margin-top:8px;padding:10px 16px;border:0;border-radius:999px;background:#c0442b;color:#fff;font-weight:600;font-size:15px;cursor:pointer;min-height:44px}
 .vote[disabled]{opacity:.6}
-.option.mine h3::after{content:" ✓"}
+.option.mine .piece-name::after{content:" ✓"}
 .bar{height:8px;border-radius:999px;background:#eee7dc;overflow:hidden;margin-top:8px}
-.fill{height:100%;width:0;background:#d9552b;border-radius:999px;transition:width .4s}
+.fill{height:100%;width:0;background:#c0442b;border-radius:999px;transition:width .4s}
 .pct{margin:4px 0 0;font-size:14px;color:#5f5a52}
 .quiet{color:#5f5a52;font-size:13px;margin-top:10px}.quiet a{color:#5f5a52}
 .notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:15px}
@@ -1078,8 +1078,8 @@ h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-siz
 .pieces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .piece{background:rgba(255,255,255,.7);border-radius:8px;overflow:hidden}
 .piece img,.noimg{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
-.meta{padding:8px}.tag{margin:4px 0 0;font-weight:600;font-size:14px}
-.buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#d9552b;color:#fff;text-decoration:none;font-weight:600;font-size:15px}
+.meta{padding:8px}.piece-name{font-size:15px;margin:0}.tag{margin:4px 0 0;font-weight:600;font-size:14px}
+.buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#c0442b;color:#fff;text-decoration:none;font-weight:600;font-size:15px}
 .card{margin-top:20px;padding:16px;border:1px solid #e6e0d6;border-radius:12px;background:#fff}
 .sources{margin-top:20px}.sources ul{padding-left:18px}
 .foot a{color:#5f5a52}

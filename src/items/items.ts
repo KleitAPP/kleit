@@ -279,9 +279,12 @@ export function priceLabel(
 export function buyUrlFor(
   item: Pick<ItemSummary, "id" | "source_url" | "dead_link_at">,
   setId?: string,
+  /** The owner's own piece's screening state, when the screen knows it; a piece not yet cleared has no Buy (the door answers 404 for it). */
+  state?: ScanState | null,
 ): string | null {
   // A page that answered "gone" twice (migration 088) is not somewhere to send anyone.
   if (!item.source_url || item.dead_link_at) return null;
+  if (state && state !== "clean") return null;
   const base = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
   if (!base) return null;
   const url = new URL("/functions/v1/buy-redirect", base);

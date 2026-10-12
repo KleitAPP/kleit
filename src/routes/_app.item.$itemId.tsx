@@ -157,7 +157,7 @@ function ItemPage() {
     item.price_was_cents > item.price_cents
       ? priceLabel({ price_cents: item.price_was_cents, price_currency: item.price_currency })
       : null;
-  const buy = buyUrlFor(item);
+  const buy = buyUrlFor(item, undefined, state);
   const store = item.store_name?.trim() || item.source_domain || "";
   const note =
     state === "pending"

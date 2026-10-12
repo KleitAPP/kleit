@@ -10,7 +10,7 @@ import {
   type SaveProblem,
 } from "@/items/clipLink";
 import { t } from "@/i18n/en";
-import { takeSharedAddress } from "@/native/incoming";
+import { onSharedAddress, takeSharedAddress } from "@/native/incoming";
 
 /**
  * S29 Paste a link → S30 Reading the page → S31 Pick the image → S32 Item details → checking,
@@ -84,11 +84,21 @@ function AddLink() {
   const [image, setImage] = useState<string | null>(null);
   const [own, setOwn] = useState(false);
 
-  // An address the phone shared does not wait for a tap; one from a link does.
+  // An address the phone shared does not wait for a tap; one from a link does. A second share
+  // while this screen is open is read the same way.
   useEffect(() => {
     if (fromPhone && stage.at === "paste") void readAddress(fromPhone);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromPhone]);
+  useEffect(
+    () =>
+      onSharedAddress((address) => {
+        setUrl(address);
+        void readAddress(address);
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   function read() {
     return readAddress(url);

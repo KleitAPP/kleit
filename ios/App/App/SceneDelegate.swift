@@ -5,15 +5,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = scene as? UIWindowScene else { return }
+        guard scene is UIWindowScene else { return }
 
-        window = UIWindow(windowScene: windowScene)
-        // Kleit's own bridge, so the Cutout and Incoming plugins are registered on the bridge that
-        // is actually shown (a plain CAPBridgeViewController here left both unavailable - the
-        // app-code review, 2026-10-12).
-        window?.rootViewController = KleitViewController()
-        window?.makeKeyAndVisible()
-
+        // The window and its one bridge come from Main.storyboard (UISceneStoryboardFile), whose
+        // view controller is KleitViewController - the bridge with the Cutout and Incoming
+        // plugins registered. A second window made here used to replace it with a plain bridge
+        // that had neither (the app-code review, 2026-10-12).
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 

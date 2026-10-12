@@ -11,6 +11,8 @@ import {
   savedItemIds,
   unsaveItem,
   type ItemSummary,
+  myScanStates,
+  type ScanState,
 } from "@/items/items";
 import { Heart } from "lucide-react";
 import {
@@ -77,6 +79,7 @@ function SetPage() {
   const [placements, setPlacements] = useState<Placement[]>([]);
   const [template, setTemplate] = useState<Template | null>(null);
   const [images, setImages] = useState<Record<string, string | null>>({});
+  const [states, setStates] = useState<Map<string, ScanState>>(new Map());
   const [mine, setMine] = useState(false);
   const [me, setMe] = useState<string | null>(null);
   /** Who made it (spec 11 #9: with their label), for the line under the title. */
@@ -201,6 +204,10 @@ function SetPage() {
       setSet(loaded.set);
       setPlacements(loaded.placements);
       setTemplate(tpls.find((tpl) => tpl.id === loaded.set.layout.template) ?? tpls[0] ?? null);
+      // Your own pieces' screening states: a piece not yet cleared shows no Buy (the door says no).
+      void myScanStates(loaded.placements.map((p) => p.item.id)).then((found) => {
+        if (!cancelled) setStates(found);
+      });
       const { data: owner } = await supabase
         .from("sets")
         .select("owner_id")
@@ -463,7 +470,7 @@ function SetPage() {
       {/* The pieces, as a list with Buy - the tap-dots of the shared page, in reading order. */}
       <ul className="mt-4 divide-y divide-line">
         {sorted.map(({ item }) => {
-          const buy = buyUrlFor(item, set.id);
+          const buy = buyUrlFor(item, set.id, states.get(item.id) ?? null);
           const name =
             item.title?.trim() || (item.kind === "own" ? t("item.yourPiece") : t("item.untitled"));
           const store = item.store_name?.trim() || item.source_domain || "";

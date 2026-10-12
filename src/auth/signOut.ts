@@ -12,7 +12,12 @@ import { clearOffline } from "@/offline/store";
 export async function signOutEverywhereOnThisPhone(
   options: { scope?: "local" | "global" } = {},
 ): Promise<void> {
-  await stopPush();
+  // Each step on its own: a push service that will not answer must not keep a person signed in.
+  try {
+    await stopPush();
+  } catch {
+    /* OneSignal unreachable: the registration is forgotten server-side on deletion (CL53) */
+  }
   await clearOffline();
   forgetSignedIn();
   await supabase.auth.signOut(options.scope ? { scope: options.scope } : undefined);

@@ -672,7 +672,7 @@ input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid 
 <script nonce="${nonce}">window.KLEIT_CT=${config.replace(/</g, "\\u003c")};</script>
 <script nonce="${nonce}">${CONTACT_SCRIPT}</script>
 </body></html>`;
-  return new Response(html, { headers: pageHeaders(env) });
+  return new Response(html, { headers: pageHeaders(env, { nonce }) });
 }
 
 const CONTACT_SCRIPT = `(function(){

@@ -81,6 +81,22 @@ export function takeSharedAddress(): string | null {
   return address;
 }
 
+/**
+ * Clip a link, while it is already open, hears a second share this way (a navigation to the
+ * screen it is on does not mount it again). Whoever listens takes the address; with nobody
+ * listening it waits for the next mount.
+ */
+const sharedListeners = new Set<(address: string) => void>();
+export function onSharedAddress(fn: (address: string) => void): () => void {
+  sharedListeners.add(fn);
+  return () => sharedListeners.delete(fn);
+}
+function announceShared(): void {
+  if (sharedListeners.size === 0) return;
+  const address = takeSharedAddress();
+  if (address) for (const fn of sharedListeners) fn(address);
+}
+
 export async function setIdFor(code: string): Promise<string | null> {
   const { data } = await supabase.rpc("shared_set", { p_code: code });
   const id = (data as { id?: string } | null)?.id;
@@ -105,6 +121,7 @@ export function watchIncoming(go: (path: string) => void): void {
     if (!raw) return;
     const path = await destinationFor(raw, { set: setIdFor, poll: pollIdFor });
     if (path) go(path);
+    if (path === "/add/link") announceShared();
   };
   const check = () => {
     void Incoming.pending()

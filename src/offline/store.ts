@@ -176,7 +176,9 @@ export async function outboxAll(): Promise<{ key: IDBValidKey; entry: OutboxEntr
           return;
         }
         const entry = cursor.value as OutboxEntry;
-        if (entry.owner === me) out.push({ key: cursor.key, entry });
+        // An entry from before owners were stamped (2026-10-12) is taken as the signed-in
+        // person's own: the server's rules decide what it may do, as for every replay.
+        if (entry.owner === me || entry.owner === undefined) out.push({ key: cursor.key, entry });
         else strangers.push(cursor.key);
         cursor.continue();
       };

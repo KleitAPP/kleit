@@ -66,9 +66,16 @@ export function fontBytes(
     }
   })();
   fontCache.set(key, job);
-  job.then((bytes) => {
-    if (!bytes && fontCache.get(key) === job) fontCache.delete(key);
-  });
+  // A miss or a failure is not kept: a font uploaded later is found, and a read that broke is
+  // tried again next time (a rejected promise left in the cache would answer every call).
+  job.then(
+    (bytes) => {
+      if (!bytes && fontCache.get(key) === job) fontCache.delete(key);
+    },
+    () => {
+      if (fontCache.get(key) === job) fontCache.delete(key);
+    },
+  );
   return job;
 }
 

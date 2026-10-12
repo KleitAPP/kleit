@@ -29,6 +29,11 @@ import { deflateSync } from "node:zlib";
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 async function a11y(pg, label) {
   try {
+    // The whole page in one tall viewport for the run, the way a phone sees it as it scrolls: at
+    // 844 px the sticky tab bar covers whatever happens to sit in the bottom band of the first
+    // screen, and axe counts a covered button as too small to tap.
+    const tall = Math.min(await pg.evaluate(() => document.documentElement.scrollHeight), 4000);
+    await pg.setViewportSize({ width: 390, height: Math.max(844, tall) });
     await pg.addScriptTag({ content: AXE });
     const found = await pg.evaluate(async () => {
       const r = await window.axe.run(document, {
@@ -44,6 +49,7 @@ async function a11y(pg, label) {
           .join(" | "),
       }));
     });
+    await pg.setViewportSize({ width: 390, height: 844 });
     const bad = found.filter((v) => v.impact === "serious" || v.impact === "critical");
     const words = found.map((v) => `${v.impact} ${v.id}×${v.count} (${v.where})`).join("; ");
     check(

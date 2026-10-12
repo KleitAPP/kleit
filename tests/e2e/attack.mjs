@@ -414,7 +414,7 @@ try {
   const embedPriv = await fetch(`${SITE}/e/${priv.share_code}`);
   check(
     embed.status === 200 &&
-      embed.headers.get("content-security-policy") === "frame-ancestors *" &&
+      (embed.headers.get("content-security-policy") ?? "").includes("frame-ancestors *") &&
       /noindex/.test(embed.headers.get("x-robots-tag") ?? "") &&
       /Open on Kleit/.test(embedHtml) &&
       !/Sign up/.test(embedHtml),

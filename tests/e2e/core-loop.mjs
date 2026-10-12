@@ -34,7 +34,11 @@ async function a11y(pg, label) {
     // screen, and axe counts a covered button as too small to tap.
     const tall = Math.min(await pg.evaluate(() => document.documentElement.scrollHeight), 4000);
     await pg.setViewportSize({ width: 390, height: Math.max(844, tall) });
-    await pg.addScriptTag({ content: AXE });
+    // Evaluated through the browser's debugging channel, not as a <script> tag: the public
+    // pages carry a Content Security Policy that allows no script but their own, and axe is not
+    // one of theirs (that the policy blocks a tag is the point of it; the vote below proves the
+    // page's own script still runs).
+    await pg.evaluate(AXE);
     const found = await pg.evaluate(async () => {
       const r = await window.axe.run(document, {
         runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },

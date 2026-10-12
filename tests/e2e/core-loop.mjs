@@ -29,6 +29,14 @@ import { deflateSync } from "node:zlib";
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 async function a11y(pg, label) {
   try {
+    // A sheet on its way out is still in the tree for its fade: axe once sampled the picker's
+    // button mid-fade and called the colour contrast serious. The screen is checked at rest.
+    await pg
+      .locator('[role="dialog"]')
+      .first()
+      .waitFor({ state: "hidden", timeout: 3000 })
+      .catch(() => undefined);
+    await pg.waitForTimeout(400);
     // The whole page in one tall viewport for the run, the way a phone sees it as it scrolls: at
     // 844 px the sticky tab bar covers whatever happens to sit in the bottom band of the first
     // screen, and axe counts a covered button as too small to tap.

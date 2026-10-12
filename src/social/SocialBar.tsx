@@ -3,6 +3,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { AccountLabelChip } from "@/social/AccountLabel";
+import { Avatar } from "@/social/Avatar";
 import { ReportButton } from "@/safety/ReportButton";
 import {
   addComment,
@@ -174,10 +176,14 @@ export function SocialBar({
                 Date.now() - new Date(c.created_at).getTime() < EDIT_WINDOW_MS;
               return (
                 <li key={c.id} className="rounded-md border border-line bg-surface p-3">
-                  <p className="text-sm text-ink-soft">
-                    @{c.author?.username ?? "…"}
-                    {c.edited_at && !c.deleted_at ? ` · ${t("social.edited")}` : ""}
-                    {c.held_at && !c.deleted_at ? ` · ${t("social.held")}` : ""}
+                  <p className="flex items-center gap-2 text-sm text-ink-soft">
+                    <Avatar itemId={c.author?.avatar_item_id} size={24} />
+                    <span className="min-w-0 truncate">
+                      @{c.author?.username ?? "…"}
+                      {c.edited_at && !c.deleted_at ? ` · ${t("social.edited")}` : ""}
+                      {c.held_at && !c.deleted_at ? ` · ${t("social.held")}` : ""}
+                    </span>
+                    <AccountLabelChip label={c.author?.label} />
                   </p>
                   {c.deleted_at ? (
                     <p className="text-base text-ink-soft">

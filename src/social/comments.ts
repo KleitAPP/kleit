@@ -80,7 +80,7 @@ export async function comments(setId: string): Promise<Comment[]> {
   const { data: people } = ids.length
     ? await supabase
         .from("profiles")
-        .select("user_id, username, display_name, is_private")
+        .select("user_id, username, display_name, is_private, label, avatar_item_id")
         .in("user_id", ids)
     : { data: [] };
   const byId = new Map((people ?? []).map((p) => [p.user_id, p as Person]));
@@ -102,7 +102,7 @@ export async function addComment(setId: string, body: string): Promise<Comment |
   if (error || !data) return null;
   const { data: p } = await supabase
     .from("profiles")
-    .select("user_id, username, display_name, is_private")
+    .select("user_id, username, display_name, is_private, label, avatar_item_id")
     .eq("user_id", my)
     .maybeSingle();
   return { ...data, author: (p as Person | null) ?? null };

@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(19);
+select plan(20);
 
 insert into auth.users (id, email) values
   ('c7c7c7c7-0000-4000-8000-000000000001', 'pw-clipper@test.kleit'),

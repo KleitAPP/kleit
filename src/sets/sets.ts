@@ -450,3 +450,32 @@ export function priceTotal(placements: Placement[]): {
 }
 
 export const DEFAULT_BACKGROUND = "#F4EFE6";
+
+/**
+ * Somebody's published sets, as the viewer may see them (S13): the row policies decide - a
+ * stranger gets the public ones, a follower the followers-only ones too, a friend the friends-only
+ * ones; across a block, or on a private account the viewer does not follow, nothing.
+ */
+export type ProfileSet = {
+  id: string;
+  title: string;
+  preview_image_id: string | null;
+  visibility: SetSummary["visibility"];
+};
+export async function setsOf(userId: string): Promise<ProfileSet[]> {
+  const { data } = await supabase
+    .from("sets")
+    .select("id, title, preview_image_id, visibility")
+    .eq("owner_id", userId)
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .eq("takedown_state", "none")
+    .order("published_at", { ascending: false })
+    .limit(60);
+  return (data ?? []).map((s) => ({
+    id: s.id,
+    title: s.title,
+    preview_image_id: s.preview_image_id ?? null,
+    visibility: s.visibility,
+  }));
+}

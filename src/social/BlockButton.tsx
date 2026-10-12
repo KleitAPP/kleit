@@ -7,9 +7,14 @@ import { block, haveBlocked, haveMuted, mute, unblock, unmute } from "@/social/b
 import type { Person } from "@/social/follows";
 import { ReportSheet } from "@/safety/ReportButton";
 
-/** Block / Unblock on someone's profile, with the plain warning first (spec 10.4; G6). */
+/**
+ * The "…" on someone's profile (design pack S84): one sheet with Mute, Block and Block and
+ * report, each one tap; Block shows the plain warning first (spec 10.4; G6). Three pills in a
+ * row did not fit a phone beside Follow and Message.
+ */
 export function BlockButton({ them, me }: { them: Person; me: string | null }) {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
   const [blocked, setBlocked] = useState<boolean | null>(null);
   const [confirm, setConfirm] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -32,42 +37,71 @@ export function BlockButton({ them, me }: { them: Person; me: string | null }) {
 
   if (!me || me === them.user_id || blocked === null) return null;
 
+  const row = "flex min-h-12 w-full items-center text-left text-base text-ink";
   return (
     <>
-      {muted !== null ? (
-        <button
-          type="button"
-          title={t("mute.why")}
-          onClick={() =>
-            muted
-              ? void unmute(them.user_id).then((ok) => ok && setMuted(false))
-              : void mute(them.user_id).then((ok) => ok && setMuted(true))
-          }
-          className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
-        >
-          {muted ? t("mute.unmute") : t("mute.mute")}
-        </button>
-      ) : null}
       <button
         type="button"
-        onClick={() =>
-          blocked
-            ? void unblock(them.user_id).then((ok) => ok && setBlocked(false))
-            : setConfirm(true)
-        }
-        className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+        onClick={() => setOpen(true)}
+        aria-label={t("profile.more")}
+        className="flex size-12 shrink-0 items-center justify-center rounded-pill border border-line bg-surface text-xl text-ink"
       >
-        {blocked ? t("block.unblock") : t("block.block")}
+        …
       </button>
-      {!blocked ? (
-        <button
-          type="button"
-          onClick={() => setReporting(true)}
-          className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
-        >
-          {t("block.andReport")}
-        </button>
-      ) : null}
+      <Sheet
+        open={open}
+        onOpenChange={setOpen}
+        title={t("profile.moreTitle", { name: them.username })}
+      >
+        <ul className="flex flex-col divide-y divide-line">
+          {muted !== null ? (
+            <li>
+              <button
+                type="button"
+                className={row}
+                onClick={() => {
+                  setOpen(false);
+                  void (muted ? unmute(them.user_id) : mute(them.user_id)).then(
+                    (ok) => ok && setMuted(!muted),
+                  );
+                }}
+              >
+                <span className="flex flex-col">
+                  <span>{muted ? t("mute.unmute") : t("mute.mute")}</span>
+                  <span className="text-sm text-ink-soft">{t("mute.why")}</span>
+                </span>
+              </button>
+            </li>
+          ) : null}
+          <li>
+            <button
+              type="button"
+              className={row}
+              onClick={() => {
+                setOpen(false);
+                if (blocked) void unblock(them.user_id).then((ok) => ok && setBlocked(false));
+                else setConfirm(true);
+              }}
+            >
+              {blocked ? t("block.unblock") : t("block.block")}
+            </button>
+          </li>
+          {!blocked ? (
+            <li>
+              <button
+                type="button"
+                className={row}
+                onClick={() => {
+                  setOpen(false);
+                  setReporting(true);
+                }}
+              >
+                {t("block.andReport")}
+              </button>
+            </li>
+          ) : null}
+        </ul>
+      </Sheet>
       {/* Block and report in one step (spec 10.4 #4): the report goes first, then the block. */}
       <ReportSheet
         type="profile"

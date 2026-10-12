@@ -1278,6 +1278,7 @@ export const en = {
   "profile.foldersHint": "Sets you saved",
   "profile.templatesHint": "Your layouts",
   "profile.more": "More",
+  "profile.moreTitle": "@{name}",
   "profile.bin": "Recently deleted",
   "select.start": "Select",
   "select.cancel": "Done",

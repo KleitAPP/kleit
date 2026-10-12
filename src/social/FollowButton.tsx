@@ -78,12 +78,12 @@ export function FollowButton({ them, me }: { them: Person; me: string | null }) 
         </button>
         <MessageButton them={them} me={me} />
         <BlockButton them={them} me={me} />
-        <p className="text-sm text-ink-soft">
-          {t("profile.followers", { count: rel.followers })} ·{" "}
-          {t("profile.followingN", { count: rel.followingCount })}
-          {rel.followedBy && !rel.following ? ` · ${t("profile.followsYou")}` : ""}
-        </p>
       </div>
+      <p className="text-sm text-ink-soft">
+        {t("profile.followers", { count: rel.followers })} ·{" "}
+        {t("profile.followingN", { count: rel.followingCount })}
+        {rel.followedBy && !rel.following ? ` · ${t("profile.followsYou")}` : ""}
+      </p>
       {them.is_private && !rel.following && !rel.requested ? (
         <p className="text-sm text-ink-soft">{t("profile.privateHint", { name: them.username })}</p>
       ) : null}

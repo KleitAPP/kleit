@@ -24,6 +24,7 @@ import {
 import { t } from "@/i18n/en";
 import { previewUrl } from "@/search/search";
 import { ReportButton } from "@/safety/ReportButton";
+import { ask } from "@/social/ask";
 
 /**
  * S40 — Item page (design pack §2.2): the photo, the price and where it came from, and Buy.
@@ -117,6 +118,18 @@ function ItemPage() {
   async function askToRemove() {
     setProblem(null);
     setRemoving({ uses: await closetItemUses(itemId) });
+  }
+
+  // Build around this piece (spec 5.1 #12): a question with this piece locked; friends answer
+  // with a set that has it on. A cleared store piece only - the database refuses the rest.
+  async function buildAround() {
+    if (loaded.at !== "found" || busy) return;
+    setBusy(true);
+    const name = loaded.item.title?.trim() || t("item.untitled");
+    const askId = await ask(t("ask.buildAroundQuestion", { name }), loaded.item.id);
+    setBusy(false);
+    if (askId) void navigate({ to: "/asks/$askId", params: { askId } });
+    else setProblem(t("item.removeFailed"));
   }
 
   async function remove(keepInSets: boolean) {
@@ -241,6 +254,18 @@ function ItemPage() {
           {/* Beside the button, in normal text (spec 8.2 #7). */}
           <p className="mt-2 text-sm text-ink-soft">{t("disclosure.commission")}</p>
         </div>
+      ) : null}
+
+      {item.kind === "product" && state === "clean" ? (
+        <button
+          type="button"
+          disabled={busy}
+          title={t("ask.buildAroundWhy")}
+          onClick={() => void buildAround()}
+          className="mt-3 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+        >
+          {t("ask.buildAround")}
+        </button>
       ) : null}
 
       {inSets.length > 0 ? (

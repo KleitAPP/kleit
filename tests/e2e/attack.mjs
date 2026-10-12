@@ -551,6 +551,59 @@ try {
     "attacker: a kept look can carry the cleared store piece, never the pending clip or the victim's own piece",
     `${keepPending.error?.code ?? "written"} / ${keepOwn.error?.code ?? "written"} / ${keepCleared.error?.code ?? "ok"}`,
   );
+  // 7c. Build around this piece (migration 100): the lock takes a cleared store piece only, and
+  //     an answer must carry it. The attacker asks; the victim answers.
+  const lockOwn = await a
+    .from("ask_posts")
+    .insert({ author_id: attacker.id, question: "attack build-around (ignore)", item_id: item.id });
+  const lockPending = await a.from("ask_posts").insert({
+    author_id: attacker.id,
+    question: "attack build-around (ignore)",
+    item_id: brandPending?.id,
+  });
+  const { data: lockOk, error: lockErr } = await a
+    .from("ask_posts")
+    .insert({
+      author_id: attacker.id,
+      question: "attack build-around (ignore)",
+      item_id: brandCleared?.id,
+    })
+    .select("id")
+    .single();
+  check(
+    lockOwn.error?.code === "42501" && lockPending.error?.code === "42501" && !lockErr && !!lockOk,
+    "attacker: a build-around locks a cleared store piece, never the victim's own piece or a pending clip",
+    `${lockOwn.error?.code ?? "written"} / ${lockPending.error?.code ?? "written"} / ${lockErr?.code ?? "ok"}`,
+  );
+  const moveLock = await a
+    .from("ask_posts")
+    .update({ item_id: null })
+    .eq("id", lockOk?.id ?? "")
+    .select("item_id");
+  check(
+    !!moveLock.error || (moveLock.data ?? []).length === 0,
+    "attacker: the lock cannot be moved or cleared once asked",
+    moveLock.error?.code ?? `${(moveLock.data ?? []).length} row(s)`,
+  );
+  await victim.client
+    .from("set_items")
+    .insert({ set_id: pub2.id, item_id: brandCleared?.id, position: { slot: 3 } });
+  const answerWithout = await victim.client
+    .from("ask_answers")
+    .insert({ ask_id: lockOk?.id, author_id: victim.id, set_id: pub.id });
+  const answerWith = await victim.client
+    .from("ask_answers")
+    .insert({ ask_id: lockOk?.id, author_id: victim.id, set_id: pub2.id });
+  check(
+    answerWithout.error?.code === "42501" && !answerWith.error,
+    "victim: answers a build-around only with a set that has the piece on it",
+    `${answerWithout.error?.code ?? "written"} / ${answerWith.error?.code ?? "ok"}`,
+  );
+  await admin
+    .from("set_items")
+    .delete()
+    .eq("set_id", pub2.id)
+    .eq("item_id", brandCleared?.id ?? "");
   const sharePage = await fetch(`${SITE}/s/${pub.share_code}`);
   const shareCsp = sharePage.headers.get("content-security-policy") ?? "";
   check(
@@ -1358,6 +1411,7 @@ try {
   // The brand page's rows (7b): the kept draft first (its rows point at the pieces), then the
   // pieces and their flags.
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack keep (ignore)");
+  await admin.from("ask_posts").delete().eq("question", "attack build-around (ignore)");
   const { data: brandLeft } = await admin
     .from("items")
     .select("id")

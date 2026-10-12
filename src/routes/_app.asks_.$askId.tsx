@@ -1,21 +1,28 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
+import { Chip, EmptyState, ItemCard, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
 import {
   answer as sendAnswer,
   choose,
   closeAsk,
   myPublicSets,
   oneAsk,
+  startSetWith,
   takeBackAnswer,
   type Answer,
   type Ask,
 } from "@/social/ask";
 import { me as whoAmI } from "@/social/follows";
 
-/** S83 — one question, its answers (each a set), the asker's favourite and Close (M5.3). */
+/**
+ * S83 — one question, its answers (each a set), the asker's favourite and Close (M5.3). A
+ * build-around (spec 5.1 #12) shows its locked piece first, offers "Start a set with it" (a
+ * Quick draft with the piece in slot 1), and lets you answer only with a public set that has
+ * the piece on - the database refuses any other, so the screen offers only those.
+ */
 export const Route = createFileRoute("/_app/asks_/$askId")({
   head: () => ({ meta: [{ title: "Ask" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: AskPage,
@@ -30,11 +37,16 @@ function AskPage() {
   const [setId, setSetId] = useState<string | null>(null);
   const [body, setBody] = useState("");
   const [problem, setProblem] = useState(false);
+  const [piece, setPiece] = useState<(ItemSummary & { url: string | null }) | null>(null);
+  const [starting, setStarting] = useState(false);
+  const navigate = useNavigate();
 
   async function refresh() {
     const r = await oneAsk(askId);
     setAsk(r?.ask ?? null);
     setAnswers(r?.answers ?? []);
+    setPiece(r?.item ? { ...r.item, url: await imageUrlFor(r.item) } : null);
+    return r;
   }
   useEffect(() => {
     let cancelled = false;
@@ -42,8 +54,8 @@ function AskPage() {
       const who = await whoAmI();
       if (cancelled) return;
       setMe(who);
-      await refresh();
-      setSets(await myPublicSets());
+      const r = await refresh();
+      setSets(await myPublicSets(r?.ask.item_id ?? null));
     })();
     return () => {
       cancelled = true;
@@ -75,12 +87,49 @@ function AskPage() {
     await refresh();
   }
 
+  async function startWith() {
+    const itemId = ask?.item_id;
+    if (!itemId || starting) return;
+    setStarting(true);
+    const setId = await startSetWith(itemId);
+    setStarting(false);
+    if (setId) void navigate({ to: "/set/$setId/edit", params: { setId } });
+    else setProblem(true);
+  }
+
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{ask.question}</h1>
       <p className="mt-1 text-sm text-ink-soft">
         @{ask.author?.username ?? "…"} · {open ? t("ask.open") : t("ask.closed")}
       </p>
+      {piece ? (
+        <section className="mt-4 flex items-start gap-4" aria-label={t("ask.lockedPiece")}>
+          <div className="w-32 shrink-0">
+            <Link to="/item/$itemId" params={{ itemId: piece.id }}>
+              <ItemCard
+                imageSrc={piece.url ?? ""}
+                imageAlt={piece.title ?? ""}
+                name={piece.title?.trim() || t("item.untitled")}
+                {...(priceLabel(piece) ? { price: priceLabel(piece)! } : {})}
+              />
+            </Link>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-ink-soft">{t("ask.buildAroundWhy")}</p>
+            {open ? (
+              <button
+                type="button"
+                disabled={starting}
+                onClick={() => void startWith()}
+                className="mt-2 min-h-11 rounded-pill border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+              >
+                {t("ask.startWith")}
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
       {mine && open ? (
         <div className="mt-3">
           <button
@@ -101,9 +150,13 @@ function AskPage() {
             void submit();
           }}
         >
-          <p className="text-base text-ink">{t("ask.answerWith")}</p>
+          <p className="text-base text-ink">
+            {piece ? t("ask.answerWithPiece") : t("ask.answerWith")}
+          </p>
           {sets.length === 0 ? (
-            <p className="text-sm text-ink-soft">{t("ask.noPublicSets")}</p>
+            <p className="text-sm text-ink-soft">
+              {piece ? t("ask.noSetsWithPiece") : t("ask.noPublicSets")}
+            </p>
           ) : (
             <div
               className="flex gap-2 overflow-x-auto pb-1"

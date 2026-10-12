@@ -11,15 +11,12 @@
  * Nothing is written for a guest, ever.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { type ItemSummary } from "@/items/items";
+import { ITEM_FIELDS, type ItemSummary } from "@/items/items";
 import { isOnline } from "@/offline/net";
 import { safeKeep } from "@/sets/keepLink";
 import { createQuickDraft, placeItem } from "@/sets/sets";
 
 export { KEEP_MAX, safeKeep } from "@/sets/keepLink";
-
-const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at";
 
 export type KeepProblem = "bad-link" | "offline" | "none-available" | "failed";
 

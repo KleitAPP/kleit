@@ -184,6 +184,8 @@ async function mintSession() {
 
 async function tidyUp(userId) {
   const stamp = new Date().toISOString();
+  // The build-around questions the loop asks (step 14) are test rows: gone, with their answers.
+  await admin.from("ask_posts").delete().eq("author_id", userId);
   await admin
     .from("polls")
     .update({ deleted_at: stamp })
@@ -713,7 +715,7 @@ try {
     `${(afterShuffle ?? []).length} → ${(afterComplete ?? []).length} piece(s)`,
   );
   const slotOneBefore = (afterComplete ?? []).find((r) => r.position?.slot === 0)?.item_id;
-  const nextButton = page.getByRole("button", { name: "Slot 1: next piece" });
+  const nextButton = page.getByRole("button", { name: "Next piece for slot 1" });
   await nextButton.waitFor();
   await nextButton.click();
   await wait(1500);
@@ -729,6 +731,26 @@ try {
     `${String(slotOneBefore).slice(0, 8)} → ${String(slotOneAfter).slice(0, 8)}`,
   );
   await a11y(page, "the quick builder with the helpers");
+
+  // 14. Build around this piece (spec 5.1 #12; migration 100): from a store piece's page, one
+  //     tap asks the question with the piece locked; "Start a set with it" opens the builder
+  //     with the piece already in slot 1.
+  await page.goto(`${SITE}/item/${brandIds[0]}`);
+  await page.getByRole("button", { name: "Build around this piece" }).click();
+  await page.waitForURL(/\/asks\/[0-9a-f-]+$/, { timeout: 20_000 });
+  await page.getByRole("button", { name: "Start a set with it" }).waitFor();
+  const askWords = await page.innerText("body");
+  check(
+    /Build around this: Core loop piece 1/.test(askWords),
+    "build around: one tap on the piece's page asks the question with the piece locked",
+    askWords.replace(/\s+/g, " ").slice(0, 80),
+  );
+  await page.getByRole("button", { name: "Start a set with it" }).click();
+  await page.waitForURL(/\/set\/[0-9a-f-]+\/edit/, { timeout: 20_000 });
+  await page
+    .getByRole("button", { name: /Slot 1: Core loop piece 1/ })
+    .waitFor({ timeout: 20_000 });
+  check(true, "build around: Start a set with it opens the builder with the piece in slot 1");
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

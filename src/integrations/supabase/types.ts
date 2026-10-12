@@ -206,6 +206,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          item_id: string | null
           question: string
         }
         Insert: {
@@ -214,6 +215,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          item_id?: string | null
           question: string
         }
         Update: {
@@ -222,9 +224,18 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          item_id?: string | null
           question?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ask_posts_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       badges: {
         Row: {

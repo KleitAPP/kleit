@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/kleit";
-import { KleitMark } from "@/brand/KleitMark";
+import { Avatar } from "@/social/Avatar";
 import { t } from "@/i18n/en";
 import { AccountLabelChip } from "@/social/AccountLabel";
 import type { AccountLabel } from "@/social/labels";
@@ -29,6 +29,7 @@ type Them = {
   is_private: boolean;
   bio: string;
   label: AccountLabel;
+  avatar_item_id: string | null;
 };
 
 function SomeonesProfile() {
@@ -42,7 +43,7 @@ function SomeonesProfile() {
     void (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, username, display_name, is_private, bio, label")
+        .select("user_id, username, display_name, is_private, bio, label, avatar_item_id")
         .eq("username", username.toLowerCase())
         .maybeSingle();
       const { data: who } = await supabase.auth.getUser();
@@ -71,9 +72,7 @@ function SomeonesProfile() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8">
       <div className="flex items-center gap-4">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-pill bg-surface-2 text-ink">
-          <KleitMark size={28} />
-        </span>
+        <Avatar itemId={them.avatar_item_id} size={64} />
         <div className="min-w-0">
           <h1 className="truncate font-display text-2xl text-ink">{name}</h1>
           <p className="truncate text-base text-ink-soft">

@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/components/kleit";
-import { KleitMark } from "@/brand/KleitMark";
+import { Avatar } from "@/social/Avatar";
+import { myPhotoState } from "@/social/avatar";
+import { PhotoSheet } from "@/social/PhotoSheet";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import {
   createQuickDraft,
@@ -101,11 +103,15 @@ type Me = {
   is_private: boolean;
   bio: string;
   label: AccountLabel;
+  avatar_item_id: string | null;
 };
 
 function YourProfile() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
+  const [photoSheet, setPhotoSheet] = useState(false);
+  /** "Checking your photo" after an upload the scan has not yet cleared (it shows once it has). */
+  const [photoChecking, setPhotoChecking] = useState(false);
   const [tab, setTab] = useState<Tab>("sets");
   const [drafts, setDrafts] = useState<SetSummary[] | null>(null);
   const [sets, setSets] = useState<SetSummary[] | null>(null);
@@ -211,10 +217,15 @@ function YourProfile() {
       if (!id) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, display_name, is_private, bio, label")
+        .select("username, display_name, is_private, bio, label, avatar_item_id")
         .eq("user_id", id)
         .maybeSingle();
-      if (!cancelled && profile) setMe(profile);
+      if (cancelled || !profile) return;
+      setMe(profile);
+      if (profile.avatar_item_id) {
+        const state = await myPhotoState(profile.avatar_item_id);
+        if (!cancelled) setPhotoChecking(state === "checking");
+      }
     })();
     return () => {
       cancelled = true;
@@ -231,11 +242,19 @@ function YourProfile() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8">
       <div className="flex items-center gap-4">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-pill bg-surface-2 text-ink">
-          <KleitMark size={28} />
-        </span>
+        <button
+          type="button"
+          onClick={() => setPhotoSheet(true)}
+          aria-label={t("avatar.title")}
+          className="shrink-0 rounded-pill"
+        >
+          <Avatar itemId={photoChecking ? null : me?.avatar_item_id} size={64} />
+        </button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl text-ink">{name || t("tabs.you")}</h1>
+          {photoChecking ? (
+            <p className="text-sm text-ink-soft">{t("avatar.checkingLine")}</p>
+          ) : null}
           {me ? (
             <p className="truncate text-base text-ink-soft">
               @{me.username} <AccountLabelChip label={me.label} className="ml-1 align-middle" />
@@ -509,6 +528,15 @@ function YourProfile() {
             {t("select.deleteConfirm", { count: picked.size })}
           </PrimaryButton>
         }
+      />
+      <PhotoSheet
+        hasPhoto={!!me?.avatar_item_id}
+        open={photoSheet}
+        onOpenChange={setPhotoSheet}
+        onChanged={(itemId, state) => {
+          setMe((cur) => (cur ? { ...cur, avatar_item_id: itemId } : cur));
+          setPhotoChecking(!!itemId && state === "checking");
+        }}
       />
     </div>
   );

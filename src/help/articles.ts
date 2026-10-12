@@ -230,6 +230,15 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "profile-photo",
+    group: "Your account",
+    title: "Your profile photo",
+    body: [
+      "On You, tap the circle next to your name to choose a photo from your phone, or to take the one you have off. It shows next to your name everywhere - on your profile, your sets and their share pages - to anyone.",
+      "Like every photo on Kleit, it's checked before it shows; that usually takes a few seconds. A photo that can't be used here is simply not shown, and you can choose another.",
+    ],
+  },
+  {
     slug: "download-data",
     group: "Your account",
     title: "Downloading your data",

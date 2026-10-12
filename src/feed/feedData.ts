@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { avatarSrc } from "@/social/avatar";
 import { asAccountLabel, type AccountLabel } from "@/social/labels";
 import type { SetHit } from "@/search/search";
 
@@ -25,12 +26,16 @@ async function withPeople(rows: Record<string, unknown>[]): Promise<FeedSet[]> {
   if (owners.length === 0) return [];
   const { data } = await supabase
     .from("profiles")
-    .select("user_id, username, avatar_url, label")
+    .select("user_id, username, avatar_item_id, label")
     .in("user_id", owners);
   const people = new Map(
     (data ?? []).map((p) => [
       p.user_id,
-      { username: p.username, avatar_url: p.avatar_url ?? null, label: asAccountLabel(p.label) },
+      {
+        username: p.username,
+        avatar_url: avatarSrc(p.avatar_item_id) ?? null,
+        label: asAccountLabel(p.label),
+      },
     ]),
   );
   return sets.map((s) => ({

@@ -1008,6 +1008,24 @@ try {
     "attacker: their own set's song cannot link elsewhere or carry a cover from elsewhere",
     `${songElsewhere.error?.code ?? "saved"} / ${coverElsewhere.error?.code ?? "saved"}`,
   );
+  // The profile photo (092) is pointed at through one door and served by the picture gate: not
+  // by hand, not at an address of their own, not at somebody else's picture.
+  const photoByHand = await a
+    .from("profiles")
+    .update({ avatar_item_id: item.id })
+    .eq("user_id", attacker.id);
+  const pixelByHand = await a
+    .from("profiles")
+    .update({ avatar_url: "https://evil.example/pixel.gif" })
+    .eq("user_id", attacker.id);
+  const theirs = await a.rpc("set_profile_photo", { p_item: item.id });
+  check(
+    photoByHand.error?.code === "42501" &&
+      pixelByHand.error?.code === "42501" &&
+      theirs.error?.code === "P0010",
+    "attacker: cannot set a profile photo by hand, point it elsewhere, or at the victim's picture",
+    `${photoByHand.error?.code ?? "set"} / ${pixelByHand.error?.code ?? "set"} / ${theirs.error?.code ?? "set"}`,
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

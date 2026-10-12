@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(15);
+select plan(17);
 
 insert into auth.users (id, email) values
   ('e8e8e8e8-0000-4000-8000-000000000001', 'ts-owner@test.kleit'),
@@ -29,6 +29,8 @@ select pg_temp.act_as('e8e8e8e8-0000-4000-8000-000000000002');
 select is(text_verdict('love this coat', 'comment'), 'ok', 'verdict: ordinary words are fine');
 select is(text_verdict('call me 555-123-4567', 'caption'), 'refuse', 'verdict: a phone number in a caption is refused');
 select is(text_verdict('come by 12 Main Street', 'bio'), 'refuse', 'verdict: a street address in a bio is refused');
+select is(text_verdict('101 nnptc cir 29445', 'bio'), 'refuse', 'verdict: a circle with a ZIP is an address too (094)');
+select is(text_verdict('12 harbour square', 'caption'), 'refuse', 'verdict: a square is a street type (094)');
 select is(text_verdict('skinny jeans and a 50 dollar coat', 'caption'), 'ok', 'verdict: a cut and a price are not a phone number or a phrase');
 select is(text_verdict('thinspo goals', 'comment'), 'hold', 'verdict: an eating-disorder phrase is held');
 select is(text_verdict('a purge of my closet', 'comment'), 'hold', 'verdict: the search-card list is the same list (a risky word holds a comment too)');

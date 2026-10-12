@@ -67,6 +67,7 @@ export function PhotoSheet({
         ref={picker}
         type="file"
         accept="image/*"
+        aria-label={t("avatar.choose")}
         className="sr-only"
         tabIndex={-1}
         onChange={(e) => {

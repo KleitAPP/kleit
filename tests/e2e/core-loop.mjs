@@ -40,7 +40,7 @@ async function a11y(pg, label) {
         count: v.nodes.length,
         where: v.nodes
           .slice(0, 2)
-          .map((x) => x.target.join(" "))
+          .map((x) => `${x.target.join(" ")} ${x.html.slice(0, 90)}`)
           .join(" | "),
       }));
     });

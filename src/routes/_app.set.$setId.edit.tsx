@@ -223,7 +223,10 @@ function QuickBuilder() {
               onClick={() => setPicking(i)}
               aria-label={
                 placed
-                  ? t("builder.slotFilled", { n: i + 1, name: placed.item.title ?? "" })
+                  ? t("builder.slotFilled", {
+                      n: i + 1,
+                      name: `${placed.item.title ?? ""}${tag ? ` · ${tag}` : ""}`,
+                    })
                   : t("builder.slotEmpty", { n: i + 1 })
               }
               className="absolute flex items-center justify-center rounded-sm"

@@ -433,7 +433,7 @@ function SetPage() {
                   width: `${slot.w * 100}%`,
                   height: `${slot.h * 100}%`,
                 }}
-                aria-label={placed.item.title ?? t("item.untitled")}
+                aria-label={`${placed.item.title ?? t("item.untitled")}${tag ? ` · ${tag}` : ""}`}
               >
                 {url ? <img src={url} alt="" className="size-full object-contain" /> : null}
                 {tag ? (

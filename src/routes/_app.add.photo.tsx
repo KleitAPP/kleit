@@ -141,6 +141,7 @@ function AddPhoto() {
         type="file"
         accept="image/*"
         multiple
+        aria-label={t("photo.choose")}
         className="sr-only"
         onChange={(e) => {
           const files = Array.from(e.target.files ?? []);

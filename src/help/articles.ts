@@ -124,6 +124,15 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "for-brands",
+    group: "Sets and sharing",
+    title: "For brands: a look builder on your own site",
+    body: [
+      'If people clip pieces from your store, Kleit can show a small builder on your site: four slots and the pieces from your store that have been checked, for anyone, with no account. Put this one line on a page, with your store\'s web address in place of the example: <iframe src="https://kleit.app/e/brand/yourstore.com" title="Build a look" style="width:100%;height:900px;border:0"></iframe>',
+      "A visitor taps pieces into the slots and, when they tap Keep it on Kleit, the look opens in Kleit as a draft of theirs once they sign in. Nothing is saved for them before that, the page sets no cookies, and it never shows who clipped a piece. A store nobody has clipped from yet shows a line saying so.",
+    ],
+  },
+  {
     slug: "buy-links",
     group: "Sets and sharing",
     title: "Buy buttons and what we earn",

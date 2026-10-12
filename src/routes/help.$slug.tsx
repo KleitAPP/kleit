@@ -25,7 +25,7 @@ function HelpArticle() {
       <p className="text-sm text-ink-soft">{a.group}</p>
       <h2 className="mt-1 font-display text-xl text-ink">{a.title}</h2>
       {a.body.map((p, i) => (
-        <p key={i} className="mt-3 text-base text-ink">
+        <p key={i} className="mt-3 break-words text-base text-ink">
           {p}
         </p>
       ))}

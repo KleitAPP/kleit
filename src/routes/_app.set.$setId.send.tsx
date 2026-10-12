@@ -8,6 +8,7 @@ import { t } from "@/i18n/en";
 import { parseTags } from "@/search/search";
 import { siteUrl } from "@/lib/site";
 import { noteSetSent } from "@/native/review";
+import { saveSetImage } from "@/sets/saveImage";
 import { peopleOnSet, tagPerson, untag, type TaggedPerson } from "@/sets/tags";
 
 /**
@@ -48,6 +49,8 @@ function SendSet() {
   const [changing, setChanging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
   const [tagText, setTagText] = useState("");
@@ -183,6 +186,17 @@ function SendSet() {
       /* the person closed the sheet; nothing to do */
     }
     await copy();
+  }
+
+  /** S47: the chat picture, to the share sheet or the downloads (drawn a moment after publish). */
+  async function saveImage() {
+    if (saving) return;
+    setSaving(true);
+    setNote(null);
+    const r = await saveSetImage(setId, set?.title || autoTitle(placements));
+    setSaving(false);
+    if (r === "not-yet") setNote(t("send.imageNotYet"));
+    else if (r === "failed") setNote(t("send.imageFailed"));
   }
 
   async function copy() {
@@ -362,6 +376,28 @@ function SendSet() {
           >
             {copied ? t("send.copied") : t("send.copyLink")}
           </button>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => void saveImage()}
+              disabled={saving}
+              className="min-h-12 rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-50"
+            >
+              {saving ? t("send.savingImage") : t("send.saveImage")}
+            </button>
+            <Link
+              to="/poll/new"
+              search={{ set: setId }}
+              className="flex min-h-12 items-center justify-center rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+            >
+              {t("send.makePoll")}
+            </Link>
+          </div>
+          {note ? (
+            <p role="status" className="mt-2 text-sm text-ink-soft">
+              {note}
+            </p>
+          ) : null}
           <p className="mt-3 text-sm text-ink-soft">{t("disclosure.commission")}</p>
           <Link
             to="/set/$setId/edit"

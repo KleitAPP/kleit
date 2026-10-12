@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
  * question, choose how long it runs. The same screen edits an unlocked poll (no vote yet); a
  * locked one is reopened first, from the results screen, after the warning.
  */
-export function PollBuilder({ pollId }: { pollId?: string }) {
+export function PollBuilder({ pollId, startWith }: { pollId?: string; startWith?: string }) {
   const navigate = useNavigate();
   const [sets, setSets] = useState<SetSummary[] | null>(null);
   const [chosen, setChosen] = useState<string[]>([]);
@@ -30,6 +30,8 @@ export function PollBuilder({ pollId }: { pollId?: string }) {
       const list = await mySets();
       if (cancelled) return;
       setSets(list);
+      // Opened from a set's send screen (S47): that set is already picked.
+      if (!pollId && startWith && list.some((s) => s.id === startWith)) setChosen([startWith]);
       if (pollId) {
         const [{ data: poll }, { data: options }] = await Promise.all([
           supabase.from("polls").select("question").eq("id", pollId).maybeSingle(),
@@ -49,7 +51,7 @@ export function PollBuilder({ pollId }: { pollId?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [pollId]);
+  }, [pollId, startWith]);
 
   function toggle(id: string) {
     setProblem(null);

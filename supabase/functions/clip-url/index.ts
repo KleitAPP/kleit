@@ -31,6 +31,8 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, type Frame, type Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 import { safeFetch, SafeFetchError, parsePublicUrl } from "../_shared/safe-fetch.ts";
+import { decodable } from "../_shared/image-size.ts";
+import { sameSecret } from "../_shared/guest-door.ts";
 import {
   readProductPage,
   cleanSourceUrl,
@@ -92,7 +94,7 @@ Deno.serve(async (request) => {
   const authorization = request.headers.get("Authorization") ?? "";
   const bearer = authorization.replace(/^Bearer\s+/i, "");
   const isServer =
-    bearer.length > 0 && (bearer === serviceKey || (await canActAsServer(url, bearer)));
+    bearer.length > 0 && (sameSecret(bearer, serviceKey) || (await canActAsServer(url, bearer)));
   let me: string | null = null;
   if (!isServer) {
     const asCaller = createClient(url, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
@@ -292,6 +294,7 @@ async function saveClip(
       accept: "image/jpeg,image/png;q=0.9,image/*;q=0.5",
     });
     if (image.status >= 400) return reply(422, { problem: "image-unreadable" });
+    if (!decodable(image.bytes)) return reply(422, { problem: "image-unreadable" });
     const decoded = await decode(image.bytes);
     let picture: Image | Frame;
     if (decoded instanceof GIF) {

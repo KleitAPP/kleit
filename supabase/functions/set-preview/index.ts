@@ -18,6 +18,7 @@
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decode, GIF, Image, type Frame } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+import { decodable } from "../_shared/image-size.ts";
 
 // deno-lint-ignore-file no-explicit-any
 import decodeWebp from "npm:@jsquash/webp@1.5.0/decode.js";
@@ -168,7 +169,12 @@ Deno.serve(async (request) => {
   if (!mine || mine.owner_id !== who.user.id) return reply(404, { problem: "not-found" });
 
   const server = createClient(url, serviceKey);
-  const previous = mine.preview_image_id as string | null;
+  // The old file is removed only when it is this set's own (`<set id>/<time>.jpg`): the column
+  // is the server's (migration 097), and a path that is not ours is cleared, never deleted.
+  const previous =
+    typeof mine.preview_image_id === "string" && mine.preview_image_id.startsWith(`${setId}/`)
+      ? mine.preview_image_id
+      : null;
 
   // Not something the world may see: no picture, and any old one goes. A set in Recently
   // deleted counts (spec 7.1 #8: the cached preview is cleared); Restore draws it again.
@@ -177,9 +183,9 @@ Deno.serve(async (request) => {
     !mine.deleted_at &&
     (mine.visibility === "public" || mine.visibility === "link");
   if (!shareable) {
-    if (previous) {
+    if (mine.preview_image_id) {
       await server.from("sets").update({ preview_image_id: null }).eq("id", setId);
-      await server.storage.from("set-previews").remove([previous]);
+      if (previous) await server.storage.from("set-previews").remove([previous]);
     }
     return reply(200, { ok: true, preview: null });
   }
@@ -190,9 +196,15 @@ Deno.serve(async (request) => {
   if (!set?.id) return reply(409, { problem: "not-shareable" });
 
   const creative = set.layout?.version === 2 && !!set.layout.canvas;
+  // The template is read as the caller, so the row policies decide (their own, or a published
+  // one) - never somebody else's private template by its id.
   const { data: template } =
-    !creative && set.layout?.template
-      ? await server.from("templates").select("layout").eq("id", set.layout.template).maybeSingle()
+    !creative && typeof set.layout?.template === "string" && UUID.test(set.layout.template)
+      ? await asCaller
+          .from("templates")
+          .select("layout")
+          .eq("id", set.layout.template)
+          .maybeSingle()
       : { data: null };
   type TplLayout = {
     canvas?: { w: number; h: number };
@@ -369,7 +381,9 @@ Deno.serve(async (request) => {
       const { data: file } = await server.storage.from(bucket).download(item.image_id);
       if (!file) continue;
       try {
-        art = still(await decode(new Uint8Array(await file.arrayBuffer())));
+        const stored = new Uint8Array(await file.arrayBuffer());
+        if (!decodable(stored)) continue;
+        art = still(await decode(stored));
       } catch {
         continue;
       }

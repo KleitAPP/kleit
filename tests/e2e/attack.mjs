@@ -427,9 +427,65 @@ try {
     String(embedPriv.status),
   );
   const sharePage = await fetch(`${SITE}/s/${pub.share_code}`);
+  const shareCsp = sharePage.headers.get("content-security-policy") ?? "";
   check(
-    !(sharePage.headers.get("content-security-policy") ?? "").includes("frame-ancestors *"),
-    "stranger: the share page itself does not invite framing",
+    shareCsp.includes("frame-ancestors 'none'") && shareCsp.includes("script-src 'none'"),
+    "stranger: the share page refuses framing and runs no script at all",
+    shareCsp.slice(0, 80),
+  );
+  const pollHead = await fetch(`${SITE}/p/${poll.share_code}`);
+  const pollCsp = pollHead.headers.get("content-security-policy") ?? "";
+  check(
+    /script-src 'nonce-[A-Za-z0-9+/=]+' https:\/\/challenges\.cloudflare\.com/.test(pollCsp) &&
+      pollCsp.includes("frame-ancestors 'none'"),
+    "stranger: the poll page's scripts are its own (a nonce) and Turnstile's, nothing else",
+    pollCsp.slice(0, 80),
+  );
+  // A layout is JSON the owner writes; a quote inside a "number" closed the style attribute it
+  // was written into (the server-code review, 2026-10-12). The victim's own Creative set
+  // carries the payload; the page must draw it as a number or not at all.
+  const { data: creative } = await victim.client
+    .from("sets")
+    .insert({
+      owner_id: victim.id,
+      title: "attack layout (ignore)",
+      status: "published",
+      visibility: "public",
+      layout: {
+        version: 2,
+        canvas: { w: '1080"><script>alert(4)</script>', h: 1350 },
+        background: "#F4EFE6",
+        order: ["t1", 42, null],
+        texts: {
+          t1: {
+            kind: "text",
+            x: 10,
+            y: 10,
+            w: 400,
+            h: 100,
+            rotation: '0deg)"><script>alert(5)</script><i x="',
+            opacity: "1;background:url(https://evil.example/x)",
+            text: {
+              text: "words",
+              font: "pacifico",
+              size: 48,
+              colour: "red;background:url(https://evil.example/y)",
+              align: 'left"><script>alert(6)</script>',
+            },
+          },
+        },
+      },
+    })
+    .select("id, share_code")
+    .single();
+  const layoutPage = creative ? await (await fetch(`${SITE}/s/${creative.share_code}`)).text() : "";
+  check(
+    !!creative &&
+      !layoutPage.includes("<script>alert") &&
+      !layoutPage.includes("evil.example") &&
+      layoutPage.includes("rotate(0deg)"),
+    "stranger: a hostile layout draws as numbers, never as markup or a beacon",
+    creative ? (layoutPage.includes("<script>alert") ? "SCRIPT IN PAGE" : "clean") : "no set",
   );
 
   // ---------------------------------------------------------------------------
@@ -1160,6 +1216,7 @@ try {
   await admin.from("contest_entries").delete().eq("user_id", attacker.id);
   await admin.from("contests").delete().eq("title", "attack contest (ignore)");
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack song (ignore)");
+  await admin.from("sets").delete().eq("owner_id", victim.id).eq("title", "attack layout (ignore)");
   await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);

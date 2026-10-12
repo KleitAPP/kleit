@@ -139,6 +139,49 @@ type SharedSet = {
   pieces: Piece[];
 };
 
+/**
+ * The headers every page here is sent with. The Content Security Policy is the backstop for
+ * everything a member writes that the page draws (titles, captions, layouts): a script can run
+ * only with this response's own nonce or from Turnstile's host, nothing here may be framed
+ * unless it is the embed, and requests leave only for this site and the database.
+ */
+function pageHeaders(
+  env: Env,
+  opts: { nonce?: string; framed?: boolean; robots?: string; status?: number } = {},
+): HeadersInit {
+  const csp = [
+    "default-src 'self'",
+    opts.nonce
+      ? `script-src 'nonce-${opts.nonce}' https://challenges.cloudflare.com`
+      : "script-src 'none'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self'",
+    `connect-src 'self' ${env.SUPABASE_URL}`,
+    opts.nonce ? "frame-src https://challenges.cloudflare.com" : "frame-src 'none'",
+    `frame-ancestors ${opts.framed ? "*" : "'none'"}`,
+    "base-uri 'none'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join("; ");
+  return {
+    "content-type": "text/html; charset=utf-8",
+    "content-security-policy": csp,
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "x-content-type-options": "nosniff",
+    "x-robots-tag": opts.robots ?? "noindex, nofollow",
+    "cache-control": "no-store",
+    "x-kleit-surface": "share-worker",
+  };
+}
+
+/** A fresh nonce for one response's own scripts. */
+function newNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes));
+}
+
 const CODE = /^[A-Za-z0-9]{8,32}$/;
 
 export default {
@@ -151,31 +194,28 @@ export default {
       return takedownFormPage(request, env);
     if (url.pathname === "/sitemap.xml") return sitemap(request, env);
     if (url.pathname === "/contact") return contactPage(request, env);
-    if (url.pathname === "/delete-account") return deleteAccountPage();
+    if (url.pathname === "/delete-account") return deleteAccountPage(env);
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
 
     const code = url.pathname.slice(3).replace(/\/+$/, "");
-    if (!CODE.test(code)) return notAvailable();
+    if (!CODE.test(code)) return notAvailable(env);
 
     let set: SharedSet | null = null;
     try {
       set = await fetchSet(env, code);
     } catch {
-      return notAvailable(503);
+      return notAvailable(env, 503);
     }
-    if (!set) return notAvailable();
+    if (!set) return notAvailable(env);
 
     const base = `${url.protocol}//${url.host}`;
+    // A link-only set must never be indexed; a public one may be, later, when the test site
+    // is no longer noindex everywhere (M10).
     return new Response(render(set, code, base, env), {
       status: 200,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        // A link-only set must never be indexed; a public one may be, later, when the test site
-        // is no longer noindex everywhere (M10).
-        "x-robots-tag": indexable(env, set.visibility) ? "index, follow" : "noindex, nofollow",
-        "cache-control": "no-store",
-        "x-kleit-surface": "share-worker",
-      },
+      headers: pageHeaders(env, {
+        robots: indexable(env, set.visibility) ? "index, follow" : "noindex, nofollow",
+      }),
     });
   },
 };
@@ -233,26 +273,22 @@ function fetchSet(env: Env, code: string): Promise<SharedSet | null> {
 async function pollPage(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const code = url.pathname.slice(3).replace(/\/+$/, "");
-  if (!CODE.test(code)) return notAvailable();
+  if (!CODE.test(code)) return notAvailable(env);
   let poll: SharedPoll | null = null;
   try {
     poll = await askDatabase<SharedPoll>(env, "shared_poll", code);
   } catch {
-    return notAvailable(503);
+    return notAvailable(env, 503);
   }
-  if (!poll || poll.options.length < 2) return notAvailable();
-  return new Response(renderPoll(poll, code, `${url.protocol}//${url.host}`, env), {
+  if (!poll || poll.options.length < 2) return notAvailable(env);
+  const nonce = newNonce();
+  return new Response(renderPoll(poll, code, `${url.protocol}//${url.host}`, env, nonce), {
     status: 200,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
+    headers: pageHeaders(env, { nonce }),
   });
 }
 
-function renderPoll(poll: SharedPoll, code: string, base: string, env: Env): string {
+function renderPoll(poll: SharedPoll, code: string, base: string, env: Env, nonce: string): string {
   const who = poll.owner.display_name?.trim() || `@${poll.owner.username}`;
   const question = poll.question?.trim() || "Which one?";
   const functions = `${env.SUPABASE_URL}/functions/v1`;
@@ -340,9 +376,44 @@ ${STYLE}${POLL_STYLE}</head>
 <footer class="wrap foot">
   <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
-<script>window.KLEIT_POLL=${config.replace(/</g, "\\u003c")};</script>
-<script>${POLL_SCRIPT}</script>
+<script nonce="${nonce}">window.KLEIT_POLL=${config.replace(/</g, "\\u003c")};</script>
+<script nonce="${nonce}">${POLL_SCRIPT}</script>
 </body></html>`;
+}
+
+/**
+ * A Creative set (layout version 2) drawn where its owner put things: each pictured piece an
+ * absolutely placed image in percentages of the canvas, rotated, flipped and faded as saved,
+ * hidden layers skipped, in the saved order. The piece list follows for Buy and the names.
+ */
+/**
+ * A number from a saved layout, or the fallback. The layout is JSON the owner writes through
+ * `save_set_layout` and the database keeps verbatim, so every value lands here as whatever was
+ * sent - a string with a quote in it would otherwise close the style attribute it is written
+ * into. Nothing from a layout reaches the page without going through here, `esc()` or a regex.
+ */
+function num(v: unknown, fallback: number, min = -1e6, max = 1e6): number {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+}
+const FONT_ID = /^[a-z0-9]+$/;
+const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/;
+
+/** Position and crop as percentages of the canvas: every value coerced, nothing interpolated raw. */
+function placement(pos: Position, w: number, h: number): string {
+  const left = (num(pos.x, 0) / w) * 100;
+  const top = (num(pos.y, 0) / h) * 100;
+  const width = (num(pos.w, 0, 0) / w) * 100;
+  const height = (num(pos.h, 0, 0) / h) * 100;
+  return `position:absolute;left:${left}%;top:${top}%;width:${width}%;height:${height}%;transform:rotate(${num(pos.rotation, 0, -3600, 3600)}deg) scale(${pos.flipX ? -1 : 1},${pos.flipY ? -1 : 1});opacity:${num(pos.opacity, 1, 0, 1)}`;
+}
+function cropStyle(crop: Position["crop"]): string {
+  if (!crop) return "";
+  const cw = num(crop.w, 1, 0.001, 1);
+  const ch = num(crop.h, 1, 0.001, 1);
+  const cx = num(crop.x, 0, 0, 1);
+  const cy = num(crop.y, 0, 0, 1);
+  return `;width:${100 / cw}%;height:${100 / ch}%;margin-left:${(-cx / cw) * 100}%;margin-top:${(-cy / ch) * 100}%;max-width:none`;
 }
 
 /**
@@ -352,14 +423,20 @@ ${STYLE}${POLL_STYLE}</head>
  */
 function creativeCanvas(set: SharedSet, functions: string, background: string): string {
   if (set.layout?.version !== 2 || !set.layout.canvas) return "";
-  const { w, h } = set.layout.canvas;
+  const w = num(set.layout.canvas.w, 1080, 1, 100000);
+  const h = num(set.layout.canvas.h, 1080, 1, 100000);
   const byRow = new Map(set.pieces.filter((p) => p.row).map((p) => [p.row as string, p]));
   const texts = set.layout.texts ?? {};
   const decor = set.layout.decor ?? {};
-  const order = (set.layout.order ?? []).filter((id) => byRow.has(id) || texts[id] || decor[id]);
+  const order = (Array.isArray(set.layout.order) ? set.layout.order : [])
+    .filter((id): id is string => typeof id === "string")
+    .filter((id) => byRow.has(id) || texts[id] || decor[id]);
   for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
   const fontsUsed = new Set<string>();
-  const bgEntry = set.layout.backgroundAsset ? LIB.backgrounds[set.layout.backgroundAsset] : null;
+  const bgEntry =
+    typeof set.layout.backgroundAsset === "string"
+      ? LIB.backgrounds[set.layout.backgroundAsset]
+      : null;
   const bgPicture = bgEntry
     ? `<img src="/library/${bgEntry[0]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`
     : "";
@@ -370,50 +447,49 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
         // A decoration from the library (M4.4): the same picture the app drew, from this site's
         // own /library/ folder, with the museum's title as its alt text.
         if (d.hidden) return "";
-        const entry = LIB.assets[d.asset];
+        const entry = typeof d.asset === "string" ? LIB.assets[d.asset] : undefined;
         if (!entry) return "";
-        const transform = `rotate(${d.rotation ?? 0}deg) scale(${d.flipX ? -1 : 1},${d.flipY ? -1 : 1})`;
         if (entry[0].endsWith(".svg")) {
           // A structural piece is one colour: the SVG as a mask, filled with the colour the
           // owner chose - which is written in the set and never changes (L14).
-          const colour = /^#[0-9a-fA-F]{6}$/.test(d.colour ?? "") ? d.colour : "#161513";
-          return `<div role="img" aria-label="${esc(entry[1])}" style="position:absolute;left:${(d.x / w) * 100}%;top:${(d.y / h) * 100}%;width:${(d.w / w) * 100}%;height:${(d.h / h) * 100}%;transform:${transform};opacity:${d.opacity ?? 1};background:${colour};-webkit-mask:url(/library/${entry[0]}) 0 0/100% 100%;mask:url(/library/${entry[0]}) 0 0/100% 100%"></div>`;
+          const colour = HEX_COLOUR.test(d.colour ?? "") ? d.colour : "#161513";
+          return `<div role="img" aria-label="${esc(entry[1])}" style="${placement(d, w, h)};background:${colour};-webkit-mask:url(/library/${entry[0]}) 0 0/100% 100%;mask:url(/library/${entry[0]}) 0 0/100% 100%"></div>`;
         }
-        const crop = d.crop
-          ? `;width:${100 / d.crop.w}%;height:${100 / d.crop.h}%;margin-left:${(-d.crop.x / d.crop.w) * 100}%;margin-top:${(-d.crop.y / d.crop.h) * 100}%;max-width:none`
-          : "";
-        return `<div style="position:absolute;left:${(d.x / w) * 100}%;top:${(d.y / h) * 100}%;width:${(d.w / w) * 100}%;height:${(d.h / h) * 100}%;transform:${transform};opacity:${d.opacity ?? 1};overflow:hidden"><img src="/library/${entry[0]}" alt="${esc(entry[1])}" loading="lazy" style="width:100%;height:100%;object-fit:fill${crop}"></div>`;
+        return `<div style="${placement(d, w, h)};overflow:hidden"><img src="/library/${entry[0]}" alt="${esc(entry[1])}" loading="lazy" style="width:100%;height:100%;object-fit:fill${cropStyle(d.crop)}"></div>`;
       }
       const text = texts[id];
       if (text) {
-        if (text.hidden) return "";
+        if (text.hidden || !text.text || typeof text.text !== "object") return "";
         // A curated font is served from this site; a private font never leaves the account, so
         // its words come as a picture drawn by the server (text-image).
-        const isPrivate = text.text.font.startsWith("private:");
-        if (!isPrivate) fontsUsed.add(text.text.font);
-        const transform = `rotate(${text.rotation ?? 0}deg) scale(${text.flipX ? -1 : 1},${text.flipY ? -1 : 1})`;
-        const box = `position:absolute;left:${(text.x / w) * 100}%;top:${(text.y / h) * 100}%;width:${(text.w / w) * 100}%;transform:${transform};opacity:${text.opacity ?? 1}`;
+        const font = typeof text.text.font === "string" ? text.text.font : "";
+        const isPrivate = font.startsWith("private:");
+        const curated = !isPrivate && FONT_ID.test(font) ? font : null;
+        if (curated) fontsUsed.add(curated);
+        const words = typeof text.text.text === "string" ? text.text.text : "";
+        const left = (num(text.x, 0) / w) * 100;
+        const top = (num(text.y, 0) / h) * 100;
+        const width = (num(text.w, 0, 0) / w) * 100;
+        const box = `position:absolute;left:${left}%;top:${top}%;width:${width}%;transform:rotate(${num(text.rotation, 0, -3600, 3600)}deg) scale(${text.flipX ? -1 : 1},${text.flipY ? -1 : 1});opacity:${num(text.opacity, 1, 0, 1)}`;
         if (isPrivate) {
-          return `<div style="${box}"><img src="${functions}/text-image?set=${set.id}&layer=${encodeURIComponent(id)}" alt="${esc(text.text.text)}" style="width:100%;display:block"></div>`;
+          return `<div style="${box}"><img src="${functions}/text-image?set=${set.id}&layer=${encodeURIComponent(id)}" alt="${esc(words)}" style="width:100%;display:block"></div>`;
         }
-        return `<div style="${box};font-family:kleit-${esc(text.text.font)},sans-serif;font-size:${(text.text.size / w) * 100}cqw;line-height:1.2;color:${esc(text.text.colour)};text-align:${text.text.align};white-space:pre-wrap">${esc(text.text.text)}</div>`;
+        const align =
+          text.text.align === "left" || text.text.align === "right" ? text.text.align : "center";
+        const colour = HEX_COLOUR.test(text.text.colour ?? "") ? text.text.colour : "#161513";
+        const size = (num(text.text.size, 48, 1, 10000) / w) * 100;
+        return `<div style="${box};font-family:${curated ? `kleit-${curated},` : ""}sans-serif;font-size:${size}cqw;line-height:1.2;color:${colour};text-align:${align};white-space:pre-wrap">${esc(words)}</div>`;
       }
       const p = byRow.get(id)!;
       const pos = p.position;
-      if (!pos || pos.hidden) return "";
+      if (!pos || typeof pos !== "object" || pos.hidden) return "";
       const img = p.pictured
-        ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(p.title ?? "")}" loading="lazy" style="width:100%;height:100%;object-fit:fill${
-            pos.crop
-              ? `;width:${100 / pos.crop.w}%;height:${100 / pos.crop.h}%;margin-left:${(-pos.crop.x / pos.crop.w) * 100}%;margin-top:${(-pos.crop.y / pos.crop.h) * 100}%;max-width:none`
-              : ""
-          }">`
+        ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(p.title ?? "")}" loading="lazy" style="width:100%;height:100%;object-fit:fill${cropStyle(pos.crop)}">`
         : "";
-      const transform = `rotate(${pos.rotation ?? 0}deg) scale(${pos.flipX ? -1 : 1},${pos.flipY ? -1 : 1})`;
-      return `<div style="position:absolute;left:${(pos.x / w) * 100}%;top:${(pos.y / h) * 100}%;width:${(pos.w / w) * 100}%;height:${(pos.h / h) * 100}%;transform:${transform};opacity:${pos.opacity ?? 1};overflow:hidden">${img}</div>`;
+      return `<div style="${placement(pos, w, h)};overflow:hidden">${img}</div>`;
     })
     .join("");
   const faces = [...fontsUsed]
-    .filter((f) => /^[a-z0-9]+$/.test(f))
     .map((f) => `@font-face{font-family:kleit-${f};src:url(/fonts/${f}.ttf);font-display:swap}`)
     .join("");
   return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${bgPicture}${layers}</section>`;
@@ -425,6 +501,7 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
 // ---------------------------------------------------------------------------
 function takedownFormPage(request: Request, env: Env): Response {
   const url = new URL(request.url);
+  const nonce = newNonce();
   const copyright = url.pathname === "/copyright";
   const config = JSON.stringify({
     fn: `${env.SUPABASE_URL}/functions/v1/takedown-request`,
@@ -464,17 +541,10 @@ ${dmcaFields}
 <section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note" id="hours"></p><p class="note">Keep it. You can check on it any time at <a href="/takedown/status">kleit's takedown status page</a>.</p></section>
 <footer class="wrap foot"><a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
 </main>
-<script>window.KLEIT_TD=${config.replace(/</g, "\\u003c")};</script>
-<script>${TAKEDOWN_SCRIPT}</script>
+<script nonce="${nonce}">window.KLEIT_TD=${config.replace(/</g, "\\u003c")};</script>
+<script nonce="${nonce}">${TAKEDOWN_SCRIPT}</script>
 </body></html>`;
-  return new Response(html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
-  });
+  return new Response(html, { headers: pageHeaders(env, { nonce }) });
 }
 
 async function takedownStatusPage(request: Request, env: Env): Promise<Response> {
@@ -522,14 +592,7 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
 ${line ? `<p>${esc(line)}</p>` : ""}
 <footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a></footer>
 </main></body></html>`;
-  return new Response(html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
-  });
+  return new Response(html, { headers: pageHeaders(env) });
 }
 
 // The Turnstile loader both no-account forms use: resolves a token, or null if it never came.
@@ -574,6 +637,7 @@ const TAKEDOWN_SCRIPT = `(function(){
 // ---------------------------------------------------------------------------
 function contactPage(request: Request, env: Env): Response {
   const url = new URL(request.url);
+  const nonce = newNonce();
   const topic = url.searchParams.get("topic") ?? "";
   const version = (url.searchParams.get("v") ?? "").slice(0, 20);
   const config = JSON.stringify({
@@ -605,17 +669,10 @@ input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid 
 <section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note">Keep it in case you write again about the same thing. The answer comes to the email you gave.</p></section>
 <footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
 </main>
-<script>window.KLEIT_CT=${config.replace(/</g, "\\u003c")};</script>
-<script>${CONTACT_SCRIPT}</script>
+<script nonce="${nonce}">window.KLEIT_CT=${config.replace(/</g, "\\u003c")};</script>
+<script nonce="${nonce}">${CONTACT_SCRIPT}</script>
 </body></html>`;
-  return new Response(html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
-  });
+  return new Response(html, { headers: pageHeaders(env) });
 }
 
 const CONTACT_SCRIPT = `(function(){
@@ -641,7 +698,7 @@ const CONTACT_SCRIPT = `(function(){
 
 // How to delete your account (M7.5; the page app stores ask for): the steps, and a way in for
 // someone who can't sign in any more.
-function deleteAccountPage(): Response {
+function deleteAccountPage(env: Env): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Delete your account · Kleit</title>${STYLE}
@@ -655,14 +712,7 @@ function deleteAccountPage(): Response {
 <p><a class="button" href="/settings/delete">Open Delete account</a></p>
 <footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
 </main></body></html>`;
-  return new Response(html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
-  });
+  return new Response(html, { headers: pageHeaders(env) });
 }
 
 // Search-engine data for a Public set page (spec 8.4 #5: structured data, CreativeWork). Only
@@ -735,24 +785,18 @@ async function sitemap(request: Request, env: Env): Promise<Response> {
 async function embedPage(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const code = url.pathname.slice(3).replace(/\/+$/, "");
-  if (!CODE.test(code)) return notAvailable(404, true);
+  if (!CODE.test(code)) return notAvailable(env, 404, true);
   let set: SharedSet | null = null;
   try {
     set = await fetchSet(env, code);
   } catch {
-    return notAvailable(503, true);
+    return notAvailable(env, 503, true);
   }
-  if (!set) return notAvailable(404, true);
+  if (!set) return notAvailable(env, 404, true);
   const base = `${url.protocol}//${url.host}`;
   return new Response(renderEmbed(set, code, base, env), {
     status: 200,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "content-security-policy": "frame-ancestors *",
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
+    headers: pageHeaders(env, { framed: true }),
   });
 }
 
@@ -811,22 +855,13 @@ html,body.embed{margin:0;padding:0;background:transparent}
 .embed .disclosure{margin-top:6px}
 </style>`;
 
-function notAvailable(status = 404, framed = false): Response {
+function notAvailable(env: Env, status = 404, framed = false): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Kleit</title>${STYLE}</head>
 <body><main class="wrap"><h1>This set isn't available</h1><p>It may have been made private, or the link may have been reset.</p>
 <p><a class="button" href="/welcome"${framed ? ' target="_top"' : ""}>Open Kleit</a></p></main></body></html>`;
-  return new Response(html, {
-    status,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      ...(framed ? { "content-security-policy": "frame-ancestors *" } : {}),
-      "x-robots-tag": "noindex, nofollow",
-      "cache-control": "no-store",
-      "x-kleit-surface": "share-worker",
-    },
-  });
+  return new Response(html, { status, headers: pageHeaders(env, { framed }) });
 }
 
 /**

@@ -135,3 +135,7 @@ verify_jwt = false
 # the token, and the function reads every row as that person.
 [functions.export-data]
 verify_jwt = true
+
+# price-watch is called by the database (pg_net) with the sweep secret: no token at the gateway.
+[functions.price-watch]
+verify_jwt = false

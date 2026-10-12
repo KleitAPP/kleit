@@ -144,10 +144,15 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
         run: |
+          # KLEIT_TURNSTILE_TEST=1 is what lets the three no-account doors accept Cloudflare's
+          # always-pass test key on THIS project (a machine votes here on every deploy). The live
+          # project gets TURNSTILE_SECRET_KEY (OW15) and never this line: without either, the
+          # doors answer 503 rather than letting every bot through.
           supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
             "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
             "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
-            "SWEEP_SECRET=$SWEEP_SECRET"
+            "SWEEP_SECRET=$SWEEP_SECRET" \
+            "KLEIT_TURNSTILE_TEST=1"
           # The OpenAI key (OW18) is the owner's GitHub secret; absent, the text check waits (it never fails).
           if [ -n "$OPENAI_API_KEY" ]; then
             supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "OPENAI_API_KEY=$OPENAI_API_KEY"
@@ -256,7 +261,8 @@ jobs:
           psql "$DSN" -v ON_ERROR_STOP=1 -c "select private.sweep_scans()"
           sleep 75
           psql "$DSN" -v ON_ERROR_STOP=1 <<'SQL'
-          select id, status_code, left(content::text, 200) as reply, created
+          -- Status codes only: the replies name real members' items, and this log is public.
+          select id, status_code, length(content::text) as reply_bytes, created
             from net._http_response order by id desc limit 3;
           select jobid, status, left(return_message, 80) as message, start_time
             from cron.job_run_details
@@ -278,7 +284,9 @@ jobs:
           HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
           USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
           DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          FN_PRE="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/buy-redirect"
           # Any throwaway a failed earlier run left behind goes first.
+          psql "$DSN" -q -c "delete from public.item_flags where item_id in (select id from public.items where title = 'CI throwaway')"
           psql "$DSN" -q -c "delete from public.items where title = 'CI throwaway'"
           ITEM="$(psql "$DSN" -tAq -v ON_ERROR_STOP=1 -c "
             insert into public.items (owner_id, kind, title, source_url, source_domain, store_name)
@@ -286,7 +294,10 @@ jobs:
             from auth.users order by created_at limit 1 returning id" | head -1)"
           test -n "$ITEM" || { echo "::error::could not make the throwaway item"; exit 1; }
           echo "throwaway item $ITEM"
-          FN="https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/buy-redirect"
+          # Buy answers only for a piece the catalogue shows: before its scan clears, 404.
+          curl -sS -o /dev/null -w "%{http_code}\n" "$FN_PRE?item=$ITEM" | grep -q "^404$" || { echo "::error::Buy answered for an unscanned piece"; exit 1; }
+          psql "$DSN" -v ON_ERROR_STOP=1 -q -c "insert into public.item_flags (item_id, scan_state, scanned_at) values ('$ITEM', 'clean', now())"
+          FN="$FN_PRE"
           # A tap. -o /dev/null so nothing is followed; we want the redirect itself.
           curl -sS -o /dev/null -D /tmp/buy-headers.txt "$FN?item=$ITEM&network=direct"
           cat /tmp/buy-headers.txt
@@ -296,10 +307,11 @@ jobs:
           CODE="$(curl -sS -o /dev/null -w "%{http_code}" "$FN?item=$ITEM&url=https://evil.example")"
           test "$CODE" = "302" || { echo "::error::Buy with a smuggled url answered $CODE, not 302"; exit 1; }
           curl -sS -o /dev/null -w "%{http_code}\n" "$FN?item=00000000-0000-4000-8000-000000000000" | grep -q "^404$" || { echo "::error::an unknown item should be 404"; exit 1; }
-          psql "$DSN" -v ON_ERROR_STOP=1 -c "select click_id, network, set_id, created_at from public.clicks where item_id = '$ITEM'"
+          psql "$DSN" -v ON_ERROR_STOP=1 -c "select network, set_id is null as no_set, created_at from public.clicks where item_id = '$ITEM'"
           N="$(psql "$DSN" -tA -c "select count(*) from public.clicks where item_id = '$ITEM'")"
           test "$N" = "2" || { echo "::error::expected 2 clicks recorded, found $N"; exit 1; }
           psql "$DSN" -tA -c "select count(*) from information_schema.columns where table_name='clicks' and (column_name ilike '%user%' or column_name ilike '%email%')" | grep -q "^0$" || { echo "::error::clicks has a column that could name a person"; exit 1; }
+          psql "$DSN" -v ON_ERROR_STOP=1 -q -c "delete from public.item_flags where item_id = '$ITEM'"
           psql "$DSN" -v ON_ERROR_STOP=1 -c "delete from public.items where id = '$ITEM'"
       # The gate itself, proven (M2.5 "Done when"; spec 13.1 #5): a picture that has been removed
       # may never come back. A throwaway picture is screened once (clean - this also proves the
@@ -339,7 +351,7 @@ jobs:
           for round in $(seq 1 10); do
             curl -sS -o /tmp/purge.json -X POST "$BASE/functions/v1/purge-files" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
             LEFT="$(psql "$DSN" -tAq -c "select count(*) from public.items where id in ('$DOWN','$OLD') and purged_at is null")"
-            echo "  round $round: $(head -c 120 /tmp/purge.json) ... left=$LEFT"
+            echo "  round $round: due=$(jq -r '.due // .problem // "?"' /tmp/purge.json) ... left=$LEFT"
             test "$LEFT" = "0" && break
           done
           object_status() { curl -sS -o /dev/null -w "%{http_code}" "$BASE/storage/v1/object/$1" -H "Authorization: Bearer $KEY"; }
@@ -379,7 +391,7 @@ jobs:
           for round in $(seq 1 10); do
             curl -sS -o /tmp/screen.json -w "  http %{http_code}\n" -X POST "$BASE/functions/v1/screen-text" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
             LEFT="$(psql "$DSN" -tAq -c "select count(*) from public.text_checks where id in ($OK_ID, $BAD_ID) and state = 'pending'")"
-            echo "  round $round: $(head -c 160 /tmp/screen.json) ... pending=$LEFT"
+            echo "  round $round: checked=$(jq -r '.checked // .problem // "?"' /tmp/screen.json) ... pending=$LEFT"
             test "$LEFT" = "0" && break
           done
           S_OK="$(psql "$DSN" -tAq -c "select state from public.text_checks where id = $OK_ID")"
@@ -447,7 +459,7 @@ jobs:
             for round in $(seq 1 15); do
               curl -sS -o /tmp/sweep.json -X POST "$BASE/functions/v1/sweep-images" -H "x-sweep-key: $SWEEP_SECRET" -H "Content-Type: application/json" -d '{}'
               STATE="$(psql "$DSN" -tAq -c "select scan_state from public.item_flags where item_id = '$1'")"
-              echo "  round $round: $(head -c 80 /tmp/sweep.json) ... state=$STATE"
+              echo "  round $round: swept=$(jq -r '.swept // .problem // "?"' /tmp/sweep.json) ... state=$STATE"
               test -n "$STATE" -a "$STATE" != "pending" && return 0
             done
             return 1

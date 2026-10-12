@@ -68,13 +68,33 @@ Deno.serve(async (request) => {
   if (!item || item.owner_id !== me) return reply(404, { problem: "not-found" });
   if (!item.image_id) return reply(400, { problem: "no-image" });
 
+  // A verdict already given is given again, not re-earned: a picture is downloaded, decoded and
+  // sent to the scanner once, however many times the app asks. Five failed tries is where the
+  // sweeper stops too, and asking by hand does not buy more.
+  const { data: flag } = await server
+    .from("item_flags")
+    .select("scan_state, attempts")
+    .eq("item_id", itemId)
+    .maybeSingle();
+  if (
+    flag &&
+    (flag.scan_state === "clean" || flag.scan_state === "review" || flag.scan_state === "blocked")
+  ) {
+    return reply(200, { state: flag.scan_state });
+  }
+  if (flag && (flag.attempts ?? 0) >= 5) return reply(429, { problem: "too-many-attempts" });
+
   // Count the attempt before making it, so a scan that dies half-way still counts as one. The
   // sweeper stops after a few, and without this a photo that crashes the scanner every time
   // would be tried for ever.
   await server.rpc("count_scan_attempt", { p_item_id: itemId });
 
   try {
-    const verdict = await screenItem(server, { id: item.id, image_id: item.image_id, image_bucket: item.image_bucket }, awsKeysFromEnv());
+    const verdict = await screenItem(
+      server,
+      { id: item.id, image_id: item.image_id, image_bucket: item.image_bucket },
+      awsKeysFromEnv(),
+    );
     return reply(200, verdict);
   } catch (problem) {
     if (problem instanceof ScreenFailure) {

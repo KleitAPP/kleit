@@ -28,7 +28,9 @@ env:
 
 jobs:
   core-loop:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    # Only after a PUSH to main's app run: `branches` filters the head branch, so a fork's pull
+    # request from a branch called main would otherwise start this run with the repo's secrets.
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

@@ -187,7 +187,10 @@ Deno.serve(async (request) => {
   const zip = zipSync(files, { level: 6 });
   const name = `${new Date().toISOString().replace(/[:.]/g, "-")}.zip`;
   const { error: upError } = await server.storage.from("exports").upload(`${userId}/${name}`, zip, { contentType: "application/zip", upsert: false });
-  if (upError) return reply(502, { problem: "could-not-store", detail: upError.message });
+  if (upError) {
+    console.error("[export-data] could not store the file:", upError.message);
+    return reply(502, { problem: "could-not-store" });
+  }
   const { data: signed, error: signError } = await server.storage.from("exports").createSignedUrl(`${userId}/${name}`, LINK_SECONDS);
   if (signError || !signed?.signedUrl) return reply(502, { problem: "could-not-sign" });
 

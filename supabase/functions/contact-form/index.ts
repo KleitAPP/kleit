@@ -8,12 +8,12 @@
  * No Turnstile keys of our own exist yet (OW15): the test secret passes everyone until then.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { clientAddress, turnstilePasses, turnstileSecret } from "../_shared/guest-door.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const CLOUDFLARE_TEST_SECRET = "1x0000000000000000000000000000000AA";
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const TOPICS = ["question", "bug", "account", "safety", "other"];
 
@@ -25,24 +25,15 @@ function reply(status: number, body: Record<string, unknown>): Response {
 }
 
 async function hmac(key: string, text: string): Promise<string> {
-  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const k = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
   const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(text));
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function turnstilePasses(token: string, remoteip: string): Promise<boolean> {
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY") ?? CLOUDFLARE_TEST_SECRET;
-  try {
-    const form = new FormData();
-    form.set("secret", secret);
-    form.set("response", token);
-    if (remoteip) form.set("remoteip", remoteip);
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
-    const body = (await response.json()) as { success?: boolean };
-    return body.success === true;
-  } catch {
-    return false;
-  }
 }
 
 function ref(): string {
@@ -58,23 +49,43 @@ Deno.serve(async (request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !serviceKey) return reply(500, { error: "not_configured" });
 
-  let body: { topic?: string; name?: string; email?: string; message?: string; client?: string; token?: string };
+  let body: {
+    topic?: string;
+    name?: string;
+    email?: string;
+    message?: string;
+    client?: string;
+    token?: string;
+  };
   try {
     body = await request.json();
   } catch {
     return reply(400, { error: "bad_json" });
   }
   const topic = TOPICS.includes(String(body.topic)) ? String(body.topic) : null;
-  const name = String(body.name ?? "").trim().slice(0, 120);
-  const email = String(body.email ?? "").trim().toLowerCase();
-  const message = String(body.message ?? "").trim().slice(0, 4000);
-  const client = String(body.client ?? "").trim().slice(0, 300);
+  const name = String(body.name ?? "")
+    .trim()
+    .slice(0, 120);
+  const email = String(body.email ?? "")
+    .trim()
+    .toLowerCase();
+  const message = String(body.message ?? "")
+    .trim()
+    .slice(0, 4000);
+  const client = String(body.client ?? "")
+    .trim()
+    .slice(0, 300);
   if (!topic || !name || !EMAIL.test(email) || !message) return reply(400, { error: "incomplete" });
 
-  const address = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
-  if (!body.token || !(await turnstilePasses(body.token, address))) return reply(403, { error: "bot_check" });
+  const secret = turnstileSecret();
+  if (!secret) return reply(503, { error: "not_configured" });
+  const address = clientAddress(request);
+  if (!(await turnstilePasses(secret, body.token, address)))
+    return reply(403, { error: "bot_check" });
 
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const admin = createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   // A signed-in sender: the page passes the session token; the row remembers who wrote.
   let userId: string | null = null;
@@ -84,14 +95,20 @@ Deno.serve(async (request) => {
     userId = data.user?.id ?? null;
   }
 
-  const ipHash = address ? await hmac(serviceKey, `contact:${address}`) : null;
-  if (ipHash) {
+  const ipHash = await hmac(serviceKey, `contact:${address}`);
+  {
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-    const { count } = await admin.from("contact_messages").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since);
+    const { count } = await admin
+      .from("contact_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("ip_hash", ipHash)
+      .gte("created_at", since);
     if ((count ?? 0) >= 5) return reply(429, { error: "too_many" });
   }
   const request_ref = ref();
-  const { error } = await admin.from("contact_messages").insert({ request_ref, topic, name, email, message, client, user_id: userId, ip_hash: ipHash });
+  const { error } = await admin
+    .from("contact_messages")
+    .insert({ request_ref, topic, name, email, message, client, user_id: userId, ip_hash: ipHash });
   if (error) return reply(500, { error: "failed" });
   return reply(200, { ok: true, ref: request_ref });
 });

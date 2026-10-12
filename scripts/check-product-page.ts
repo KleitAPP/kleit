@@ -190,10 +190,38 @@ for (const ip of [
   "fd00::1",
   "::ffff:127.0.0.1",
   "999.1.1.1",
+  // The same addresses in the spellings the URL parser and a careful attacker use: the mapped
+  // form written in hex, the old compatible form, NAT64, 6to4, a zone id, the whole of fe80::/10,
+  // multicast, and a shape that is not an address at all.
+  "::ffff:7f00:1",
+  "::ffff:a9fe:a9fe",
+  "::7f00:1",
+  "::127.0.0.1",
+  "64:ff9b::7f00:1",
+  "64:ff9b::169.254.169.254",
+  "2002:7f00:1::",
+  "2002:a9fe:a9fe::",
+  "fe80::1%eth0",
+  "febf::1",
+  "fc00::1",
+  "ff02::1",
+  "::",
+  "::1:",
+  "1:2:3:4:5:6:7:8:9",
 ]) {
   check(`private: ${ip}`, isPrivateAddress(ip) === true);
 }
-for (const ip of ["8.8.8.8", "104.16.0.1", "172.32.0.1", "2606:4700::1111", "::ffff:8.8.8.8"]) {
+for (const ip of [
+  "8.8.8.8",
+  "104.16.0.1",
+  "172.32.0.1",
+  "2606:4700::1111",
+  "::ffff:8.8.8.8",
+  "::ffff:808:808",
+  "2002:808:808::",
+  "64:ff9b::808:808",
+  "2001:db8::1",
+]) {
   check(`public: ${ip}`, isPrivateAddress(ip) === false);
 }
 

@@ -26,7 +26,10 @@ export type FetchProblem =
   | "too-big";
 
 export class SafeFetchError extends Error {
-  constructor(public readonly problem: FetchProblem, detail?: string) {
+  constructor(
+    public readonly problem: FetchProblem,
+    detail?: string,
+  ) {
     super(detail ?? problem);
   }
 }
@@ -48,19 +51,72 @@ export function parsePublicUrl(raw: string): URL {
   return url;
 }
 
+/**
+ * The sixteen bytes of an IPv6 address, or null when the text is not one. Written out in full
+ * so that every spelling of the same address is judged the same: `::ffff:127.0.0.1` and
+ * `::ffff:7f00:1` are one address (the URL parser writes the second), and a zone id or a
+ * shortened run of zeros changes nothing.
+ */
+function ipv6Bytes(text: string): number[] | null {
+  let v6 = text.toLowerCase();
+  const zone = v6.indexOf("%");
+  if (zone >= 0) v6 = v6.slice(0, zone);
+  // A dotted IPv4 at the end becomes its two groups.
+  const dotted = v6.match(/^(.*:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (dotted) {
+    const parts = dotted.slice(2, 6).map(Number);
+    if (parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return null;
+    v6 = `${dotted[1]}${((parts[0]! << 8) | parts[1]!).toString(16)}:${((parts[2]! << 8) | parts[3]!).toString(16)}`;
+  }
+  const halves = v6.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  let groups: string[];
+  if (halves.length === 2) {
+    const missing = 8 - head.length - tail.length;
+    if (missing < 1) return null;
+    groups = [...head, ...Array<string>(missing).fill("0"), ...tail];
+  } else {
+    groups = head;
+  }
+  if (groups.length !== 8) return null;
+  const bytes: number[] = [];
+  for (const group of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
+    const n = parseInt(group, 16);
+    bytes.push(n >> 8, n & 0xff);
+  }
+  return bytes;
+}
+
 /** True for any address a server must not be pointed at. IPv4 and IPv6. */
 export function isPrivateAddress(ip: string): boolean {
   if (ip.includes(":")) {
-    const v6 = ip.toLowerCase();
-    if (v6 === "::1" || v6 === "::") return true;
-    if (v6.startsWith("fe80:") || v6.startsWith("fc") || v6.startsWith("fd")) return true;
-    // IPv4 mapped into IPv6, e.g. ::ffff:127.0.0.1
-    const mapped = v6.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped?.[1]) return isPrivateAddress(mapped[1]);
+    const b = ipv6Bytes(ip);
+    if (!b) return true; // not an address we can read: not one we will connect to
+    const v4 = (at: number) => `${b[at]}.${b[at + 1]}.${b[at + 2]}.${b[at + 3]}`;
+    const zerosTo = (n: number) => b.slice(0, n).every((x) => x === 0);
+    if (zerosTo(15) && (b[15] === 0 || b[15] === 1)) return true; // :: and ::1
+    if (zerosTo(10) && b[10] === 0xff && b[11] === 0xff) return isPrivateAddress(v4(12)); // ::ffff:a.b.c.d
+    if (zerosTo(12)) return true; // ::a.b.c.d, the old IPv4-compatible form
+    if (
+      b[0] === 0 &&
+      b[1] === 0x64 &&
+      b[2] === 0xff &&
+      b[3] === 0x9b &&
+      b.slice(4, 12).every((x) => x === 0)
+    )
+      return isPrivateAddress(v4(12)); // 64:ff9b::/96, NAT64
+    if (b[0] === 0x20 && b[1] === 0x02) return isPrivateAddress(v4(2)); // 2002::/16, 6to4
+    if (b[0] === 0xfe && (b[1]! & 0xc0) === 0x80) return true; // fe80::/10 link-local
+    if ((b[0]! & 0xfe) === 0xfc) return true; // fc00::/7 unique local
+    if (b[0] === 0xff) return true; // ff00::/8 multicast
     return false;
   }
   const parts = ip.split(".").map(Number);
-  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return true;
+  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255))
+    return true;
   const [a, b] = parts as [number, number, number, number];
   if (a === 10) return true; // 10/8
   if (a === 127) return true; // loopback
@@ -81,7 +137,11 @@ async function assertPublicHost(hostname: string): Promise<void> {
   }
   // Reached through globalThis so this file also type-checks in the web build, where there is
   // no Deno; the lookup itself only ever runs in the edge function.
-  const dns = (globalThis as unknown as { Deno?: { resolveDns(h: string, k: "A" | "AAAA"): Promise<string[]> } }).Deno;
+  const dns = (
+    globalThis as unknown as {
+      Deno?: { resolveDns(h: string, k: "A" | "AAAA"): Promise<string[]> };
+    }
+  ).Deno;
   if (!dns) throw new SafeFetchError("unreachable", "no resolver");
   let addresses: string[] = [];
   try {
@@ -143,8 +203,12 @@ export async function safeFetch(
       });
     } catch (problem) {
       clearTimeout(timer);
-      if (problem instanceof DOMException && problem.name === "AbortError") throw new SafeFetchError("timed-out");
-      throw new SafeFetchError("unreachable", problem instanceof Error ? problem.message : undefined);
+      if (problem instanceof DOMException && problem.name === "AbortError")
+        throw new SafeFetchError("timed-out");
+      throw new SafeFetchError(
+        "unreachable",
+        problem instanceof Error ? problem.message : undefined,
+      );
     }
 
     if (response.status >= 300 && response.status < 400) {
@@ -184,7 +248,8 @@ export async function safeFetch(
       }
     } catch (problem) {
       clearTimeout(timer);
-      if (problem instanceof DOMException && problem.name === "AbortError") throw new SafeFetchError("timed-out");
+      if (problem instanceof DOMException && problem.name === "AbortError")
+        throw new SafeFetchError("timed-out");
       throw new SafeFetchError("unreachable");
     }
     clearTimeout(timer);

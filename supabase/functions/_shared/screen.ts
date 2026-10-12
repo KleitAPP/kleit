@@ -35,6 +35,7 @@ import { fingerprint, distance, SAME_PICTURE } from "./fingerprint.ts";
 import { decide, MIN_CONFIDENCE } from "./screening.ts";
 import { detectModerationLabels } from "./aws.ts";
 import { carriesMetadata } from "./metadata.ts";
+import { decodable } from "./image-size.ts";
 
 export type ScreenableItem = {
   id: string;
@@ -82,6 +83,19 @@ export async function screenItem(
   try {
     let bytes: Uint8Array = new Uint8Array(await file.arrayBuffer());
     stage = "decode";
+    // A picture whose header claims more pixels than any phone sends is refused before it is
+    // decoded: decoding it is what would take the memory (image-size.ts).
+    if (!decodable(bytes)) {
+      stage = "record";
+      const flagged = await server.from("item_flags").upsert({
+        item_id: item.id,
+        scan_state: "blocked",
+        labels: { reason: "too-large" },
+        scanned_at: new Date().toISOString(),
+      });
+      if (flagged.error) throw new Error(`could not record the block: ${flagged.error.message}`);
+      return { state: "blocked", keepOutOfFeatured: true };
+    }
     const decoded = await decode(bytes);
 
     // Owner's decision, 2026-10-01: no animations. A GIF with more than one frame is refused

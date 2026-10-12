@@ -29,7 +29,8 @@ function plain(status: number, text: string): Response {
 }
 
 Deno.serve(async (request) => {
-  if (request.method !== "GET" && request.method !== "HEAD") return plain(405, "Method not allowed");
+  if (request.method !== "GET" && request.method !== "HEAD")
+    return plain(405, "Method not allowed");
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -46,12 +47,40 @@ Deno.serve(async (request) => {
   const server = createClient(url, serviceKey);
   const { data: item } = await server
     .from("items")
-    .select("id, source_url, deleted_at, takedown_state")
+    .select("id, kind, source_url, deleted_at, takedown_state, dead_link_at")
     .eq("id", itemId)
     .maybeSingle();
 
-  if (!item || item.deleted_at || item.takedown_state !== "none" || !item.source_url) {
+  // Only a store piece the catalogue shows: cleared by the scan, not deleted, not taken down,
+  // its page not gone. Anything else is the same "not found" as an id that never existed.
+  if (
+    !item ||
+    item.kind !== "product" ||
+    item.deleted_at ||
+    item.takedown_state !== "none" ||
+    item.dead_link_at ||
+    !item.source_url
+  ) {
     return plain(404, "Not found");
+  }
+  const { data: flag } = await server
+    .from("item_flags")
+    .select("scan_state")
+    .eq("item_id", item.id)
+    .maybeSingle();
+  if (flag?.scan_state !== "clean") return plain(404, "Not found");
+
+  // A click counts against a set only when the piece is on it (the stats are the set's).
+  let onSet: string | null = null;
+  if (setId) {
+    const { data: placed } = await server
+      .from("set_items")
+      .select("id")
+      .eq("set_id", setId)
+      .eq("item_id", item.id)
+      .limit(1)
+      .maybeSingle();
+    onSet = placed ? setId : null;
   }
 
   // The stored address, and only if it is a web address. A `javascript:` or `data:` value in
@@ -62,13 +91,14 @@ Deno.serve(async (request) => {
   } catch {
     return plain(404, "Not found");
   }
-  if (destination.protocol !== "https:" && destination.protocol !== "http:") return plain(404, "Not found");
+  if (destination.protocol !== "https:" && destination.protocol !== "http:")
+    return plain(404, "Not found");
 
   // Recorded before the redirect, and if the record fails the person still gets to the store:
   // a click we could not count is our loss, not theirs.
   const { error } = await server.from("clicks").insert({
     item_id: item.id,
-    set_id: setId || null,
+    set_id: onSet,
     network,
   });
   if (error) console.error("[buy-redirect] could not record the click:", error.message);

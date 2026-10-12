@@ -46,6 +46,15 @@ Deno.serve(async (request) => {
   )
     return notFound();
 
+  // The same door the share page's own reader keeps (hidden_share_links, 055): a banned, on-a-break
+  // or deleting owner's set is dark everywhere, its words included.
+  const { data: owner } = await server
+    .from("profiles")
+    .select("deactivated_at, banned_at")
+    .eq("user_id", set.owner_id)
+    .maybeSingle();
+  if (!owner || owner.deactivated_at || owner.banned_at) return notFound();
+
   const layout = set.layout as { version?: number; texts?: Record<string, TextLayer> } | null;
   const layer = layout?.version === 2 ? layout.texts?.[layerId] : undefined;
   if (!layer || layer.kind !== "text" || !layer.text || layer.hidden) return notFound();

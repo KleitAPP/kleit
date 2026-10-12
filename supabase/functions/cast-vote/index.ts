@@ -22,12 +22,12 @@
  * test site key the app already uses. Switching is one secret, TURNSTILE_SECRET_KEY, no code.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { clientAddress, turnstilePasses, turnstileSecret } from "../_shared/guest-door.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const CLOUDFLARE_TEST_SECRET = "1x0000000000000000000000000000000AA";
 const CODE = /^[A-Za-z0-9]{8,32}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DEVICE = /^[A-Za-z0-9_-]{16,64}$/;
@@ -49,33 +49,6 @@ async function hmac(key: string, text: string): Promise<string> {
   );
   const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(text));
   return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function clientAddress(request: Request): string {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    ""
-  );
-}
-
-async function turnstilePasses(token: string, remoteip: string): Promise<boolean> {
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY") ?? CLOUDFLARE_TEST_SECRET;
-  try {
-    const form = new FormData();
-    form.set("secret", secret);
-    form.set("response", token);
-    if (remoteip) form.set("remoteip", remoteip);
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      body: form,
-    });
-    const body = (await response.json()) as { success?: boolean };
-    return body.success === true;
-  } catch {
-    return false;
-  }
 }
 
 Deno.serve(async (request) => {
@@ -127,7 +100,7 @@ Deno.serve(async (request) => {
   // from a device id or an address; the database only ever sees these.
   const deviceHash = await hmac(serviceKey, voterId ? `user:${voterId}` : `device:${deviceId}`);
   const address = clientAddress(request);
-  const ipHash = address ? await hmac(serviceKey, `ip:${address}`) : null;
+  const ipHash = await hmac(serviceKey, `ip:${address}`);
 
   if (body.action === "status") {
     const { data } = await server.rpc("vote_status", {
@@ -144,8 +117,9 @@ Deno.serve(async (request) => {
 
   // Guests prove they are a person, once per tap (spec 7.3 #4). A session is proof enough.
   if (!voterId) {
-    const token = body.token ?? "";
-    if (!token || !(await turnstilePasses(token, address)))
+    const secret = turnstileSecret();
+    if (!secret) return reply(503, { error: "not_configured" });
+    if (!(await turnstilePasses(secret, body.token, address)))
       return reply(403, { error: "bot_check" });
   }
 

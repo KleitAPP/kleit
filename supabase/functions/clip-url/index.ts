@@ -9,6 +9,10 @@
  *             a slow store must not break the one-minute set. If the page cannot be read, the
  *             app opens the details screen with the fields empty and the person adds it by hand.
  *
+ *   `song`  - given a Spotify, Apple Music or YouTube Music link, answer with the song's title,
+ *             artist and cover for the set's song card (spec 11 #12). Nothing is stored; the
+ *             person corrects the words and the set keeps them (migration 091 holds the rules).
+ *
  *   `save`  - given the address, the chosen picture and the details as confirmed, make the item:
  *             copy the picture into OUR storage (the one stored original - spec 4.1 #8), write the
  *             clip record that ties that copy to this person's request (decision 103, the
@@ -34,6 +38,14 @@ import {
   looksLikeAShell,
 } from "../_shared/product-page.ts";
 import { screenItem, ScreenFailure, awsKeysFromEnv } from "../_shared/screen.ts";
+import {
+  cleanSongUrl,
+  oembedUrl,
+  readOembed,
+  readSongPage,
+  songService,
+  type SongRead,
+} from "../_shared/song-page.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -92,6 +104,10 @@ Deno.serve(async (request) => {
   }
 
   if (action === "read") return readPage(server, rawUrl, false);
+  if (action === "song") {
+    if (!me) return reply(401, { problem: "signed-out" });
+    return readSong(rawUrl);
+  }
   // The M2.1 probe: the read plus a look at WHY a page came back thin. Server only, because the
   // diagnostics quote the page.
   if (action === "probe" && isServer) return readPage(server, rawUrl, true);
@@ -369,4 +385,61 @@ async function saveClip(
     if (!(problem instanceof ScreenFailure)) console.error("[clip-url] screen", problem);
     return reply(200, { itemId: item.id, kind, state: "checking" });
   }
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * The song card (spec 11 #12): one of the three services, read through the same door as a
+ * store page. The oEmbed answer first where there is one; the page's own tags fill what it
+ * leaves out (Spotify's oEmbed has no artist; Apple Music has no oEmbed at all).
+ */
+async function readSong(rawUrl: string): Promise<Response> {
+  let url: URL;
+  try {
+    url = new URL(rawUrl.trim());
+  } catch {
+    return reply(422, { problem: "bad-url" });
+  }
+  const service = songService(url);
+  if (!service) return reply(422, { problem: "not-a-service" });
+  const clean = cleanSongUrl(url, service);
+  const song: SongRead = { service, url: clean, title: null, artist: null, cover: null };
+
+  const oembed = oembedUrl(clean, service);
+  if (oembed) {
+    try {
+      const answer = await safeFetch(oembed, {
+        deadlineMs: PAGE_DEADLINE_MS,
+        maxBytes: 200_000,
+        accept: "application/json",
+      });
+      if (answer.status === 200) {
+        const json = JSON.parse(new TextDecoder().decode(answer.bytes)) as unknown;
+        Object.assign(song, readOembed(json, service));
+      }
+    } catch (problem) {
+      if (!(problem instanceof SafeFetchError)) console.error("[clip-url] song oembed", problem);
+    }
+  }
+  if (!song.title || !song.artist) {
+    try {
+      const page = await safeFetch(clean, {
+        deadlineMs: PAGE_DEADLINE_MS,
+        maxBytes: PAGE_MAX_BYTES,
+        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+      });
+      if (page.status === 200 && page.contentType.includes("html")) {
+        const html = new TextDecoder("utf-8", { fatal: false }).decode(page.bytes);
+        const read = readSongPage(html, service);
+        song.title = song.title ?? read.title ?? null;
+        song.artist = song.artist ?? read.artist ?? null;
+        song.cover = song.cover ?? read.cover ?? null;
+      }
+    } catch (problem) {
+      if (!(problem instanceof SafeFetchError)) console.error("[clip-url] song page", problem);
+    }
+  }
+  if (!song.title) return reply(422, { problem: "unreadable", song });
+  return reply(200, { song });
 }

@@ -88,6 +88,15 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "song-card",
+    group: "Sets and sharing",
+    title: "Putting a song on a set",
+    body: [
+      "Open a set you made, tap the … menu and choose Song. Paste the share link of a song from Spotify, Apple Music or YouTube Music; Kleit reads the title, the artist and the cover, and you can fix the words before you keep it. The card shows on the set and on its share page.",
+      "Nothing plays inside Kleit. Tapping the card opens the song in that service's own app or site. Only links to those three services work, and the cover always comes from the service itself.",
+    ],
+  },
+  {
     slug: "recently-deleted",
     group: "Sets and sharing",
     title: "Recently deleted",

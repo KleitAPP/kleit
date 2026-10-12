@@ -39,6 +39,8 @@ import { setCommentsSetting, type CommentsSetting } from "@/social/comments";
 import { AccountLabelChip } from "@/social/AccountLabel";
 import { asAccountLabel, type AccountLabel } from "@/social/labels";
 import { SocialBar } from "@/social/SocialBar";
+import { SongCard } from "@/sets/SongCard";
+import { SongSheet } from "@/sets/SongSheet";
 import { TemplateDressing } from "@/templates/TemplateDressing";
 
 /**
@@ -82,6 +84,7 @@ function SetPage() {
   const [commentsSetting, setCommentsSettingState] = useState<CommentsSetting>("everyone");
   const [missing, setMissing] = useState(false);
   const [options, setOptions] = useState(false);
+  const [songSheet, setSongSheet] = useState(false);
   const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -370,6 +373,7 @@ function SetPage() {
               {set.featured_at ? t("setpage.unfeature") : t("setpage.feature")}
             </button>
           ) : null}
+          {set.song ? <SongCard song={set.song} /> : null}
           {set.remixed_from_label ? (
             set.remixed_from_set_id ? (
               <Link
@@ -574,6 +578,21 @@ function SetPage() {
               {t("setpage.edit")}
             </Link>
           </li>
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                setOptions(false);
+                setSongSheet(true);
+              }}
+              className="flex min-h-12 w-full items-center justify-between text-left text-base text-ink"
+            >
+              <span>{t("setpage.song")}</span>
+              <span className="truncate pl-3 text-sm text-ink-soft">
+                {set.song ? set.song.title : t("setpage.songNone")}
+              </span>
+            </button>
+          </li>
           <li className="py-3">
             <p className="text-base text-ink">{t("social.setting")}</p>
             <p className="text-sm text-ink-soft">{t("social.settingWhy")}</p>
@@ -687,6 +706,13 @@ function SetPage() {
           </li>
         </ul>
       </Sheet>
+      <SongSheet
+        setId={setId}
+        song={set.song ?? null}
+        open={songSheet}
+        onOpenChange={setSongSheet}
+        onSaved={(song) => setSet({ ...set, song })}
+      />
 
       <SaveToCollection setId={setId} open={saving} onOpenChange={setSaving} />
 

@@ -133,6 +133,8 @@ type SharedSet = {
   remixed_from?: string | null;
   published_at: string | null;
   owner: { username: string; display_name: string; label?: string | null };
+  /** The song card (spec 11 #12): opens the service; nothing plays here. */
+  song?: { url: string; title: string | null; artist: string | null; cover: string | null } | null;
   preview: string | null;
   pieces: Piece[];
 };
@@ -827,6 +829,41 @@ function notAvailable(status = 404, framed = false): Response {
   });
 }
 
+/**
+ * The song card (spec 11 #12): a link that opens the song in its own service, with the cover the
+ * database already checked comes from that service's picture host. No audio, ever.
+ */
+function songCard(song: SharedSet["song"]): string {
+  if (!song || !song.url) return "";
+  const host = (() => {
+    try {
+      return new URL(song.url).hostname;
+    } catch {
+      return "";
+    }
+  })();
+  if (
+    !/^(open\.spotify\.com|music\.apple\.com|music\.youtube\.com|www\.youtube\.com|youtube\.com|youtu\.be)$/.test(
+      host,
+    )
+  )
+    return "";
+  const service =
+    host === "open.spotify.com"
+      ? "Spotify"
+      : host === "music.apple.com"
+        ? "Apple Music"
+        : "YouTube Music";
+  const cover =
+    song.cover &&
+    /^https:\/\/(i\.scdn\.co|[a-z0-9-]+\.spotifycdn\.com|is[0-9]+-ssl\.mzstatic\.com|i[0-9]*\.ytimg\.com|img\.youtube\.com)\//.test(
+      song.cover,
+    )
+      ? `<img class="song-cover" src="${esc(song.cover)}" alt="" loading="lazy">`
+      : `<span class="song-cover" aria-hidden="true"></span>`;
+  return `<a class="song" href="${esc(song.url)}" target="_blank" rel="noopener noreferrer" aria-label="Song: ${esc(song.title ?? "")}${song.artist ? ` by ${esc(song.artist)}` : ""}, opens in ${service}">${cover}<span class="song-words"><span class="song-title">${esc(song.title ?? "")}</span><span class="song-artist">${song.artist ? `${esc(song.artist)} · ` : ""}Open in ${service}</span></span></a>`;
+}
+
 /** Staff, stylist and brand accounts are named as such next to the creator (spec 11 #9). */
 function labelWords(label: string | null | undefined): string {
   if (label === "staff") return " · Kleit staff";
@@ -917,6 +954,7 @@ ${STYLE}</head>
   <p class="by">by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
   ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
+  ${songCard(set.song)}
   ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">
     <ul class="pieces">${pieces}</ul>
@@ -1025,6 +1063,9 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-size:15px;margin:0}
 .by,.from,.disclosure,.foot{color:#5f5a52;font-size:14px}.caption{font-size:17px;margin:8px 0 12px}
 .canvas{border-radius:12px;padding:12px;margin-top:12px}
+.song{display:flex;align-items:center;gap:12px;margin:8px 0 0;padding:10px;border:1px solid #e4ddd1;border-radius:12px;background:#fff;color:#1f1d1a;text-decoration:none}
+.song-cover{width:48px;height:48px;border-radius:6px;background:#eee7dc;object-fit:cover;flex:none}
+.song-words{min-width:0;display:flex;flex-direction:column}.song-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist{color:#5f5a52;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .creative{position:relative;width:100%;border-radius:12px;overflow:hidden;margin-top:12px}
 .pieces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .piece{background:rgba(255,255,255,.7);border-radius:8px;overflow:hidden}

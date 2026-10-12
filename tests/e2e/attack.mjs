@@ -984,6 +984,30 @@ try {
     "attacker: cannot label their own account as staff or brand",
     `${selfLabel.error?.code ?? "updated"} / ${doorLabel.error?.code ?? "labelled"} / ${stillPlain?.label}`,
   );
+  // A song (091) is a link to one of the three services, never anywhere else, and a cover
+  // comes only from their picture hosts: the share page draws both for strangers.
+  const { data: ownSet } = await a
+    .from("sets")
+    .insert({ owner_id: attacker.id, title: "attack song (ignore)" })
+    .select("id")
+    .single();
+  const songElsewhere = await a
+    .from("sets")
+    .update({ song_url: "https://evil.example/song", song_title: "x" })
+    .eq("id", ownSet?.id ?? "");
+  const coverElsewhere = await a
+    .from("sets")
+    .update({
+      song_url: "https://open.spotify.com/track/abc",
+      song_title: "x",
+      song_cover_url: "https://evil.example/pixel.gif",
+    })
+    .eq("id", ownSet?.id ?? "");
+  check(
+    !!ownSet && songElsewhere.error?.code === "23514" && coverElsewhere.error?.code === "23514",
+    "attacker: their own set's song cannot link elsewhere or carry a cover from elsewhere",
+    `${songElsewhere.error?.code ?? "saved"} / ${coverElsewhere.error?.code ?? "saved"}`,
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
@@ -1002,6 +1026,7 @@ try {
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
   await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);
+  await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack song (ignore)");
   await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);

@@ -14,6 +14,7 @@
  * be its owner's.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { Song } from "@/sets/song";
 import type { TemplateLayoutV2 } from "@/canvas/doc";
 import { allTemplates } from "@/templates/templates";
 import { type ItemSummary } from "@/items/items";
@@ -56,6 +57,8 @@ export type SetSummary = {
   remixed_from_label?: string | null;
   /** Stamped by the server or an admin only (spec 4.7 #1.3): on Home's Featured. */
   featured_at?: string | null;
+  /** The song card (spec 11 #12): a link that opens in Spotify, Apple Music or YouTube Music. */
+  song?: Song | null;
 };
 
 export type Placement = { slot: number; item: ItemSummary };
@@ -122,7 +125,7 @@ export async function loadSet(
   const { data: set, error: setError } = await supabase
     .from("sets")
     .select(
-      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label, featured_at",
+      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label, featured_at, song_url, song_title, song_artist, song_cover_url",
     )
     .eq("id", id)
     .maybeSingle();
@@ -155,7 +158,19 @@ export async function loadSet(
     background: raw?.background ?? DEFAULT_BACKGROUND,
     caption: raw?.caption ?? "",
   };
-  const loaded = { set: { ...(set as unknown as SetSummary), layout, creative }, placements };
+  const song: Song | null = set.song_url
+    ? {
+        url: set.song_url,
+        title: set.song_title ?? "",
+        artist: set.song_artist ?? null,
+        cover: set.song_cover_url ?? null,
+      }
+    : null;
+  const { song_url: _u, song_title: _t, song_artist: _a, song_cover_url: _c, ...rest } = set;
+  const loaded = {
+    set: { ...(rest as unknown as SetSummary), layout, creative, song },
+    placements,
+  };
   void cachePut(`set:${id}`, loaded);
   return loaded;
 }

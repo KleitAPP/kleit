@@ -441,6 +441,20 @@ try {
     "stranger: the poll page's scripts are its own (a nonce) and Turnstile's, nothing else",
     pollCsp.slice(0, 80),
   );
+  // The two forms run their own scripts the same way (the contact page once shipped a nonce in
+  // its tags and a policy without it - a form with no script posts nothing).
+  const formPages = await Promise.all(
+    ["/contact", "/takedown", "/copyright"].map((path) => fetch(`${SITE}${path}`)),
+  );
+  check(
+    formPages.every((r) =>
+      /script-src 'nonce-[A-Za-z0-9+/=]+' https:\/\/challenges\.cloudflare\.com/.test(
+        r.headers.get("content-security-policy") ?? "",
+      ),
+    ),
+    "stranger: the contact and takedown pages' scripts are their own and Turnstile's",
+    formPages.map((r) => r.status).join("/"),
+  );
   // A layout is JSON the owner writes; a quote inside a "number" closed the style attribute it
   // was written into (the server-code review, 2026-10-12). The victim's own Creative set
   // carries the payload; the page must draw it as a number or not at all.

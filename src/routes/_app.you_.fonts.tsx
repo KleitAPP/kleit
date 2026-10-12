@@ -71,7 +71,7 @@ function MyFontsScreen() {
         ref={picker}
         type="file"
         accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
-        aria-label={t("fonts.title")}
+        aria-label={t("a11y.fontFile")}
         className="sr-only"
         onChange={(e) => {
           const file = e.target.files?.[0];

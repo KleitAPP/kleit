@@ -1305,6 +1305,8 @@ export const en = {
   "profile.templatesHint": "Your layouts",
   "profile.more": "More",
   "profile.moreTitle": "@{name}",
+  "a11y.photoFile": "Photo file",
+  "a11y.fontFile": "Font file",
   "avatar.title": "Profile photo",
   "avatar.why":
     "Shown next to your name everywhere, to anyone. Checked like every photo on Kleit before it shows.",

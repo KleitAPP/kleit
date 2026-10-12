@@ -251,7 +251,7 @@ function ConversationScreen() {
           ref={fileInput}
           type="file"
           accept="image/*"
-          aria-label={t("dm.addPhoto")}
+          aria-label={t("a11y.photoFile")}
           className="hidden"
           onChange={(e) => {
             void attach(e.target.files?.[0]);

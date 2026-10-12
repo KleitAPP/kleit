@@ -579,7 +579,7 @@ export const en = {
   "contest.pickedWhy": "Chosen by Kleit and shown on Home",
   "admincontest.title": "Challenges",
   "admincontest.why":
-    "The next theme opens itself every Monday from the queue below and closes a week later. Everything here is logged.",
+    "The next theme opens itself every Monday from the queue below and closes on Friday; the results sit on Home over the weekend. Everything here is logged.",
   "admincontest.open": "Open now",
   "admincontest.closesIn": "{when} · {count} entries",
   "admincontest.closesIn.one": "{when} · 1 entry",

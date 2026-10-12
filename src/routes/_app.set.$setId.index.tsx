@@ -36,6 +36,8 @@ import { t } from "@/i18n/en";
 import { siteUrl } from "@/lib/site";
 import { ReportButton } from "@/safety/ReportButton";
 import { setCommentsSetting, type CommentsSetting } from "@/social/comments";
+import { AccountLabelChip } from "@/social/AccountLabel";
+import { asAccountLabel, type AccountLabel } from "@/social/labels";
 import { SocialBar } from "@/social/SocialBar";
 import { TemplateDressing } from "@/templates/TemplateDressing";
 
@@ -75,6 +77,8 @@ function SetPage() {
   const [images, setImages] = useState<Record<string, string | null>>({});
   const [mine, setMine] = useState(false);
   const [me, setMe] = useState<string | null>(null);
+  /** Who made it (spec 11 #9: with their label), for the line under the title. */
+  const [creator, setCreator] = useState<{ username: string; label: AccountLabel } | null>(null);
   const [commentsSetting, setCommentsSettingState] = useState<CommentsSetting>("everyone");
   const [missing, setMissing] = useState(false);
   const [options, setOptions] = useState(false);
@@ -201,6 +205,14 @@ function SetPage() {
         .maybeSingle();
       setMine(!!owner && owner.owner_id === who.data.user?.id);
       setMe(who.data.user?.id ?? null);
+      if (owner) {
+        const { data: by } = await supabase
+          .from("profiles")
+          .select("username, label")
+          .eq("user_id", owner.owner_id)
+          .maybeSingle();
+        setCreator(by ? { username: by.username, label: asAccountLabel(by.label) } : null);
+      }
       const { data: cs } = await supabase
         .from("sets")
         .select("comments_setting")
@@ -301,6 +313,18 @@ function SetPage() {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="font-display text-2xl text-ink">{title}</h1>
+          {creator ? (
+            <p className="mt-1 text-sm text-ink-soft">
+              <Link
+                to="/u/$username"
+                params={{ username: creator.username }}
+                className="underline-offset-2 hover:underline"
+              >
+                {t("set.by", { username: creator.username })}
+              </Link>
+              <AccountLabelChip label={creator.label} className="ml-1 align-middle" />
+            </p>
+          ) : null}
           {set.layout.caption ? (
             <p className="mt-1 text-base text-ink-soft">{set.layout.caption}</p>
           ) : null}

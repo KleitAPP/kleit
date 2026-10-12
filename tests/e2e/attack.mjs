@@ -966,6 +966,24 @@ try {
     "attacker: a stranger gets no weekly recap; a member gets their own week",
     `${recapAnon.error?.code ?? "answered"} / ${recapMine.error?.code ?? "ok"}`,
   );
+  // Labels (090) are the server's: not on your own row, not through the admins' door.
+  const selfLabel = await a.from("profiles").update({ label: "staff" }).eq("user_id", attacker.id);
+  const doorLabel = await a.rpc("set_account_label", {
+    p_username: attacker.username,
+    p_label: "brand",
+  });
+  const { data: stillPlain } = await a
+    .from("profiles")
+    .select("label")
+    .eq("user_id", attacker.id)
+    .maybeSingle();
+  check(
+    selfLabel.error?.code === "42501" &&
+      doorLabel.error?.code === "42501" &&
+      stillPlain?.label === "none",
+    "attacker: cannot label their own account as staff or brand",
+    `${selfLabel.error?.code ?? "updated"} / ${doorLabel.error?.code ?? "labelled"} / ${stillPlain?.label}`,
+  );
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

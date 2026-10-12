@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { AccountLabel } from "@/social/labels";
 
 /**
  * Following (roadmap M5.1; spec 10.1): one-way follows, "Friends" when both ways, requests for
@@ -11,6 +12,8 @@ export type Person = {
   username: string;
   display_name: string;
   is_private: boolean;
+  /** "none" for an ordinary account (spec 11 #9; migration 090). */
+  label?: AccountLabel;
 };
 
 export type Relationship = {
@@ -24,7 +27,7 @@ export type Relationship = {
   followingCount: number;
 };
 
-const PERSON = "user_id, username, display_name, is_private";
+const PERSON = "user_id, username, display_name, is_private, label";
 
 export async function me(): Promise<string | null> {
   const { data } = await supabase.auth.getUser();

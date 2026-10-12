@@ -87,7 +87,7 @@ export async function searchPeople(q: string): Promise<Person[]> {
   if (needle.length < 2) return [];
   const { data } = await supabase
     .from("profiles")
-    .select("user_id, username, display_name, is_private")
+    .select("user_id, username, display_name, is_private, label")
     .or(`username.ilike.${needle}%,display_name.ilike.%${needle}%`)
     .limit(20);
   return (data ?? []) as Person[];

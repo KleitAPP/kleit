@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { asAccountLabel, type AccountLabel } from "@/social/labels";
 import type { SetHit } from "@/search/search";
 
 /**
@@ -7,7 +8,7 @@ import type { SetHit } from "@/search/search";
  *   following - newest first from the people you follow, paged by time
  *   featured  - editor's picks, then this week's most-loved public sets, paged by offset
  */
-export type FeedSet = SetHit & { username: string; avatar_url: string | null };
+export type FeedSet = SetHit & { username: string; avatar_url: string | null; label: AccountLabel };
 
 const PAGE = 12;
 
@@ -24,18 +25,19 @@ async function withPeople(rows: Record<string, unknown>[]): Promise<FeedSet[]> {
   if (owners.length === 0) return [];
   const { data } = await supabase
     .from("profiles")
-    .select("user_id, username, avatar_url")
+    .select("user_id, username, avatar_url, label")
     .in("user_id", owners);
   const people = new Map(
     (data ?? []).map((p) => [
       p.user_id,
-      { username: p.username, avatar_url: p.avatar_url ?? null },
+      { username: p.username, avatar_url: p.avatar_url ?? null, label: asAccountLabel(p.label) },
     ]),
   );
   return sets.map((s) => ({
     ...s,
     username: people.get(s.owner_id)?.username ?? "",
     avatar_url: people.get(s.owner_id)?.avatar_url ?? null,
+    label: people.get(s.owner_id)?.label ?? "none",
   }));
 }
 

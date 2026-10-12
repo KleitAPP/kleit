@@ -132,7 +132,7 @@ type SharedSet = {
   visibility: "public" | "link";
   remixed_from?: string | null;
   published_at: string | null;
-  owner: { username: string; display_name: string };
+  owner: { username: string; display_name: string; label?: string | null };
   preview: string | null;
   pieces: Piece[];
 };
@@ -785,7 +785,7 @@ function renderEmbed(set: SharedSet, code: string, base: string, env: Env): stri
 ${STYLE}${EMBED_STYLE}</head>
 <body class="embed">
 <main class="embed-wrap">
-  <p class="embed-head"><a class="embed-mark" href="${esc(pageUrl)}" target="_top" rel="noopener">Kleit</a> · <span class="embed-title">${esc(title)}</span> <span class="embed-by">by ${esc(who)}${set.remixed_from ? ` · ${esc(set.remixed_from)}` : ""}</span></p>
+  <p class="embed-head"><a class="embed-mark" href="${esc(pageUrl)}" target="_top" rel="noopener">Kleit</a> · <span class="embed-title">${esc(title)}</span> <span class="embed-by">by ${esc(who)}${labelWords(set.owner.label)}${set.remixed_from ? ` · ${esc(set.remixed_from)}` : ""}</span></p>
   ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">
     <ul class="pieces">${pieces}</ul>
@@ -825,6 +825,14 @@ function notAvailable(status = 404, framed = false): Response {
       "x-kleit-surface": "share-worker",
     },
   });
+}
+
+/** Staff, stylist and brand accounts are named as such next to the creator (spec 11 #9). */
+function labelWords(label: string | null | undefined): string {
+  if (label === "staff") return " · Kleit staff";
+  if (label === "stylist") return " · Kleit stylist";
+  if (label === "brand") return " · Brand";
+  return "";
 }
 
 function esc(text: string | null | undefined): string {
@@ -906,7 +914,7 @@ ${STYLE}</head>
 <header class="wrap top"><a class="mark" href="/welcome" aria-label="Kleit">Kleit</a></header>
 <main class="wrap">
   <h1>${esc(title)}</h1>
-  <p class="by">by ${esc(who)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
+  <p class="by">by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
   ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
   ${creativeCanvas(set, functions, background)}

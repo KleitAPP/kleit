@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Chip, EmptyState, ItemCard, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { AccountLabelChip } from "@/social/AccountLabel";
 import { imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
 import {
   previewUrl,
@@ -213,7 +214,10 @@ function SearchTab() {
                       <p className="truncate text-base text-ink">
                         {p.display_name?.trim() || p.username}
                       </p>
-                      <p className="truncate text-sm text-ink-soft">@{p.username}</p>
+                      <p className="truncate text-sm text-ink-soft">
+                        @{p.username}
+                        <AccountLabelChip label={p.label} className="ml-1 align-middle" />
+                      </p>
                     </Link>
                   </li>
                 ))}

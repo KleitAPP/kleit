@@ -15,6 +15,8 @@ import {
 } from "@/sets/sets";
 import { isClosed, myPolls, type PollSummary } from "@/polls/polls";
 import { t, type MessageKey } from "@/i18n/en";
+import { AccountLabelChip } from "@/social/AccountLabel";
+import type { AccountLabel } from "@/social/labels";
 import { myRoles } from "@/safety/moderation";
 import {
   Archive,
@@ -93,7 +95,13 @@ const MORE: readonly Shortcut[] = [
   { to: "/you/fonts", label: "profile.fonts", Icon: Type },
 ];
 
-type Me = { username: string; display_name: string; is_private: boolean; bio: string };
+type Me = {
+  username: string;
+  display_name: string;
+  is_private: boolean;
+  bio: string;
+  label: AccountLabel;
+};
 
 function YourProfile() {
   const navigate = useNavigate();
@@ -203,7 +211,7 @@ function YourProfile() {
       if (!id) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, display_name, is_private, bio")
+        .select("username, display_name, is_private, bio, label")
         .eq("user_id", id)
         .maybeSingle();
       if (!cancelled && profile) setMe(profile);
@@ -228,7 +236,11 @@ function YourProfile() {
         </span>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl text-ink">{name || t("tabs.you")}</h1>
-          {me ? <p className="truncate text-base text-ink-soft">@{me.username}</p> : null}
+          {me ? (
+            <p className="truncate text-base text-ink-soft">
+              @{me.username} <AccountLabelChip label={me.label} className="ml-1 align-middle" />
+            </p>
+          ) : null}
           {me?.is_private ? (
             <p className="mt-1 text-sm text-ink-soft">{t("profile.private")}</p>
           ) : null}

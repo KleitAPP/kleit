@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { EmptyState, PrimaryButton } from "@/components/kleit";
+import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
 import { myRoles } from "@/safety/moderation";
+import { ACCOUNT_LABELS, asAccountLabel, labelText, type AccountLabel } from "@/social/labels";
 
 /**
  * S100 — the user lookup (M7.3; spec 13.4 #9). Moderators only. Every lookup needs a reason
@@ -34,6 +35,8 @@ type Found = {
 
 function UserLookup() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [admin, setAdmin] = useState(false);
+  const [label, setLabel] = useState<AccountLabel>("none");
   const [name, setName] = useState("");
   const [reason, setReason] = useState("");
   const [found, setFound] = useState<Found | null | "none">(null);
@@ -41,7 +44,10 @@ function UserLookup() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void myRoles().then((r) => setAllowed(r.includes("admin") || r.includes("moderator")));
+    void myRoles().then((r) => {
+      setAllowed(r.includes("admin") || r.includes("moderator"));
+      setAdmin(r.includes("admin"));
+    });
   }, []);
 
   async function look() {
@@ -59,6 +65,26 @@ function UserLookup() {
     }
     const row = (data ?? [])[0] as Found | undefined;
     setFound(row ?? "none");
+    if (row) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("label")
+        .eq("user_id", row.user_id)
+        .maybeSingle();
+      setLabel(asAccountLabel(p?.label));
+    }
+  }
+
+  /** Staff, stylist or brand (spec 11 #9): one call, logged; the page re-reads afterwards. */
+  async function relabel(next: AccountLabel) {
+    if (found === null || found === "none" || busy || next === label) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("set_account_label", {
+      p_username: found.username,
+      p_label: next,
+    });
+    setBusy(false);
+    if (!error) await look();
   }
 
   async function suspend(on: boolean) {
@@ -142,6 +168,7 @@ function UserLookup() {
             {f.is_private ? ` · ${t("mod.private")}` : ""}
             {f.deactivated_at ? ` · ${t("mod.onBreak")}` : ""}
             {f.banned_at ? ` · ${t("mod.suspended")}` : ""}
+            {labelText(label) ? ` · ${labelText(label)}` : ""}
           </p>
           <ul className="mt-2 grid grid-cols-2 gap-2 text-sm text-ink">
             <li>{t("mod.setsN", { count: f.sets_published })}</li>
@@ -159,6 +186,22 @@ function UserLookup() {
                 </li>
               ))}
             </ul>
+          ) : null}
+          {admin ? (
+            <div className="mt-3">
+              <p className="text-sm text-ink-soft">{t("mod.label")}</p>
+              <p className="text-sm text-ink-soft">{t("mod.labelWhy")}</p>
+              <div className="mt-1 flex flex-wrap gap-2" role="group" aria-label={t("mod.label")}>
+                {ACCOUNT_LABELS.map((l) => (
+                  <Chip
+                    key={l}
+                    label={labelText(l) ?? t("label.none")}
+                    selected={label === l}
+                    onToggle={() => void relabel(l)}
+                  />
+                ))}
+              </div>
+            </div>
           ) : null}
           <div className="mt-3">
             {f.banned_at ? (

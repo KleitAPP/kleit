@@ -643,6 +643,15 @@ export const en = {
   "contest.likes.one": "1 like",
   "contest.homeCard": "This week's challenge",
   "contest.recapLink": "This week's recap",
+  "label.staff": "Kleit staff",
+  "label.stylist": "Kleit stylist",
+  "label.brand": "Brand",
+  "label.none": "No label",
+  "label.why":
+    "Set by Kleit. Staff, stylist and brand accounts are labelled wherever their sets show.",
+  "mod.label": "Label",
+  "mod.labelWhy":
+    "Staff, stylist and brand accounts are labelled on their profile, their sets and the share page. Logged.",
   "recap.homeCard": "The results are in",
   "recap.homeLine": "{count} entries · Kleit's picks and the top three",
   "recap.homeLine.one": "1 entry · see the results",

@@ -128,6 +128,7 @@ export const ARTICLES: Article[] = [
     title: "Following, friends and private accounts",
     body: [
       "Following is one-way. When two people follow each other, you're Friends, and you can share sets with just your friends. A private account approves each follow request. You can remove a follower quietly; they aren't told.",
+      "Accounts run by Kleit, by a Kleit stylist or by a brand are labelled as such next to their name - on their profile, on their sets and on the share page - so you always know who is posting.",
     ],
   },
   {

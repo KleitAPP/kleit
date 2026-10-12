@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { EmptyState, SetCard, SetCardSkeleton, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { previewUrl } from "@/search/search";
+import { labelText } from "@/social/labels";
 
 import { toggleLike } from "@/social/comments";
 
@@ -127,6 +128,7 @@ export function Feed() {
                   imageSrc={previewUrl(s) ?? ""}
                   imageAlt={s.title || t("feed.untitled")}
                   username={s.username}
+                  {...(labelText(s.label) ? { label: labelText(s.label) as string } : {})}
                   {...(s.avatar_url ? { avatarSrc: s.avatar_url } : {})}
                   {...(s.layout?.caption || s.title
                     ? { caption: s.layout?.caption || s.title }

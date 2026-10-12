@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/kleit";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
+import { AccountLabelChip } from "@/social/AccountLabel";
+import type { AccountLabel } from "@/social/labels";
 import { FollowButton } from "@/social/FollowButton";
 
 /**
@@ -26,6 +28,7 @@ type Them = {
   display_name: string;
   is_private: boolean;
   bio: string;
+  label: AccountLabel;
 };
 
 function SomeonesProfile() {
@@ -39,7 +42,7 @@ function SomeonesProfile() {
     void (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, username, display_name, is_private, bio")
+        .select("user_id, username, display_name, is_private, bio, label")
         .eq("username", username.toLowerCase())
         .maybeSingle();
       const { data: who } = await supabase.auth.getUser();
@@ -73,7 +76,9 @@ function SomeonesProfile() {
         </span>
         <div className="min-w-0">
           <h1 className="truncate font-display text-2xl text-ink">{name}</h1>
-          <p className="truncate text-base text-ink-soft">@{them.username}</p>
+          <p className="truncate text-base text-ink-soft">
+            @{them.username} <AccountLabelChip label={them.label} className="ml-1 align-middle" />
+          </p>
         </div>
       </div>
       {them.bio?.trim() ? (

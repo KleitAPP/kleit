@@ -10,6 +10,7 @@ export function SetCard({
   imageSrc,
   imageAlt,
   username,
+  label,
   avatarSrc,
   caption,
   likes,
@@ -24,6 +25,8 @@ export function SetCard({
   imageSrc: string;
   imageAlt: string;
   username: string;
+  /** "Kleit staff", "Kleit stylist" or "Brand" (spec 11 #9); nothing for an ordinary account. */
+  label?: string;
   avatarSrc?: string;
   caption?: string;
   likes?: number;
@@ -59,6 +62,11 @@ export function SetCard({
         )}
         <span className="min-w-0 flex-1 truncate text-sm text-ink-soft">
           {t("set.by", { username })}
+          {label ? (
+            <span className="ml-1 rounded-pill border border-ink px-2 py-0.5 text-xs text-ink">
+              {label}
+            </span>
+          ) : null}
         </span>
         <button type="button" onClick={onMore} aria-label={t("set.options")} className={iconButton}>
           <MoreHorizontal className="size-5" aria-hidden="true" />

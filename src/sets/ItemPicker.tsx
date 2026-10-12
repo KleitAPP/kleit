@@ -39,12 +39,15 @@ export function ItemPicker({
   onOpenChange,
   onPick,
   onRemove,
+  onShuffle,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPick: (item: ItemSummary) => void;
   /** When the slot being filled already holds a piece: the way to take it off. */
   onRemove?: (() => void) | undefined;
+  /** Shuffle this one slot from your own pieces (spec 5.1 #9); absent when there are none. */
+  onShuffle?: (() => void) | undefined;
 }) {
   const [tab, setTab] = useState<Tab>("recent");
   const [lists, setLists] = useState<Partial<Record<Tab, Loaded[]>>>({});
@@ -86,16 +89,29 @@ export function ItemPicker({
       open={open}
       onOpenChange={onOpenChange}
       title={t("picker.title")}
-      {...(onRemove
+      {...(onRemove || onShuffle
         ? {
             action: (
-              <button
-                type="button"
-                onClick={onRemove}
-                className="min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
-              >
-                {t("builder.remove")}
-              </button>
+              <div className="flex flex-col gap-2">
+                {onShuffle ? (
+                  <button
+                    type="button"
+                    onClick={onShuffle}
+                    className="min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+                  >
+                    {t("builder.shuffleOne")}
+                  </button>
+                ) : null}
+                {onRemove ? (
+                  <button
+                    type="button"
+                    onClick={onRemove}
+                    className="min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+                  >
+                    {t("builder.remove")}
+                  </button>
+                ) : null}
+              </div>
             ),
           }
         : {})}

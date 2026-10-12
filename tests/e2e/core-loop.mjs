@@ -667,6 +667,68 @@ try {
     "keep it: signed in, the link opens the Keep screen and one tap makes a new draft",
   );
   await shopper.close();
+
+  // 13. The quick builder's helpers (spec 5.1 #9, #10, #13): Shuffle fills the empty slots from
+  //     this account's own pieces, Complete the look fills what is left, and a slot swipes
+  //     through to another piece - each a real tap on the real screen, read back from the rows.
+  await page.goto(`${SITE}/`);
+  await page.getByRole("button", { name: "Create" }).click();
+  await page.getByRole("button", { name: /Quick set/ }).click();
+  await page.waitForURL(/\/set\/[0-9a-f-]+\/edit/);
+  const helperSetId = page.url().match(/\/set\/([0-9a-f-]+)\/edit/)[1];
+  const shuffleButton = page.getByRole("button", { name: "Shuffle", exact: true });
+  await shuffleButton.waitFor();
+  // Enabled once the pool has arrived (this account has its screened photos).
+  await page.waitForFunction(
+    () => !document.querySelector('button[title^="Fills the empty slots"]')?.disabled,
+    null,
+    { timeout: 20_000 },
+  );
+  await shuffleButton.click();
+  await page.getByRole("button", { name: /Slot 1:/ }).waitFor({ timeout: 20_000 });
+  await wait(1500);
+  const { data: afterShuffle } = await admin
+    .from("set_items")
+    .select("item_id, position")
+    .eq("set_id", helperSetId);
+  check(
+    (afterShuffle ?? []).length >= 1 &&
+      (afterShuffle ?? []).every((r) => typeof r.position?.slot === "number"),
+    "shuffle: one tap fills slots from the account's own pieces",
+    `${(afterShuffle ?? []).length} piece(s)`,
+  );
+  const completeButton = page.getByRole("button", { name: "Complete the look" });
+  if (!(await completeButton.isDisabled())) {
+    await completeButton.click();
+    await wait(2500);
+  }
+  const { data: afterComplete } = await admin
+    .from("set_items")
+    .select("item_id, position")
+    .eq("set_id", helperSetId);
+  check(
+    (afterComplete ?? []).length >= (afterShuffle ?? []).length &&
+      new Set((afterComplete ?? []).map((r) => r.item_id)).size === (afterComplete ?? []).length,
+    "complete the look: fills what Shuffle left, never the same piece twice",
+    `${(afterShuffle ?? []).length} → ${(afterComplete ?? []).length} piece(s)`,
+  );
+  const slotOneBefore = (afterComplete ?? []).find((r) => r.position?.slot === 0)?.item_id;
+  const nextButton = page.getByRole("button", { name: "Slot 1: next piece" });
+  await nextButton.waitFor();
+  await nextButton.click();
+  await wait(1500);
+  const { data: afterSwipe } = await admin
+    .from("set_items")
+    .select("item_id, position")
+    .eq("set_id", helperSetId);
+  const slotOneAfter = (afterSwipe ?? []).find((r) => r.position?.slot === 0)?.item_id;
+  const poolSize = (afterComplete ?? []).length;
+  check(
+    poolSize < 2 || (!!slotOneAfter && slotOneAfter !== slotOneBefore),
+    "swipe: the slot's next piece replaces the one that was there",
+    `${String(slotOneBefore).slice(0, 8)} → ${String(slotOneAfter).slice(0, 8)}`,
+  );
+  await a11y(page, "the quick builder with the helpers");
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

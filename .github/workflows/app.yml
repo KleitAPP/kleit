@@ -57,6 +57,11 @@ jobs:
         run: bun scripts/check-product-page.ts
       - name: Prove the song-card reader (no network)
         run: bun scripts/check-song-page.ts
+      # The quick builder's helpers (spec 5.1 #9, #10, #13): a name reads as the right kind of
+      # piece, Shuffle never repeats a kind while it can help it, a slot's swipe ring comes home,
+      # Complete the look prefers a kind the set lacks, the same store, your own things.
+      - name: Prove Shuffle, swipe and Complete the look (no network)
+        run: bun scripts/check-suggest.ts
       - name: The Creative canvas document's rules (cap, undo, snapping, order)
         run: bun scripts/check-canvas-doc.ts
       - name: Every shipped font has its licence recorded

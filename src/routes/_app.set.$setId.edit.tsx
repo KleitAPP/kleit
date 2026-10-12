@@ -18,6 +18,8 @@ import {
   type Template,
   refreshPreview,
 } from "@/sets/sets";
+import { lookPool, myPool } from "@/sets/pool";
+import { completeLook, cycleRing, shufflePicks } from "@/sets/suggest";
 import { SWATCHES, inkFor } from "@/sets/swatches";
 import { TemplateDressing } from "@/templates/TemplateDressing";
 import { myDrawer } from "@/items/items";
@@ -29,6 +31,13 @@ import { t } from "@/i18n/en";
  * Top: the template row, 4-piece pre-selected so nobody chooses one mid-run. Middle: the canvas
  * of slots. Thumb zone: the recent-clips tray, the caption, Send. Tap an empty slot or a clip in
  * the tray to fill the next slot; tap a filled slot to swap or remove it.
+ *
+ * Three helpers over the same slots (spec 5.1 #9, #10, #13; src/sets/suggest.ts): Shuffle fills
+ * the empty slots at random from your own pieces; a filled slot swipes (or taps ‹ ›) through
+ * the pieces that could stand in for it, its own kind first; Complete the look fills the empty
+ * slots with the best next pieces - a kind the set lacks, the same store, the same price band,
+ * your own things first. Every one of them is just `fill()` a few times: the same rows, the same
+ * autosave, the same version history.
  *
  * Autosave after every change (guardrail 1). The screen says "Saved" after the fact and never
  * "saving"; if a save fails it says so and keeps trying, and the work is still on the screen.
@@ -59,6 +68,14 @@ function QuickBuilder() {
   const [tray, setTray] = useState<ItemSummary[]>([]);
   const [picking, setPicking] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  /** Your closet, hearts and drawer, cleared only: what Shuffle, swipe and Complete the look draw from. */
+  const [pool, setPool] = useState<ItemSummary[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  /** Where each slot stands in its swipe ring: the piece it started from and the index shown. */
+  const cursors = useRef<Record<number, { origin: ItemSummary; index: number }>>({});
+  const swipe = useRef<{ slot: number; x: number } | null>(null);
+  const swiped = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const pending = useRef<QuickLayout | null>(null);
   /** Always the newest layout - for code that runs after an await and must not use a stale copy. */
@@ -77,6 +94,10 @@ function QuickBuilder() {
         return;
       }
       setAll(tpls);
+      // The helpers' pool arrives on its own; nothing on the screen waits for it.
+      void myPool().then((p) => {
+        if (!cancelled) setPool(p);
+      });
       published.current = loaded.set.status === "published";
       const opening = loaded.set.layout.template
         ? loaded.set.layout
@@ -131,7 +152,9 @@ function QuickBuilder() {
     setImages((m) => ({ ...m, [item.id]: url }));
   }
 
-  async function fill(slot: number, item: ItemSummary) {
+  async function fill(slot: number, item: ItemSummary, viaSwipe = false) {
+    if (!viaSwipe) delete cursors.current[slot];
+    setNotice(null);
     await ensureImage(item);
     // Optimistic: the piece appears at once; the row policy is what makes it stick.
     setPlacements((p) => [
@@ -148,9 +171,77 @@ function QuickBuilder() {
   }
 
   async function empty(slot: number) {
+    delete cursors.current[slot];
     setPlacements((p) => p.filter((x) => x.slot !== slot));
     const ok = await clearSlot(setId, slot);
     setSaveState(ok ? "saved" : "failed");
+  }
+
+  /** Shuffle: random pieces of your own into the given slots (spec 5.1 #9). */
+  async function shuffle(slotsToFill: number[]) {
+    if (!pool || busy) return;
+    // The slots being shuffled give up what they hold; the other slots' pieces stay out of it.
+    const others = placements.filter((p) => !slotsToFill.includes(p.slot)).map((p) => p.item);
+    const giving = new Set(
+      placements.filter((p) => slotsToFill.includes(p.slot)).map((p) => p.item.id),
+    );
+    const picks = shufflePicks(
+      pool.filter((p) => !giving.has(p.id)),
+      others,
+      slotsToFill,
+    );
+    if (picks.length === 0) {
+      setNotice(t("builder.shuffleNothing"));
+      return;
+    }
+    setBusy(true);
+    try {
+      for (const pick of picks) await fill(pick.slot, pick.item);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Complete the look: the best next piece for each empty slot (spec 5.1 #13). */
+  async function complete(emptySlots: number[]) {
+    if (!pool || busy) return;
+    setBusy(true);
+    try {
+      const placedItems = placements.map((p) => p.item);
+      const candidates = await lookPool(placedItems, pool);
+      const picks = completeLook(placedItems, emptySlots, candidates);
+      if (picks.length === 0) {
+        setNotice(t("builder.completeNothing"));
+        return;
+      }
+      for (const pick of picks) await fill(pick.slot, pick.item);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Swipe through a slot (spec 5.1 #10): the next or previous piece that could stand in for it. */
+  async function cycle(slot: number, steps: 1 | -1) {
+    if (!pool || busy) return;
+    const placed = placements.find((p) => p.slot === slot);
+    if (!placed) return;
+    const others = placements.filter((p) => p.slot !== slot).map((p) => p.item);
+    const cursor = cursors.current[slot] ?? { origin: placed.item, index: -1 };
+    const ring = cycleRing(cursor.origin, pool, others);
+    if (ring.length <= 1) {
+      setNotice(t("builder.slotCycleNothing"));
+      return;
+    }
+    // -1 is "at the origin", which sits last in the ring.
+    const at = cursor.index < 0 ? ring.length - 1 : cursor.index;
+    const index = (at + steps + ring.length) % ring.length;
+    cursors.current[slot] = { origin: cursor.origin, index };
+    setBusy(true);
+    try {
+      await fill(slot, ring[index]!, true);
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (missing) {
@@ -171,6 +262,7 @@ function QuickBuilder() {
   const template = all.find((tpl) => tpl.id === layout.template) ?? all[0];
   const slots = template?.layout.slots ?? [];
   const nextEmpty = slots.findIndex((_, i) => !placements.some((p) => p.slot === i));
+  const empties = slots.map((_, i) => i).filter((i) => !placements.some((p) => p.slot === i));
   const total = priceTotal(placements);
   const ink = inkFor(layout.background);
 
@@ -217,49 +309,108 @@ function QuickBuilder() {
               : priceLabel(placed.item)
             : null;
           return (
-            <button
+            <div
               key={i}
-              type="button"
-              onClick={() => setPicking(i)}
-              aria-label={
-                placed
-                  ? t("builder.slotFilled", {
-                      n: i + 1,
-                      name: `${placed.item.title ?? ""}${tag ? ` · ${tag}` : ""}`,
-                    })
-                  : t("builder.slotEmpty", { n: i + 1 })
-              }
-              className="absolute flex items-center justify-center rounded-sm"
+              className="absolute"
               style={{
                 left: `${slot.x * 100}%`,
                 top: `${slot.y * 100}%`,
                 width: `${slot.w * 100}%`,
                 height: `${slot.h * 100}%`,
-                outline: placed ? "none" : `1px dashed ${ink}`,
-                outlineOffset: -1,
-                opacity: placed ? 1 : 0.7,
               }}
             >
-              {placed ? (
-                <>
-                  {url ? (
-                    <img src={url} alt="" className="size-full object-contain" draggable={false} />
-                  ) : null}
-                  {tag ? (
-                    <span
-                      className="absolute bottom-1 left-1 rounded-pill px-2 py-0.5 text-xs font-medium"
-                      style={{ backgroundColor: ink, color: layout.background }}
-                    >
-                      {tag}
-                    </span>
-                  ) : null}
-                </>
-              ) : (
-                <span className="text-2xl" style={{ color: ink }} aria-hidden="true">
-                  +
+              <button
+                type="button"
+                onClick={() => {
+                  // A sideways swipe just happened on this slot: that was the tap.
+                  if (swiped.current) {
+                    swiped.current = false;
+                    return;
+                  }
+                  setPicking(i);
+                }}
+                onPointerDown={(e) => {
+                  if (placed) swipe.current = { slot: i, x: e.clientX };
+                }}
+                onPointerUp={(e) => {
+                  const start = swipe.current;
+                  swipe.current = null;
+                  if (!start || start.slot !== i) return;
+                  const dx = e.clientX - start.x;
+                  if (Math.abs(dx) < 40) return;
+                  swiped.current = true;
+                  void cycle(i, dx < 0 ? 1 : -1);
+                }}
+                onPointerCancel={() => {
+                  swipe.current = null;
+                }}
+                aria-label={
+                  placed
+                    ? t("builder.slotFilled", {
+                        n: i + 1,
+                        name: `${placed.item.title ?? ""}${tag ? ` · ${tag}` : ""}`,
+                      })
+                    : t("builder.slotEmpty", { n: i + 1 })
+                }
+                className="flex size-full touch-pan-y items-center justify-center rounded-sm"
+                style={{
+                  outline: placed ? "none" : `1px dashed ${ink}`,
+                  outlineOffset: -1,
+                  opacity: placed ? 1 : 0.7,
+                }}
+              >
+                {placed ? (
+                  <>
+                    {url ? (
+                      <img
+                        src={url}
+                        alt=""
+                        className="size-full object-contain"
+                        draggable={false}
+                      />
+                    ) : null}
+                    {tag ? (
+                      <span
+                        className="absolute bottom-1 left-1 rounded-pill px-2 py-0.5 text-xs font-medium"
+                        style={{ backgroundColor: ink, color: layout.background }}
+                      >
+                        {tag}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  <span className="text-2xl" style={{ color: ink }} aria-hidden="true">
+                    +
+                  </span>
+                )}
+              </button>
+              {/* Swipe through the slot, as buttons too (spec 5.1 #10; design pack 8.3 #1). */}
+              {placed && pool && pool.length > 0 ? (
+                <span
+                  className="absolute right-1 bottom-1 flex overflow-hidden rounded-pill"
+                  style={{ backgroundColor: ink, color: layout.background }}
+                >
+                  <button
+                    type="button"
+                    aria-label={t("builder.slotPrev", { n: i + 1 })}
+                    disabled={busy}
+                    onClick={() => void cycle(i, -1)}
+                    className="flex size-7 items-center justify-center text-base leading-none"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t("builder.slotNext", { n: i + 1 })}
+                    disabled={busy}
+                    onClick={() => void cycle(i, 1)}
+                    className="flex size-7 items-center justify-center text-base leading-none"
+                  >
+                    ›
+                  </button>
                 </span>
-              )}
-            </button>
+              ) : null}
+            </div>
           );
         })}
         {template ? <TemplateDressing layout={template.layout} layer="over" /> : null}
@@ -290,6 +441,33 @@ function QuickBuilder() {
                 ? t("screen.noContact")
                 : ""}
         </p>
+      </div>
+
+      {/* Shuffle and Complete the look: one tap each, over the empty slots (spec 5.1 #9, #13). */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={busy || !pool || empties.length === 0}
+          title={t("builder.shuffleHint")}
+          onClick={() => void shuffle(empties)}
+          className="min-h-10 rounded-pill border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+        >
+          {t("builder.shuffle")}
+        </button>
+        <button
+          type="button"
+          disabled={busy || !pool || empties.length === 0 || placements.length === 0}
+          title={t("builder.completeHint")}
+          onClick={() => void complete(empties)}
+          className="min-h-10 rounded-pill border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+        >
+          {t("builder.complete")}
+        </button>
+        {notice ? (
+          <p className="basis-full text-sm text-ink-soft" role="status">
+            {notice}
+          </p>
+        ) : null}
       </div>
 
       {/* Thumb zone: the tray, the caption, Send. */}
@@ -365,6 +543,15 @@ function QuickBuilder() {
                 const slot = picking;
                 setPicking(null);
                 void empty(slot);
+              }
+            : undefined
+        }
+        onShuffle={
+          picking !== null && pool && pool.length > 0
+            ? () => {
+                const slot = picking;
+                setPicking(null);
+                void shuffle([slot]);
               }
             : undefined
         }

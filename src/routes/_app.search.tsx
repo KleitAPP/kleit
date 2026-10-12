@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Chip, EmptyState, ItemCard, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { AccountLabelChip } from "@/social/AccountLabel";
+import { Avatar } from "@/social/Avatar";
 import { imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
 import {
   previewUrl,
@@ -209,15 +210,18 @@ function SearchTab() {
                     <Link
                       to="/u/$username"
                       params={{ username: p.username }}
-                      className="block min-h-12 px-4 py-3"
+                      className="flex min-h-12 items-center gap-3 px-4 py-3"
                     >
-                      <p className="truncate text-base text-ink">
-                        {p.display_name?.trim() || p.username}
-                      </p>
-                      <p className="truncate text-sm text-ink-soft">
-                        @{p.username}
-                        <AccountLabelChip label={p.label} className="ml-1 align-middle" />
-                      </p>
+                      <Avatar itemId={p.avatar_item_id} size={40} />
+                      <span className="min-w-0 flex-1">
+                        <p className="truncate text-base text-ink">
+                          {p.display_name?.trim() || p.username}
+                        </p>
+                        <p className="truncate text-sm text-ink-soft">
+                          @{p.username}
+                          <AccountLabelChip label={p.label} className="ml-1 align-middle" />
+                        </p>
+                      </span>
                     </Link>
                   </li>
                 ))}

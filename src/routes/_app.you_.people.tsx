@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { AccountLabelChip } from "@/social/AccountLabel";
+import { Avatar } from "@/social/Avatar";
 import {
   approve,
   decline,
@@ -160,9 +162,13 @@ function Row({ person, children }: { person: Person; children?: React.ReactNode 
   const name = person.display_name?.trim() ? person.display_name : person.username;
   return (
     <li className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0">
+      <Avatar itemId={person.avatar_item_id} size={40} />
       <Link to="/u/$username" params={{ username: person.username }} className="min-w-0 flex-1">
         <p className="truncate text-base text-ink">{name}</p>
-        <p className="truncate text-sm text-ink-soft">@{person.username}</p>
+        <p className="truncate text-sm text-ink-soft">
+          @{person.username}
+          <AccountLabelChip label={person.label} className="ml-1 align-middle" />
+        </p>
       </Link>
       <div className="flex shrink-0 gap-2">{children}</div>
     </li>

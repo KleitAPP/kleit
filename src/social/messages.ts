@@ -37,7 +37,7 @@ export type Message = {
 
 export type SendProblem = "refused" | "no_links_yet" | "too_many" | "failed";
 
-const PERSON = "user_id, username, display_name, is_private";
+const PERSON = "user_id, username, display_name, is_private, label, avatar_item_id";
 
 export async function myConversations(): Promise<Conversation[]> {
   const my = await me();

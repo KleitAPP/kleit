@@ -25,7 +25,7 @@ export type Post = {
   deleted_at: string | null;
 };
 
-const PERSON = "user_id, username, display_name, is_private";
+const PERSON = "user_id, username, display_name, is_private, label, avatar_item_id";
 
 export async function visibleGroups(): Promise<Group[]> {
   const { data } = await supabase

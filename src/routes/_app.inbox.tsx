@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { Avatar } from "@/social/Avatar";
 import { myConversations, type Conversation } from "@/social/messages";
 import { markAllRead, myNotifications, type Notification } from "@/social/notifications";
 
@@ -220,6 +221,7 @@ function Row({ c }: { c: Conversation }) {
         params={{ conversationId: c.id }}
         className="flex min-h-12 items-center gap-3 px-4 py-3"
       >
+        <Avatar itemId={c.other.avatar_item_id} size={40} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-base text-ink">
             {name}

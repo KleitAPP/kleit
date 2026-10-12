@@ -14,6 +14,8 @@ export type Person = {
   is_private: boolean;
   /** "none" for an ordinary account (spec 11 #9; migration 090). */
   label?: AccountLabel;
+  /** The profile photo's item (migration 092); undefined where the list did not ask. */
+  avatar_item_id?: string | null;
 };
 
 export type Relationship = {
@@ -27,7 +29,7 @@ export type Relationship = {
   followingCount: number;
 };
 
-const PERSON = "user_id, username, display_name, is_private, label";
+const PERSON = "user_id, username, display_name, is_private, label, avatar_item_id";
 
 export async function me(): Promise<string | null> {
   const { data } = await supabase.auth.getUser();

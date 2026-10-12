@@ -22,7 +22,7 @@ export type Answer = {
   created_at: string;
 };
 
-const PERSON = "user_id, username, display_name, is_private";
+const PERSON = "user_id, username, display_name, is_private, label, avatar_item_id";
 
 async function people(ids: string[]): Promise<Map<string, Person>> {
   const unique = [...new Set(ids)];

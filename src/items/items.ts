@@ -27,11 +27,19 @@ export type ItemSummary = {
   price_was_cents?: number | null;
   /** Set when the store page answered "gone" twice: Buy no longer points at it. */
   dead_link_at?: string | null;
+  /** When the price was last read off the store page (spec 4.8 #2); null for a piece of your own. */
+  price_checked_at?: string | null;
+  /** The store page said it no longer offers the piece (spec 4.8 #1). */
+  sold_out?: boolean;
+  /** One of sixteen colour words (spec 4.4 #4; `@/items/colour`), or null when nobody named one. */
+  color_name?: string | null;
+  /** Who clipped or uploaded it; null once that account has closed (the credit, spec 4.3 #4). */
+  owner_id?: string | null;
 };
 
 /** The columns an `ItemSummary` is read with, wherever a piece is read. */
 export const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at";
+  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at, price_was_cents, dead_link_at, price_checked_at, sold_out, color_name, owner_id";
 
 /** Your closet: the pieces you own, newest first. Private by default; the row policy enforces it. */
 export async function myCloset(): Promise<ItemSummary[]> {
@@ -203,6 +211,16 @@ export async function unsaveItem(itemId: string): Promise<boolean> {
 export async function oneItem(id: string): Promise<ItemSummary | null> {
   const { data } = await supabase.from("items").select(ITEM_FIELDS).eq("id", id).maybeSingle();
   return (data as unknown as ItemSummary | null) ?? null;
+}
+
+/**
+ * Name (or un-name) the colour of a piece of yours (spec 4.4 #4 "the user confirms"). The row
+ * policy lets only the owner through, and the guard leaves `color_name` to the person - the
+ * store's facts (price, source) it does not.
+ */
+export async function setItemColour(itemId: string, colour: string | null): Promise<boolean> {
+  const { error } = await supabase.from("items").update({ color_name: colour }).eq("id", itemId);
+  return !error;
 }
 
 /**

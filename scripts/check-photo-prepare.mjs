@@ -33,7 +33,9 @@ const bundle = readFileSync("/tmp/kleit-prepare.js", "utf8");
 const photo = readFileSync("scripts/fixtures/gps-photo.jpg");
 const photoBase64 = photo.toString("base64");
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(
+  process.env.KLEIT_CHROMIUM ? { executablePath: process.env.KLEIT_CHROMIUM } : {},
+);
 const page = await browser.newPage();
 await page.goto("about:blank");
 await page.addScriptTag({ content: bundle });
@@ -91,7 +93,10 @@ const result = await page.evaluate(
       type: "image/gif",
     });
     const animatedResult = await window.Kleit.preparePhoto(animated);
-    const stillResult = await window.Kleit.preparePhoto(still);
+    // The still is 1 px, so the garment floor (spec 4.6 #2) is lifted to prove the animation
+    // check alone lets it through; left in place, the same still is refused as too small.
+    const stillResult = await window.Kleit.preparePhoto(still, undefined, 1);
+    const tinyResult = await window.Kleit.preparePhoto(still);
 
     return {
       inputBytes: bytes.length,
@@ -106,6 +111,7 @@ const result = await page.evaluate(
       smallLongestSide: small.ok ? Math.max(small.photo.width, small.photo.height) : "FAILED",
       animatedRefused: animatedResult.ok === false ? animatedResult.problem : "ALLOWED",
       stillGif: stillResult.ok ? "allowed" : stillResult.problem,
+      tinyRefused: tinyResult.ok === false ? tinyResult.problem : "ALLOWED",
     };
   },
   { photoBase64 },
@@ -155,6 +161,10 @@ const checks = [
   {
     ok: result.smallLongestSide === 100,
     say: `the longest side is capped where asked (${result.smallLongestSide}, wanted 100)`,
+  },
+  {
+    ok: result.tinyRefused === "too-small",
+    say: `a picture under 200 px is refused as too small (spec 4.6 #2) (${result.tinyRefused})`,
   },
 ];
 

@@ -147,6 +147,7 @@ function AddLink() {
         images: sharedImage ? [sharedImage] : [],
         sourceUrl: trimmed,
         sourceDomain: domain,
+        available: null,
       },
       readProblem: result.problem,
     });
@@ -164,6 +165,7 @@ function AddLink() {
       currency: cents != null ? (page.currency ?? "USD") : null,
       storeName: page.storeName,
       own,
+      soldOut: page.available === false,
     });
     setStage(
       result.ok

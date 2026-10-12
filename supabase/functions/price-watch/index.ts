@@ -35,6 +35,8 @@ type Reading = {
   status: "ok" | "no-price" | "blocked" | "gone";
   cents?: number;
   currency?: string;
+  /** Sold out or back in stock (spec 4.8 #1), when the page said; absent when it did not. */
+  soldOut?: boolean;
 };
 
 async function read(url: string): Promise<Reading> {
@@ -50,11 +52,13 @@ async function read(url: string): Promise<Reading> {
     const html = new TextDecoder("utf-8", { fatal: false }).decode(page.bytes);
     if (looksLikeAShell(html)) return { status: "blocked" };
     const product = readProductPage(html, page.url);
-    if (product.priceCents == null) return { status: "no-price" };
+    const stock = product.available === null ? {} : { soldOut: !product.available };
+    if (product.priceCents == null) return { status: "no-price", ...stock };
     return {
       status: "ok",
       cents: product.priceCents,
       ...(product.currency ? { currency: product.currency } : {}),
+      ...stock,
     };
   } catch (problem) {
     // A refused, slow or non-public address is a store that did not answer, not a dead page.
@@ -91,6 +95,7 @@ Deno.serve(async (request) => {
       p_status: reading.status,
       p_cents: reading.cents ?? null,
       p_currency: reading.currency ?? null,
+      p_sold_out: reading.soldOut ?? null,
     });
     if (recordError) {
       console.error(`[price-watch] ${item.id}: record: ${recordError.message}`);
@@ -98,12 +103,13 @@ Deno.serve(async (request) => {
       continue;
     }
     told += typeof n === "number" ? n : 0;
+    const stock = reading.soldOut === undefined ? "" : reading.soldOut ? " sold-out" : " in-stock";
     outcome[item.id] =
-      reading.status === "ok"
+      (reading.status === "ok"
         ? item.price_cents != null && reading.cents != null && reading.cents < item.price_cents
           ? `drop ${item.price_cents}→${reading.cents}`
           : `ok ${reading.cents}`
-        : reading.status;
+        : reading.status) + stock;
   }
   return Response.json({ checked: (due ?? []).length, told, outcome });
 });

@@ -32,6 +32,20 @@ function check(ok, what, detail = "") {
   if (!ok) failed += 1;
 }
 
+/** Points a test run gave a test account are taken back in `finally` (the ledger rows first). */
+async function takeBackPoints(userId, points) {
+  if (points <= 0) return;
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("points")
+    .eq("user_id", userId)
+    .single();
+  await admin
+    .from("profiles")
+    .update({ points: Math.max(0, (profile?.points ?? 0) - points) })
+    .eq("user_id", userId);
+}
+
 async function person(email, username, { claim = true } = {}) {
   const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
   let user = list?.users.find((u) => u.email === email) ?? null;
@@ -551,6 +565,88 @@ try {
     "attacker: a kept look can carry the cleared store piece, never the pending clip or the victim's own piece",
     `${keepPending.error?.code ?? "written"} / ${keepOwn.error?.code ?? "written"} / ${keepCleared.error?.code ?? "ok"}`,
   );
+  // 7d. The catalogue's facts (migration 102): a colour is one of sixteen words and only the
+  //     owner names it; "sold out" is the server's; the colour filter is a plain equality; a
+  //     point for the clipper comes only from the trigger, when somebody else publishes.
+  const recolourOther = await a
+    .from("items")
+    .update({ color_name: "red" })
+    .eq("id", brandCleared?.id)
+    .select("id");
+  const { data: brandAfterOther } = await admin
+    .from("items")
+    .select("color_name")
+    .eq("id", brandCleared?.id)
+    .maybeSingle();
+  check(
+    (recolourOther.data ?? []).length === 0 && brandAfterOther?.color_name === null,
+    "attacker: cannot name the colour of the victim's clip",
+    recolourOther.error?.code ?? "no rows",
+  );
+  const soldOutOwn = await victim.client
+    .from("items")
+    .update({ sold_out: true })
+    .eq("id", brandCleared?.id);
+  const strangeColour = await victim.client
+    .from("items")
+    .update({ color_name: "ultramarine" })
+    .eq("id", brandCleared?.id);
+  const realColour = await victim.client
+    .from("items")
+    .update({ color_name: "red" })
+    .eq("id", brandCleared?.id)
+    .select("id");
+  check(
+    soldOutOwn.error?.code === "42501" &&
+      strangeColour.error?.code === "23514" &&
+      !realColour.error &&
+      (realColour.data ?? []).length === 1,
+    "victim: cannot mark their own clip sold out (the watch does), cannot name a colour outside the sixteen, can name it red",
+    `${soldOutOwn.error?.code ?? "written"} / ${strangeColour.error?.code ?? "written"} / ${realColour.error?.code ?? "ok"}`,
+  );
+  const byRed = await a.rpc("search_items", { q: "attack brand", p_colour: "red" });
+  const byBlue = await a.rpc("search_items", { q: "attack brand", p_colour: "blue" });
+  const byOdd = await a.rpc("search_items", { q: "attack brand", p_colour: "red' or 1=1 --" });
+  check(
+    (byRed.data ?? []).some((r) => r.id === brandCleared?.id) &&
+      !(byBlue.data ?? []).some((r) => r.id === brandCleared?.id) &&
+      !byOdd.error &&
+      (byOdd.data ?? []).length === 0,
+    "attacker: the colour filter finds the red piece, not under blue, and an odd word is a word that matches nothing",
+    `${byRed.error?.message ?? (byRed.data ?? []).length} / ${byBlue.error?.message ?? (byBlue.data ?? []).length} / ${byOdd.error?.message ?? (byOdd.data ?? []).length}`,
+  );
+  const fakePoint = await a
+    .from("points_ledger")
+    .insert({ user_id: attacker.id, points: 100, reason: "clip_used", ref: "x" });
+  check(
+    fakePoint.error?.code === "42501",
+    "attacker: cannot write a clip point into the ledger",
+    fakePoint.error?.code,
+  );
+  // The point itself: the attacker publishes the kept look (the victim's cleared clip is on it).
+  const { data: victimPointsBefore } = await admin
+    .from("profiles")
+    .select("points")
+    .eq("user_id", victim.id)
+    .single();
+  const publishKept = await a
+    .from("sets")
+    .update({ status: "published", visibility: "public" })
+    .eq("id", keepDraft?.id)
+    .select("id");
+  const { data: victimPointsAfter } = await admin
+    .from("profiles")
+    .select("points")
+    .eq("user_id", victim.id)
+    .single();
+  check(
+    !publishKept.error &&
+      (publishKept.data ?? []).length === 1 &&
+      (victimPointsAfter?.points ?? 0) === (victimPointsBefore?.points ?? 0) + 1,
+    "victim: earns one point when the attacker publishes a set with the victim's clip on it",
+    `${victimPointsBefore?.points ?? "?"} → ${victimPointsAfter?.points ?? "?"}${publishKept.error ? ` (${publishKept.error.code})` : ""}`,
+  );
+
   // 7c. Build around this piece (migration 100): the lock takes a cleared store piece only, and
   //     an answer must carry it. The attacker asks; the victim answers.
   const lockOwn = await a
@@ -1409,8 +1505,42 @@ try {
   await admin.from("contests").delete().eq("title", "attack contest (ignore)");
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack song (ignore)");
   // The brand page's rows (7b): the kept draft first (its rows point at the pieces), then the
-  // pieces and their flags.
+  // pieces and their flags. The clip point the kept look earned the victim (7d) goes too, and the
+  // profile's count with it, so the number is the same every run.
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack keep (ignore)");
+  const { data: clipPoints } = await admin
+    .from("points_ledger")
+    .delete()
+    .eq("user_id", victim.id)
+    .eq("reason", "clip_used")
+    .select("points");
+  await takeBackPoints(
+    victim.id,
+    (clipPoints ?? []).reduce((n, r) => n + r.points, 0),
+  );
+  // And the attacker's publish points for that kept look (its row is gone, so the ledger's
+  // reference points at nothing): the ledger row goes, and the count with it.
+  const { data: attackerPublishes } = await admin
+    .from("points_ledger")
+    .select("id, ref, points")
+    .eq("user_id", attacker.id)
+    .eq("reason", "publish");
+  const { data: attackerSets } = await admin.from("sets").select("id").eq("owner_id", attacker.id);
+  const attackerSetIds = new Set((attackerSets ?? []).map((r) => r.id));
+  const orphanPublishes = (attackerPublishes ?? []).filter((r) => !attackerSetIds.has(r.ref));
+  if (orphanPublishes.length) {
+    await admin
+      .from("points_ledger")
+      .delete()
+      .in(
+        "id",
+        orphanPublishes.map((r) => r.id),
+      );
+    await takeBackPoints(
+      attacker.id,
+      orphanPublishes.reduce((n, r) => n + r.points, 0),
+    );
+  }
   await admin.from("ask_posts").delete().eq("question", "attack build-around (ignore)");
   const { data: brandLeft } = await admin
     .from("items")

@@ -10,10 +10,13 @@ export function Chip({
   label,
   selected = false,
   onToggle,
+  swatch,
 }: {
   label: string;
   selected?: boolean;
   onToggle?: () => void;
+  /** A colour to show as a dot before the label (the colour chips); the word still carries the meaning. */
+  swatch?: string;
 }) {
   return (
     <button
@@ -31,6 +34,13 @@ export function Chip({
         )}
       >
         {selected ? <Check className="size-4" aria-hidden="true" /> : null}
+        {swatch ? (
+          <span
+            aria-hidden="true"
+            className="size-3.5 shrink-0 rounded-pill border border-line"
+            style={{ backgroundColor: swatch }}
+          />
+        ) : null}
         <span className="truncate">{label}</span>
         {selected ? <span className="sr-only">, {t("chip.selected")}</span> : null}
       </span>

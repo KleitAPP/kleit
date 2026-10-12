@@ -101,7 +101,8 @@ function check(ok, what, detail = "") {
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------------------
-// A small PNG, made here so the run carries no fixture: 96×96, two flat colour blocks.
+// A small PNG, made here so the run carries no fixture: 240×240 (over the 200 px floor of spec
+// 4.6 #2), two flat colour blocks - orange over blue, so the colour vote has something to say.
 // ---------------------------------------------------------------------------
 function crc32(buf) {
   let c,
@@ -121,13 +122,13 @@ function chunk(type, data) {
   crc.writeUInt32BE(crc32(body));
   return Buffer.concat([len, body, crc]);
 }
-function makePng(w = 96, h = 96) {
+function makePng(w = 240, h = 240) {
   const raw = Buffer.alloc((w * 3 + 1) * h);
   for (let y = 0; y < h; y++) {
     raw[y * (w * 3 + 1)] = 0;
     for (let x = 0; x < w; x++) {
       const o = y * (w * 3 + 1) + 1 + x * 3;
-      const top = y < h / 2;
+      const top = y < h * 0.6;
       raw[o] = top ? 214 : 30;
       raw[o + 1] = top ? 120 : 60;
       raw[o + 2] = top ? 60 : 140;
@@ -245,6 +246,13 @@ try {
   await page
     .locator('input[type="file"]')
     .setInputFiles({ name: "piece.png", mimeType: "image/png", buffer: makePng() });
+  // The colour, named on the phone before the photo leaves (spec 4.4 #4): the bigger block is
+  // orange, and the chip for it is pressed.
+  await page.getByText(/^Looks orange/).waitFor({ timeout: 15_000 });
+  check(
+    (await page.getByRole("button", { name: "Orange" }).getAttribute("aria-pressed")) === "true",
+    "photo: the colour it looks is named and its chip pressed",
+  );
   await page.getByRole("button", { name: "Add it" }).click();
   const verdict = page
     .getByRole("status")
@@ -551,6 +559,9 @@ try {
       image_id: path,
       image_bucket: "item-images",
       deleted_at: null,
+      // As the clipper writes them (migration 102): when the price was read, and the colour word.
+      price_checked_at: new Date().toISOString(),
+      color_name: i === 0 ? "orange" : "navy",
     });
     await admin
       .from("item_flags")
@@ -787,6 +798,54 @@ try {
     .getByRole("button", { name: /Slot 1: Core loop piece 1/ })
     .waitFor({ timeout: 20_000 });
   check(true, "build around: Start a set with it opens the builder with the piece in slot 1");
+
+  // 15. The catalogue's small promises (migration 102): the piece's page says when the price was
+  //     read, who clipped it and its colour; "Build a set with it" opens the builder on it; the
+  //     picker's Search tab finds a store piece by name; the search screen filters by colour.
+  await page.goto(`${SITE}/item/${brandIds[1]}`);
+  await page.getByRole("button", { name: "Build a set with it" }).waitFor();
+  const itemWords = (await page.innerText("body")).replace(/\s+/g, " ");
+  check(
+    /Price at brand-test\.kleit\.example as of /.test(itemWords) &&
+      /Clipped by @/.test(itemWords) &&
+      /Colour: Navy/.test(itemWords),
+    "item page: the price's date, the clipper's credit and the colour word are on it",
+    itemWords.slice(0, 160),
+  );
+  check(
+    (await page.getByRole("button", { name: "Navy" }).getAttribute("aria-pressed")) === "true",
+    "item page: your own piece offers the colour chips, with its word pressed",
+  );
+  await page.getByRole("button", { name: "Build a set with it" }).click();
+  await page.waitForURL(/\/set\/[0-9a-f-]+\/edit/, { timeout: 20_000 });
+  await page
+    .getByRole("button", { name: /Slot 1: Core loop piece 2/ })
+    .waitFor({ timeout: 20_000 });
+  check(true, "item page: Build a set with it opens the builder with the piece in slot 1");
+  // The picker's Search tab: the other store piece, found by name and placed in slot 2.
+  await page.getByRole("button", { name: /Slot 2, empty/ }).click();
+  await page.getByRole("tab", { name: "Search" }).click();
+  await page.getByRole("dialog").getByLabel("Search the catalogue").fill("Core loop piece 1");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /Core loop piece 1/ })
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: /Slot 2: Core loop piece 1/ })
+    .waitFor({ timeout: 20_000 });
+  check(true, "picker: the Search tab finds a store piece by name and places it");
+  // The search screen: by colour.
+  await page.goto(`${SITE}/search`);
+  await page.locator('input[type="search"]').fill("Core loop piece");
+  await page.getByText("Core loop piece 1").first().waitFor({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Navy" }).click();
+  await page.getByText("Core loop piece 1").waitFor({ state: "detached", timeout: 20_000 });
+  check(
+    (await page.getByText("Core loop piece 2").count()) >= 1 &&
+      (await page.getByText("Core loop piece 1").count()) === 0,
+    "search: the colour chip keeps the navy piece and drops the orange one",
+  );
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

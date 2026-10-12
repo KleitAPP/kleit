@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
 import { Heart } from "lucide-react";
 
+import { ColourChips } from "@/items/ColourChips";
+import { colourLabel, isColourName, type ColourName } from "@/items/colour";
 import {
   buyUrlFor,
   closetItemUses,
@@ -15,6 +17,7 @@ import {
   oneItem,
   priceLabel,
   saveItem,
+  setItemColour,
   unsaveItem,
   type ItemSummary,
   type ScanState,
@@ -22,9 +25,10 @@ import {
   type SetWithItem,
 } from "@/items/items";
 import { t } from "@/i18n/en";
+import { supabase } from "@/integrations/supabase/client";
 import { previewUrl } from "@/search/search";
 import { ReportButton } from "@/safety/ReportButton";
-import { ask } from "@/social/ask";
+import { ask, startSetWith } from "@/social/ask";
 
 /**
  * S40 — Item page (design pack §2.2): the photo, the price and where it came from, and Buy.
@@ -45,6 +49,12 @@ import { ask } from "@/social/ask";
  * Remove from closet (spec 7.1 #7, #11; S26): shown only when the piece is in YOUR closet - the
  * closet table answers nobody else, so the question "is this mine?" is the database's. A piece
  * that sits on some of your sets asks one thing first: keep it there, or take it off them too.
+ *
+ * The catalogue's small promises (2026-10-12): "Price at [store] as of [date]" under a store
+ * price (spec 4.8 #2); "Sold out" as a word (4.8 #1; design pack 8.3 #3); the clipper's credit,
+ * "Clipped by @name", or the closed-account words once that account has gone (4.3 #4, 4.2 #6);
+ * the colour word, with chips to correct it on a piece of your own (4.4 #4); and "Build a set
+ * with it", which opens the builder with the piece in slot 1 (6.3 #4).
  */
 export const Route = createFileRoute("/_app/item/$itemId")({
   head: () => ({ meta: [{ title: "Item" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -61,6 +71,8 @@ type Loaded =
       state: ScanState | null;
       mine: boolean;
       saved: boolean;
+      /** The clipper's or uploader's username; null when that account has closed or is unreadable. */
+      by: string | null;
     };
 
 function ItemPage() {
@@ -82,12 +94,13 @@ function ItemPage() {
         if (!cancelled) setLoaded({ at: "missing" });
         return;
       }
-      const [imageUrl, states, mine, saved, sets] = await Promise.all([
+      const [imageUrl, states, mine, saved, sets, by] = await Promise.all([
         imageUrlFor(item),
         myScanStates([item.id]),
         item.kind === "own" ? inMyCloset(item.id) : Promise.resolve(false),
         item.kind === "product" ? isSaved(item.id) : Promise.resolve(false),
         setsWithItem(item.id),
+        usernameOf(item.owner_id ?? null),
       ]);
       if (!cancelled) setInSets(sets);
       if (!cancelled)
@@ -98,6 +111,7 @@ function ItemPage() {
           state: states.get(item.id) ?? null,
           mine,
           saved,
+          by,
         });
     })();
     return () => {
@@ -133,6 +147,28 @@ function ItemPage() {
     else setProblem(t("item.removeFailed"));
   }
 
+  // Build a set with it (spec 6.3 #4): a quick draft with this piece in slot 1, then the builder.
+  async function buildWith() {
+    if (loaded.at !== "found" || busy) return;
+    setBusy(true);
+    setProblem(null);
+    const setId = await startSetWith(loaded.item.id);
+    setBusy(false);
+    if (setId) void navigate({ to: "/set/$setId/edit", params: { setId } });
+    else setProblem(t("item.removeFailed"));
+  }
+
+  // The colour word on a piece of yours (spec 4.4 #4 "the user confirms"): the guess, corrected.
+  async function recolour(colour: ColourName | null) {
+    if (loaded.at !== "found" || busy) return;
+    const before = loaded.item.color_name ?? null;
+    setLoaded({ ...loaded, item: { ...loaded.item, color_name: colour } });
+    if (!(await setItemColour(loaded.item.id, colour)))
+      setLoaded((now) =>
+        now.at === "found" ? { ...now, item: { ...now.item, color_name: before } } : now,
+      );
+  }
+
   async function remove(keepInSets: boolean) {
     setBusy(true);
     const done = await deleteClosetItem(itemId, keepInSets);
@@ -161,7 +197,7 @@ function ItemPage() {
     );
   }
 
-  const { item, imageUrl, state, mine, saved } = loaded;
+  const { item, imageUrl, state, mine, saved, by } = loaded;
   const name =
     item.title?.trim() || (item.kind === "own" ? t("item.yourPiece") : t("item.untitled"));
   const price = priceLabel(item);
@@ -173,6 +209,13 @@ function ItemPage() {
       : null;
   const buy = buyUrlFor(item, undefined, state);
   const store = item.store_name?.trim() || item.source_domain || "";
+  // Yours: the scan states answer only for your own rows (migration 015), closet or clipped.
+  const yours = state !== null;
+  const colour = isColourName(item.color_name) ? item.color_name : null;
+  // A cleared store piece, anyone's; a piece of your own, cleared. Somebody else's own piece is
+  // not placeable (spec 4.5 #5.3) and the database would refuse it, so the button is not offered.
+  const canBuild =
+    item.kind === "product" ? state === null || state === "clean" : mine && state === "clean";
   const note =
     state === "pending"
       ? t("item.checkingLong")
@@ -221,8 +264,19 @@ function ItemPage() {
               <s className="text-ink-soft">{t("item.was", { price: was })}</s>
             </>
           ) : null}
+          {item.sold_out ? (
+            <>
+              {" · "}
+              <span className="font-medium text-ink">{t("item.soldOut")}</span>
+            </>
+          ) : null}
         </p>
       )}
+      {price && item.price_checked_at && store ? (
+        <p className="mt-1 text-sm text-ink-soft">
+          {t("item.priceAsOf", { store, date: dateLabel(item.price_checked_at) })}
+        </p>
+      ) : null}
       {item.dead_link_at ? (
         <p role="status" className="mt-2 text-sm text-ink-soft">
           {t("item.gone")}
@@ -230,7 +284,37 @@ function ItemPage() {
       ) : null}
       <p className="mt-1 text-sm text-ink-soft">
         {t("item.added", { date: dateLabel(item.created_at) })}
+        {item.kind === "product" ? (
+          <>
+            {" · "}
+            {by ? t("item.clippedBy", { name: by }) : t("item.clippedByGone")}
+          </>
+        ) : by && !mine ? (
+          <>
+            {" · "}
+            {t("item.uploadedBy", { name: by })}
+          </>
+        ) : null}
       </p>
+      {yours ? (
+        <div className="mt-3">
+          <p className="text-sm text-ink-soft">
+            {t("item.colour")}
+            {colour ? `: ${colourLabel(colour)}` : ""}
+          </p>
+          <div className="mt-1">
+            <ColourChips
+              value={colour}
+              onChange={(c) => void recolour(c)}
+              label={t("item.colour")}
+            />
+          </div>
+        </div>
+      ) : colour ? (
+        <p className="mt-1 text-sm text-ink-soft">
+          {t("item.colour")}: {colourLabel(colour)}
+        </p>
+      ) : null}
 
       {note ? (
         <p
@@ -257,6 +341,17 @@ function ItemPage() {
         </div>
       ) : null}
 
+      {canBuild ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void buildWith()}
+          className="mt-3 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+        >
+          {t("item.buildWith")}
+        </button>
+      ) : null}
+
       {/* Somebody else's catalogue piece answers no scan state (it is readable only once cleared); your own says "clean". */}
       {item.kind === "product" && (state === null || state === "clean") ? (
         <button
@@ -268,6 +363,11 @@ function ItemPage() {
         >
           {t("ask.buildAround")}
         </button>
+      ) : null}
+      {problem && removing === null ? (
+        <p role="alert" className="mt-2 text-sm font-medium text-danger">
+          {problem}
+        </p>
       ) : null}
 
       {inSets.length > 0 ? (
@@ -383,6 +483,17 @@ function Choice({
       <span className="text-sm text-ink-soft">{hint}</span>
     </button>
   );
+}
+
+/** The username behind an id, or null: the account has closed (the id is gone) or is not readable. */
+async function usernameOf(userId: string | null): Promise<string | null> {
+  if (!userId) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data?.username ?? null;
 }
 
 function dateLabel(iso: string): string {

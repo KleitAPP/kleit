@@ -15,6 +15,7 @@ import {
   toCents,
   cleanSourceUrl,
   looksLikeAShell,
+  stockOf,
 } from "../supabase/functions/_shared/product-page.ts";
 import {
   isPrivateAddress,
@@ -137,6 +138,57 @@ const zero = readProductPage(
   new URL("https://fp.example/shop/slip/"),
 );
 check("Zero: a zero price falls through to the next source", zero.priceCents === 12800, zero);
+
+// 7. Stock (spec 4.8 #1): the words stores use, and how the offers are read.
+check("stock: schema.org InStock as an address", stockOf("https://schema.org/InStock") === true);
+check("stock: schema.org OutOfStock, http", stockOf("http://schema.org/OutOfStock") === false);
+check("stock: a bare SoldOut", stockOf("SoldOut") === false);
+check("stock: Open Graph instock / oos", stockOf("instock") === true && stockOf("oos") === false);
+check("stock: 'out of stock' with spaces", stockOf("out of stock") === false);
+check("stock: PreOrder is still for sale", stockOf("https://schema.org/PreOrder") === true);
+check(
+  "stock: an unknown word is no reading",
+  stockOf("maybe") === null && stockOf(undefined) === null,
+);
+check(
+  "stock: the pages above, which did not say, read null",
+  og.available === null && ld.available === null && blog.available === null,
+);
+const sizes = readProductPage(
+  `<html><head><script type="application/ld+json">{"@type":"Product","name":"Boots","offers":[
+    {"@type":"Offer","price":"120","priceCurrency":"USD","availability":"https://schema.org/OutOfStock"},
+    {"@type":"Offer","price":"120","priceCurrency":"USD","availability":"https://schema.org/InStock"}]}</script>
+   <meta property="product:availability" content="oos"></head></html>`,
+  new URL("https://boots.example/p/1"),
+);
+check(
+  "stock: one size left is in stock, and the product block beats the stale og tag",
+  sizes.available === true,
+  sizes,
+);
+const gone = readProductPage(
+  `<html><head><script type="application/ld+json">{"@type":"ProductGroup","name":"Dress","hasVariant":[
+    {"@type":"Product","offers":{"@type":"Offer","price":"50","priceCurrency":"USD","availability":"http://schema.org/OutOfStock"}},
+    {"@type":"Product","offers":{"@type":"Offer","price":"50","priceCurrency":"USD","availability":"http://schema.org/SoldOut"}}]}</script></head></html>`,
+  new URL("https://dress.example/p/1"),
+);
+check("stock: every variant gone is sold out", gone.available === false, gone);
+const ogOnly = readProductPage(
+  `<html><head><meta property="og:title" content="Hat"><meta property="product:price:amount" content="20">
+   <meta property="product:availability" content="out of stock"></head></html>`,
+  new URL("https://hat.example/p/1"),
+);
+check(
+  "stock: the Open Graph tag when there is no product block",
+  ogOnly.available === false,
+  ogOnly,
+);
+const micro = readProductPage(
+  `<html><head><meta property="og:title" content="Belt"></head><body>
+   <link itemprop="availability" href="http://schema.org/InStock"></body></html>`,
+  new URL("https://belt.example/p/1"),
+);
+check("stock: the microdata link as the last source", micro.available === true, micro);
 
 // 7. Shells and bot walls.
 check(

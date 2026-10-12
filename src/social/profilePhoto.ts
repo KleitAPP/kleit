@@ -23,7 +23,8 @@ export type UploadResult =
 /** Upload, screen, and make it the profile photo. The state says whether it already shows. */
 export async function uploadProfilePhoto(file: Blob): Promise<UploadResult> {
   const { preparePhoto } = await import("@/photos/prepare");
-  const prepared = await preparePhoto(file, 1024);
+  // Capped at 1024 - a face needs no more - and no garment floor: a small old photo is fine here.
+  const prepared = await preparePhoto(file, 1024, 1);
   if (!prepared.ok) return { ok: false, problem: "unreadable" };
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;

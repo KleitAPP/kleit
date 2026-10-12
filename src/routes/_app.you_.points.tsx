@@ -28,7 +28,8 @@ const BADGES = [
   "contest_pick",
 ] as const;
 type BadgeKey = `badge.${(typeof BADGES)[number]}`;
-type ReasonKey = `points.${"publish" | "like_received" | "follower" | "contest_entry"}`;
+type ReasonKey =
+  `points.${"publish" | "like_received" | "follower" | "contest_entry" | "clip_used"}`;
 const LEVEL_FLOORS = [0, 100, 500, 2000, 10000];
 
 function Points() {

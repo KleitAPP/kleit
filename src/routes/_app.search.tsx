@@ -5,6 +5,8 @@ import { Chip, EmptyState, ItemCard, Tabs, type TabItem } from "@/components/kle
 import { t } from "@/i18n/en";
 import { AccountLabelChip } from "@/social/AccountLabel";
 import { Avatar } from "@/social/Avatar";
+import { ColourChips } from "@/items/ColourChips";
+import { type ColourName } from "@/items/colour";
 import { imageUrlFor, priceLabel, type ItemSummary } from "@/items/items";
 import {
   previewUrl,
@@ -22,8 +24,9 @@ import type { Person } from "@/social/follows";
 
 /**
  * S84–S86 — Search (roadmap M6.1; spec 9 #1): pieces, sets, people, stores. Store pieces only
- * (non-product clips never appear - spec 4.3 #2); a filter for the store and a price cap. What
- * comes back is whatever the row policies let you see, so a private set is never a result.
+ * (non-product clips never appear - spec 4.3 #2); a filter for the store, a price cap and a
+ * colour (migration 102). What comes back is whatever the row policies let you see, so a
+ * private set is never a result.
  */
 export const Route = createFileRoute("/_app/search")({
   head: () => ({ meta: [{ title: "Search" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -46,6 +49,7 @@ function SearchTab() {
   const [tab, setTab] = useState<Tab>("items");
   const [store, setStore] = useState<string | null>(null);
   const [cap, setCap] = useState<number | null>(null);
+  const [colour, setColour] = useState<ColourName | null>(null);
   const [items, setItems] = useState<Array<ItemSummary & { url: string | null }> | null>(null);
   const [sets, setSets] = useState<SetHit[] | null>(null);
   const [people, setPeople] = useState<Person[] | null>(null);
@@ -62,7 +66,7 @@ function SearchTab() {
     const timer = window.setTimeout(() => {
       void (async () => {
         if (tab === "items") {
-          const found = await searchItems(q, store, cap);
+          const found = await searchItems(q, store, cap, colour);
           const withUrls = await Promise.all(
             found.map(async (i) => ({ ...i, url: await imageUrlFor(i) })),
           );
@@ -80,7 +84,7 @@ function SearchTab() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [q, tab, store, cap]);
+  }, [q, tab, store, cap, colour]);
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
@@ -139,6 +143,12 @@ function SearchTab() {
                   />
                 ))}
               </div>
+              <ColourChips
+                value={colour}
+                onChange={setColour}
+                label={t("search.colour")}
+                none={t("search.anyColour")}
+              />
               {!items ? (
                 <div className="kl-skeleton h-40 w-full rounded-md bg-surface-2" />
               ) : items.length === 0 ? (

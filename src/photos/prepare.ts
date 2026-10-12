@@ -35,7 +35,13 @@ export type Prepared = {
   type: "image/webp" | "image/jpeg" | "image/png";
 };
 
-export type PrepareProblem = "not-an-image" | "unreadable" | "too-big" | "animated";
+export type PrepareProblem = "not-an-image" | "unreadable" | "too-big" | "too-small" | "animated";
+
+/**
+ * Under this on either side there is no garment to see (spec 4.6 #2): the floor for a closet
+ * photo. A profile photo or a picture in a message passes its own, smaller floor.
+ */
+export const SHORTEST_SIDE = 200;
 
 /** Refused before we even decode it: a 25 MB file is not a garment photo, it is a mistake. */
 export const MAX_INPUT_BYTES = 10 * 1024 * 1024;
@@ -47,6 +53,7 @@ export const MAX_INPUT_BYTES = 10 * 1024 * 1024;
 export async function prepareCanvas(
   file: Blob,
   longestSide: number = LONGEST_SIDE,
+  shortestSide: number = SHORTEST_SIDE,
 ): Promise<{ ok: true; canvas: HTMLCanvasElement } | { ok: false; problem: PrepareProblem }> {
   if (!file.type.startsWith("image/")) return { ok: false, problem: "not-an-image" };
   if (file.size > MAX_INPUT_BYTES) return { ok: false, problem: "too-big" };
@@ -64,6 +71,10 @@ export async function prepareCanvas(
     return { ok: false, problem: "unreadable" };
   }
 
+  if (bitmap.width < shortestSide || bitmap.height < shortestSide) {
+    bitmap.close();
+    return { ok: false, problem: "too-small" };
+  }
   const scale = Math.min(1, longestSide / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));
   const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -84,8 +95,9 @@ export async function prepareCanvas(
 export async function preparePhoto(
   file: Blob,
   longestSide: number = LONGEST_SIDE,
+  shortestSide: number = SHORTEST_SIDE,
 ): Promise<{ ok: true; photo: Prepared } | { ok: false; problem: PrepareProblem }> {
-  const prepared = await prepareCanvas(file, longestSide);
+  const prepared = await prepareCanvas(file, longestSide, shortestSide);
   if (!prepared.ok) return prepared;
   const canvas = prepared.canvas;
   const { width, height } = canvas;

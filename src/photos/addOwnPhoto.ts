@@ -16,6 +16,7 @@
  * it.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { colourOfBlob, type ColourName } from "@/items/colour";
 import { preparePhoto, type Prepared, type PrepareProblem } from "@/photos/prepare";
 
 export type AddProblem =
@@ -30,7 +31,10 @@ export type AddResult =
  * cutout editor's output, which has been through the same redraw and must not go through it
  * again, because a second JPEG pass would throw away the transparency it just made.
  */
-export async function addOwnPhoto(photo: Blob | Prepared): Promise<AddResult> {
+export async function addOwnPhoto(
+  photo: Blob | Prepared,
+  colour?: ColourName | null,
+): Promise<AddResult> {
   let ready: Prepared;
   if (photo instanceof Blob) {
     const prepared = await preparePhoto(photo);
@@ -63,6 +67,9 @@ export async function addOwnPhoto(photo: Blob | Prepared): Promise<AddResult> {
       kind: "own",
       image_bucket: "closet-photos",
       image_id: path,
+      // Its colour, named (spec 4.4 #4): the one the screen suggested and the person kept, or
+      // read here from the prepared picture when nobody was asked (many at once, the cutout).
+      color_name: colour === undefined ? await colourOfBlob(ready.blob) : colour,
     })
     .select("id")
     .single();

@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { ItemSummary } from "@/items/items";
+import { ITEM_FIELDS, type ItemSummary } from "@/items/items";
 import type { Person } from "@/social/follows";
 
 /**
@@ -17,19 +17,23 @@ export type SetHit = {
 };
 export type Store = { domain: string; store_name: string | null; products: number };
 
-const ITEM_FIELDS =
-  "id, kind, title, price_cents, price_currency, store_name, source_url, source_domain, image_id, image_bucket, created_at";
-
+/**
+ * Catalogue pieces (cleared, live products only - migrations 087, 101): by words, a store, a
+ * price ceiling, and a colour word (spec 9 #1; migration 102). `limit` is the picker's smaller page.
+ */
 export async function searchItems(
   q: string,
   store: string | null,
   maxCents: number | null,
+  colour: string | null = null,
+  limit = 40,
 ): Promise<ItemSummary[]> {
   const { data } = await supabase.rpc("search_items", {
     q,
     ...(store ? { p_store: store } : {}),
     ...(maxCents ? { p_max_cents: maxCents } : {}),
-    p_limit: 40,
+    ...(colour ? { p_colour: colour } : {}),
+    p_limit: limit,
   });
   return ((data ?? []) as Record<string, unknown>[]).map((r) => {
     const out: Record<string, unknown> = {};

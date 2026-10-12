@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
+import { colourLabel, colourOfBlob, type ColourName } from "@/items/colour";
+import { ColourChips } from "@/items/ColourChips";
 import { addOwnPhoto, type AddProblem } from "@/photos/addOwnPhoto";
 import { CutoutEditor } from "@/photos/CutoutEditor";
 import { finishCutout, type Cutout } from "@/photos/cutout";
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/_app/add/photo")({
 
 type Stage =
   | { at: "choosing" }
-  | { at: "chosen"; file: File; preview: string }
+  | { at: "chosen"; file: File; preview: string; colour: ColourName | null }
   | { at: "editing"; source: HTMLCanvasElement; base: HTMLCanvasElement | null }
   | { at: "working" }
   | { at: "done"; state: "clean" | "review" | "blocked" | "checking" }
@@ -54,6 +56,7 @@ type Stage =
 
 const PROBLEM_WORDS: Record<AddProblem, string> = {
   "too-big": t("photo.tooBig"),
+  "too-small": t("photo.tooSmall"),
   "not-an-image": t("photo.notAnImage"),
   animated: t("photo.animated"),
   unreadable: t("photo.unreadable"),
@@ -70,6 +73,9 @@ function AddPhoto() {
   const [stage, setStage] = useState<Stage>({ at: "choosing" });
   // Kept across the editor so "keep background" can still add the original file.
   const chosen = useRef<File | null>(null);
+  // The colour chip the person left pressed; null while the guess has not arrived, and then the
+  // add names the picture itself rather than writing "no colour".
+  const chosenColour = useRef<ColourName | null>(null);
 
   // A preview is an object URL, which the browser holds until it is told not to.
   useEffect(() => {
@@ -78,9 +84,9 @@ function AddPhoto() {
     return () => URL.revokeObjectURL(url);
   }, [stage]);
 
-  async function add(photo: Parameters<typeof addOwnPhoto>[0]) {
+  async function add(photo: Parameters<typeof addOwnPhoto>[0], colour?: ColourName | null) {
     setStage({ at: "working" });
-    const result = await addOwnPhoto(photo);
+    const result = await addOwnPhoto(photo, colour);
     setStage(
       result.ok ? { at: "done", state: result.state } : { at: "failed", problem: result.problem },
     );
@@ -88,6 +94,7 @@ function AddPhoto() {
 
   async function openEditor() {
     if (stage.at !== "chosen") return;
+    chosenColour.current = stage.colour;
     const prepared = await prepareCanvas(stage.file);
     if (!prepared.ok) {
       setStage({ at: "failed", problem: prepared.problem satisfies PrepareProblem });
@@ -117,6 +124,7 @@ function AddPhoto() {
     setStage({ at: "working" });
     try {
       const finished = await finishCutout(cutout);
+      // A cutout votes with its own pixels: the backdrop that coloured the first guess is gone.
       await add({
         blob: finished.blob,
         type: finished.type,
@@ -152,16 +160,37 @@ function AddPhoto() {
             return;
           }
           chosen.current = file;
-          setStage({ at: "chosen", file, preview: URL.createObjectURL(file) });
+          const preview = URL.createObjectURL(file);
+          setStage({ at: "chosen", file, preview, colour: null });
+          // The colour it looks, suggested (spec 4.4 #4); the person can change it before Add.
+          void colourOfBlob(file).then((colour) => {
+            setStage((now) =>
+              now.at === "chosen" && now.file === file ? { ...now, colour } : now,
+            );
+          });
         }}
       />
 
       {stage.at === "chosen" ? (
-        <img
-          src={stage.preview}
-          alt=""
-          className="mt-6 max-h-80 w-full rounded-md border border-line object-contain"
-        />
+        <>
+          <img
+            src={stage.preview}
+            alt=""
+            className="mt-6 max-h-80 w-full rounded-md border border-line object-contain"
+          />
+          <div className="mt-3">
+            <ColourChips
+              value={stage.colour}
+              onChange={(colour) => setStage({ ...stage, colour })}
+              label={t("item.colour")}
+            />
+          </div>
+          {stage.colour ? (
+            <p className="mt-1 text-sm text-ink-soft" aria-live="polite">
+              {t("photo.looksLike", { colour: colourLabel(stage.colour).toLowerCase() })}
+            </p>
+          ) : null}
+        </>
       ) : null}
 
       {stage.at === "editing" ? (
@@ -171,7 +200,7 @@ function AddPhoto() {
           onDone={(cutout) => void finishEditing(cutout)}
           onKeepBackground={() => {
             const file = chosen.current;
-            if (file) void add(file);
+            if (file) void add(file, chosenColour.current ?? undefined);
           }}
         />
       ) : null}
@@ -221,7 +250,9 @@ function AddPhoto() {
       <div className="mt-8">
         {stage.at === "chosen" ? (
           <>
-            <PrimaryButton onClick={() => void add(stage.file)}>{t("photo.add")}</PrimaryButton>
+            <PrimaryButton onClick={() => void add(stage.file, stage.colour ?? undefined)}>
+              {t("photo.add")}
+            </PrimaryButton>
             <button
               type="button"
               onClick={() => void openEditor()}

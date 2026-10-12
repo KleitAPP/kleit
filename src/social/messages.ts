@@ -123,7 +123,8 @@ export async function uploadMessagePhoto(
   file: Blob,
 ): Promise<{ ok: true; itemId: string } | { ok: false }> {
   const { preparePhoto } = await import("@/photos/prepare");
-  const prepared = await preparePhoto(file);
+  // No garment floor (spec 4.6 #2 is for the closet): a small picture in a chat is still a picture.
+  const prepared = await preparePhoto(file, undefined, 1);
   if (!prepared.ok) return { ok: false };
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;

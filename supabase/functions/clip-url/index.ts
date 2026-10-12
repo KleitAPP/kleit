@@ -40,6 +40,7 @@ import {
   looksLikeAShell,
 } from "../_shared/product-page.ts";
 import { screenItem, ScreenFailure, awsKeysFromEnv } from "../_shared/screen.ts";
+import { dominantColour } from "../_shared/colour.ts";
 import {
   cleanSongUrl,
   oembedUrl,
@@ -202,6 +203,8 @@ async function readPage(
       currency: read.currency,
       storeName: read.storeName ?? domainOf(source),
       images: read.images,
+      // Whether the store still offers it (spec 4.8 #1); null when the page did not say.
+      available: read.available,
       sourceUrl: cleanSourceUrl(source),
       sourceDomain: domainOf(source),
       // Why the read answered as it did, for the probe's table and for the log.
@@ -274,6 +277,9 @@ async function saveClip(
   const storeName =
     typeof body["storeName"] === "string" ? body["storeName"].trim().slice(0, 100) : "";
   const own = body["own"] === true;
+  // What the read said about stock, handed back by the app (spec 4.8 #1). Only a plain "sold
+  // out" is kept; anything else is the default, and the price watch keeps it true later.
+  const soldOut = body["soldOut"] === true;
   if (!imageUrl) return reply(400, { problem: "bad-request" });
 
   let pageUrl: URL;
@@ -287,6 +293,9 @@ async function saveClip(
   // The picture, through the same door as the page. Asked for as JPEG or PNG first, because
   // those are what the scanner can read; a site that only has WebP is a fallback case.
   let bytes: Uint8Array;
+  // The picture's colour, in one of sixteen words (spec 4.4 #4, 9 #1): read from the decoded
+  // pixels here, by the same rule the phone uses on a closet photo, and changeable on the item.
+  let colour: string | null = null;
   try {
     const image = await safeFetch(imageUrl, {
       deadlineMs: IMAGE_DEADLINE_MS,
@@ -311,6 +320,7 @@ async function saveClip(
       const scale = IMAGE_LONGEST_SIDE / longest;
       picture.resize(Math.round(picture.width * scale), Math.round(picture.height * scale));
     }
+    colour = dominantColour(picture.bitmap, picture.width, picture.height);
     bytes = await picture.encodeJPEG(86);
   } catch (problem) {
     if (problem instanceof SafeFetchError)
@@ -347,6 +357,8 @@ async function saveClip(
       source_domain: sourceDomain,
       image_id: imageId,
       image_bucket: "item-images",
+      color_name: colour,
+      sold_out: soldOut,
     })
     .select("id")
     .single();

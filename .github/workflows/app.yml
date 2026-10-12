@@ -62,6 +62,10 @@ jobs:
       # Complete the look prefers a kind the set lacks, the same store, your own things.
       - name: Prove Shuffle, swipe and Complete the look (no network)
         run: bun scripts/check-suggest.ts
+      # The colour words (spec 4.4 #4, 9 #1): one file names a pixel and votes a picture, for the
+      # phone and the clipper alike; this is what keeps the two naming the same pixels the same.
+      - name: Prove the colour naming (no network)
+        run: bun scripts/check-colour.ts
       - name: The Creative canvas document's rules (cap, undo, snapping, order)
         run: bun scripts/check-canvas-doc.ts
       - name: Every shipped font has its licence recorded

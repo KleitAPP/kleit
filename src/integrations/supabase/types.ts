@@ -2748,6 +2748,7 @@ export type Database = {
           p_cents?: number
           p_currency?: string
           p_item: string
+          p_sold_out?: boolean
           p_status: string
         }
         Returns: number
@@ -2777,6 +2778,7 @@ export type Database = {
       }
       search_items: {
         Args: {
+          p_colour?: string
           p_limit?: number
           p_max_cents?: number
           p_store?: string

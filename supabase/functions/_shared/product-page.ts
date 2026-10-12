@@ -21,6 +21,11 @@ export type ProductRead = {
   images: string[];
   /** The page's own idea of its canonical address, if it has one. */
   canonical: string | null;
+  /**
+   * Whether the store offers the piece (spec 4.8 #1 "sold out"): true in stock, false sold out,
+   * null when the page does not say. A page that does not say is not a page that says "gone".
+   */
+  available: boolean | null;
 };
 
 const MAX_IMAGES = 8;
@@ -107,6 +112,16 @@ export function readProductPage(html: string, pageUrl: URL): ProductRead {
   const canonical = firstMatch(head, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)
     ?? firstMatch(head, /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i);
 
+  // Stock: the first source that says. Inside the JSON-LD every offer and variant is read and
+  // one in stock means in stock (a page lists a size per offer); across sources the first answer
+  // wins, like every other field, so a stale og tag cannot overrule the product block.
+  const available =
+    ld.available ??
+    stockOf(meta.get("product:availability")) ??
+    stockOf(meta.get("og:availability")) ??
+    stockOf(firstMatch(head, /itemprop=["']availability["'][^>]*?(?:href|content)=["']([^"']+)["']/i)) ??
+    null;
+
   return {
     title,
     priceCents,
@@ -114,7 +129,31 @@ export function readProductPage(html: string, pageUrl: URL): ProductRead {
     storeName,
     images,
     canonical: canonical ? safeAbsolute(canonical, pageUrl) : null,
+    available,
   };
+}
+
+/**
+ * One availability word to a reading: schema.org's ("https://schema.org/InStock", "OutOfStock",
+ * "SoldOut", "PreOrder" ...) and Open Graph's ("instock", "oos", "out of stock", "preorder").
+ * Something that can be ordered counts as offered; a word this does not know is no reading.
+ */
+export function stockOf(value: unknown): boolean | null {
+  if (typeof value !== "string") return null;
+  const word = value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/schema\.org\//, "")
+    .replace(/[\s_-]/g, "");
+  if (/^(instock|instoreonly|onlineonly|limitedavailability|preorder|presale|backorder|availablefororder|available|instocks)$/.test(word)) return true;
+  if (/^(outofstock|soldout|discontinued|oos|unavailable|notavailable)$/.test(word)) return false;
+  return null;
+}
+
+function combineStock(readings: (boolean | null)[]): boolean | null {
+  if (readings.some((r) => r === true)) return true;
+  if (readings.some((r) => r === false)) return false;
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,7 +186,30 @@ function collectMeta(head: string): Meta {
   return meta;
 }
 
-type Ld = { name?: string | undefined; price?: string | undefined; currency?: string | undefined; brand?: string | undefined; images: string[] };
+type Ld = {
+  name?: string | undefined;
+  price?: string | undefined;
+  currency?: string | undefined;
+  brand?: string | undefined;
+  images: string[];
+  /** Across every offer and variant: in stock if any is; sold out only if they all say so. */
+  available?: boolean | null;
+};
+
+/** Offers as a list, whatever shape the page used: one, several, or an aggregate holding several. */
+function offerList(raw: unknown): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const entry of Array.isArray(raw) ? raw : [raw]) {
+    if (!entry || typeof entry !== "object") continue;
+    const offer = entry as Record<string, unknown>;
+    out.push(offer);
+    // An AggregateOffer can carry the offers it aggregates.
+    if (Array.isArray(offer["offers"])) {
+      for (const inner of offer["offers"]) if (inner && typeof inner === "object") out.push(inner as Record<string, unknown>);
+    }
+  }
+  return out;
+}
 
 /** The first JSON-LD Product on the page (also inside a @graph, and offers as an object or a list). */
 function collectJsonLd(head: string): Ld {
@@ -195,6 +257,16 @@ function collectJsonLd(head: string): Ld {
       found.currency = str(o["priceCurrency"]) ??
         (spec && typeof spec === "object" ? str((spec as Record<string, unknown>)["priceCurrency"]) : undefined);
     }
+    // Stock, from every offer there is: the product's own and each variant's (a size per offer
+    // is the usual shape, and a product with one size left is still for sale).
+    const readings = offerList(product["offers"]).map((o) => stockOf(o["availability"]));
+    if (Array.isArray(product["hasVariant"])) {
+      for (const variant of product["hasVariant"]) {
+        if (!variant || typeof variant !== "object") continue;
+        for (const o of offerList((variant as Record<string, unknown>)["offers"])) readings.push(stockOf(o["availability"]));
+      }
+    }
+    found.available = combineStock(readings);
     break;
   }
   return found;

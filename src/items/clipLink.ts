@@ -16,6 +16,8 @@ export type PageRead = {
   images: string[];
   sourceUrl: string;
   sourceDomain: string;
+  /** Whether the store still offers it (spec 4.8 #1): true, false, or null when the page did not say. */
+  available: boolean | null;
 };
 
 export type ReadProblem =
@@ -45,7 +47,10 @@ export async function readLink(url: string): Promise<ReadResult> {
     }
     if (!data || typeof data !== "object") return { ok: false, problem: "unreadable" };
     const page = data as PageRead;
-    return { ok: true, page: { ...page, images: page.images ?? [] } };
+    return {
+      ok: true,
+      page: { ...page, images: page.images ?? [], available: page.available ?? null },
+    };
   } catch {
     return { ok: false, problem: "offline" };
   }
@@ -59,6 +64,8 @@ export type SaveInput = {
   currency: string | null;
   storeName: string;
   own: boolean;
+  /** What the read said about stock; the server keeps a plain "sold out" and nothing else. */
+  soldOut: boolean;
 };
 
 export type SaveProblem = ReadProblem | "image-unreadable" | "save-failed";

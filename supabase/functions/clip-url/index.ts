@@ -404,6 +404,7 @@ async function readSong(rawUrl: string): Promise<Response> {
   const service = songService(url);
   if (!service) return reply(422, { problem: "not-a-service" });
   const clean = cleanSongUrl(url, service);
+  if (!clean) return reply(422, { problem: "not-a-song" });
   const song: SongRead = { service, url: clean, title: null, artist: null, cover: null };
 
   const oembed = oembedUrl(clean, service);

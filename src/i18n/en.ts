@@ -548,6 +548,7 @@ export const en = {
   "send.tagRemove": "Remove @{name}",
   "send.tagNobody": "No one by that name.",
   "send.tagRefused": "They don't take tags from you.",
+  "send.tagCantSee": "They can't see this set, so they can't be tagged in it.",
   "send.tagFailed": "That didn't work. Have another go in a moment.",
   "send.tagsHint": "autumn, wool, y2k - up to 20",
   "points.title": "Your points",
@@ -1121,6 +1122,8 @@ export const en = {
   "song.openYouTube": "Open in YouTube Music",
   "song.problem.bad-url": "That isn't a web address. Copy the song's share link and paste it here.",
   "song.problem.not-a-service": "Only Spotify, Apple Music and YouTube Music links work here.",
+  "song.problem.not-a-song":
+    "That link isn't a song, album or playlist. Open the song itself and copy its share link.",
   "song.problem.unreadable": "We couldn't read that link. Check it and try again.",
   "song.problem.signed-out": "Sign in again to add a song.",
   "song.problem.offline": "No connection. Try again when you're back online.",

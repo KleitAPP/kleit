@@ -17,7 +17,8 @@ export type Song = {
   cover: string | null;
 };
 
-export type SongProblem = "bad-url" | "not-a-service" | "unreadable" | "signed-out" | "offline";
+export type SongProblem =
+  "bad-url" | "not-a-service" | "not-a-song" | "unreadable" | "signed-out" | "offline";
 
 export function songService(url: string): SongService | null {
   try {
@@ -61,6 +62,7 @@ export async function readSong(
           const body = (await context.clone().json()) as { problem?: string };
           if (body.problem === "bad-url" || body.problem === "not-public") problem = "bad-url";
           else if (body.problem === "not-a-service") problem = "not-a-service";
+          else if (body.problem === "not-a-song") problem = "not-a-song";
           else if (body.problem === "signed-out") problem = "signed-out";
         } catch {
           /* the shape is the message */

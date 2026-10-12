@@ -30,32 +30,44 @@ const SERVICES: Record<string, SongService> = {
 const COVER_HOSTS =
   /^https:\/\/(i\.scdn\.co|[a-z0-9-]+\.spotifycdn\.com|is[0-9]+-ssl\.mzstatic\.com|i[0-9]*\.ytimg\.com|img\.youtube\.com)\//;
 
+/**
+ * The shape of a kept link: the song's own address and nothing else (migration 095 keeps the
+ * same pattern on the column, so what passes here fits there and nothing else does). YouTube's
+ * /redirect?q= and a Spotify path with a query would otherwise have been "a YouTube link".
+ */
+export const SONG_URL_SHAPE =
+  "^https://(open\\.spotify\\.com/(intl-[a-z]+(-[a-z]+)?/)?(track|album|playlist|episode|show|artist)/[A-Za-z0-9]{8,40}|music\\.apple\\.com/[a-z]{2}/(album|song|playlist|music-video|artist)/[A-Za-z0-9._%-]*/?[A-Za-z0-9.-]+(\\?i=[0-9]+)?|(www|music)\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{6,20})$";
+const SONG_URL = new RegExp(SONG_URL_SHAPE);
+
 export function songService(url: URL): SongService | null {
   if (url.protocol !== "https:") return null;
   return SERVICES[url.hostname.toLowerCase()] ?? null;
 }
 
-/** The link the set keeps: the song's own path, no tracking codes; YouTube keeps only `v`. */
-export function cleanSongUrl(url: URL, service: SongService): string {
+/**
+ * The link the set keeps: the song's own path, no tracking codes; YouTube keeps only `v`. Null
+ * when the link is on a service but is not a song, album or playlist (a channel, a redirect).
+ */
+export function cleanSongUrl(url: URL, service: SongService): string | null {
   const host = url.hostname.toLowerCase();
+  const path = url.pathname.replace(/\/+$/, "");
+  let kept: string;
   if (service === "youtube") {
     const id =
-      host === "youtu.be"
-        ? url.pathname.replace(/^\//, "").split("/")[0]
-        : url.searchParams.get("v");
-    if (id && /^[A-Za-z0-9_-]{6,20}$/.test(id)) {
-      return host === "music.youtube.com"
+      host === "youtu.be" ? path.replace(/^\//, "").split("/")[0] : url.searchParams.get("v");
+    if (!id) return null;
+    kept =
+      host === "music.youtube.com"
         ? `https://music.youtube.com/watch?v=${id}`
         : `https://www.youtube.com/watch?v=${id}`;
-    }
-    return `https://${host}${url.pathname}`;
-  }
-  if (service === "apple") {
+  } else if (service === "apple") {
     // An Apple Music link to one song carries its id as `?i=`; keep that one, drop the rest.
     const i = url.searchParams.get("i");
-    return `https://music.apple.com${url.pathname}${i && /^\d+$/.test(i) ? `?i=${i}` : ""}`;
+    kept = `https://music.apple.com${path}${i && /^\d+$/.test(i) ? `?i=${i}` : ""}`;
+  } else {
+    kept = `https://open.spotify.com${path}`;
   }
-  return `https://open.spotify.com${url.pathname}`;
+  return SONG_URL.test(kept) ? kept : null;
 }
 
 /** The oEmbed address for the services that have one; null for Apple Music, which does not. */

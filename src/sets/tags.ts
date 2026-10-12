@@ -13,9 +13,12 @@ export async function peopleOnSet(setId: string): Promise<TaggedPerson[]> {
   return ((data ?? []) as TaggedPerson[]).filter((p) => p.username);
 }
 
-export type TagProblem = "no-such-person" | "refused" | "failed";
+export type TagProblem = "no-such-person" | "refused" | "cant-see" | "failed";
 
-/** Tag a person by their username. Refused when they do not allow it, or the pair is blocked. */
+/**
+ * Tag a person by their username. Refused when they do not allow it, or the pair is blocked;
+ * "cant-see" when the set is published and they cannot open it (migration 095, P0011).
+ */
 export async function tagPerson(
   setId: string,
   username: string,
@@ -37,7 +40,9 @@ export async function tagPerson(
     .select("state")
     .single();
   if (error || !row) {
-    return { ok: false, problem: error?.code === "42501" ? "refused" : "failed" };
+    const problem: TagProblem =
+      error?.code === "42501" ? "refused" : error?.code === "P0011" ? "cant-see" : "failed";
+    return { ok: false, problem };
   }
   return {
     ok: true,

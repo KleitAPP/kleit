@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(12);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('e1e1e1e1-0000-4000-8000-000000000001', 'al-admin@test.kleit'),
@@ -37,7 +37,8 @@ select throws_ok($$ select set_account_label('almember', 'brand') $$, '42501', n
 select pg_temp.act_as('e1e1e1e1-0000-4000-8000-000000000004');
 select throws_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version, label) values ('e1e1e1e1-0000-4000-8000-000000000004', 'alnewcomer', now(), 't', 'stylist') $$, '42501', null, 'newcomer: cannot arrive with a label');
 select throws_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version, points) values ('e1e1e1e1-0000-4000-8000-000000000004', 'alnewcomer', now(), 't', 5000) $$, '42501', null, 'newcomer: cannot arrive with points');
-select lives_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version) values ('e1e1e1e1-0000-4000-8000-000000000004', 'alnewcomer', now(), 't') $$, 'newcomer: a plain row is fine');
+select throws_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version) values ('e1e1e1e1-0000-4000-8000-000000000004', 'alnewcomer', now(), 't') $$, '42501', null, 'newcomer: nor write the row by hand at all (095: claim_profile is the door)');
+select lives_ok($$ select claim_profile('alnewcomer', '', 't') $$, 'newcomer: the door opens');
 select is((select label::text from profiles where user_id = 'e1e1e1e1-0000-4000-8000-000000000004'), 'none', 'and starts unlabelled');
 
 -- 2. An admin labels by username; it is logged; nobody is a label.

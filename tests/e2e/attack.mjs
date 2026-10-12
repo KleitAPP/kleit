@@ -32,7 +32,7 @@ function check(ok, what, detail = "") {
   if (!ok) failed += 1;
 }
 
-async function person(email, username) {
+async function person(email, username, { claim = true } = {}) {
   const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
   let user = list?.users.find((u) => u.email === email) ?? null;
   if (!user) {
@@ -55,7 +55,7 @@ async function person(email, username) {
     .select("username")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!prof) {
+  if (!prof && claim) {
     const { error: claimErr } = await client.rpc("claim_profile", {
       p_username: username,
       p_display_name: username,
@@ -998,7 +998,7 @@ try {
   const coverElsewhere = await a
     .from("sets")
     .update({
-      song_url: "https://open.spotify.com/track/abc",
+      song_url: "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC",
       song_title: "x",
       song_cover_url: "https://evil.example/pixel.gif",
     })
@@ -1026,6 +1026,119 @@ try {
     "attacker: cannot set a profile photo by hand, point it elsewhere, or at the victim's picture",
     `${photoByHand.error?.code ?? "set"} / ${pixelByHand.error?.code ?? "set"} / ${theirs.error?.code ?? "set"}`,
   );
+  // The third review (095). A profile is made through claim_profile only: an account with no
+  // profile cannot write its own row by hand and skip the sign-up rules.
+  const nobody = await person("attack-nobody@test.kleit", "attacknobody", { claim: false });
+  const rowByHand = await nobody.client.from("profiles").insert({
+    user_id: nobody.id,
+    username: "attacknobody",
+    age_confirmed_at: new Date().toISOString(),
+    terms_version: "v0.1",
+  });
+  const { data: noRow } = await admin
+    .from("profiles")
+    .select("user_id")
+    .eq("user_id", nobody.id)
+    .maybeSingle();
+  check(
+    rowByHand.error?.code === "42501" && !noRow,
+    "attacker: an account cannot write its own profile row by hand (claim_profile is the door)",
+    rowByHand.error?.code ?? "written",
+  );
+  // A store piece is clipped by the server: by hand, a piece pointing Buy anywhere is refused.
+  const fakeProduct = await a.from("items").insert({
+    owner_id: attacker.id,
+    kind: "product",
+    title: "attack fake product (ignore)",
+    source_url: "https://evil.example/go",
+    source_domain: "evil.example",
+  });
+  const ownPointing = await a.from("items").insert({
+    owner_id: attacker.id,
+    kind: "own",
+    title: "attack pointing piece (ignore)",
+    source_url: "https://evil.example/go",
+  });
+  check(
+    fakeProduct.error?.code === "42501" && ownPointing.error?.code === "42501",
+    "attacker: cannot write a store piece, or a piece pointing elsewhere, by hand",
+    `${fakeProduct.error?.code ?? "written"} / ${ownPointing.error?.code ?? "written"}`,
+  );
+  // published_at is the server's stamp: a set published by hand with a far-future stamp is
+  // stamped now, and the stamp cannot be moved afterwards.
+  const { data: stamped } = await a
+    .from("sets")
+    .insert({
+      owner_id: attacker.id,
+      title: "attack song (ignore)",
+      status: "published",
+      visibility: "only_me",
+      published_at: "2099-01-01T00:00:00Z",
+    })
+    .select("id, published_at")
+    .single();
+  const stampAge = stamped ? Math.abs(Date.now() - new Date(stamped.published_at).getTime()) : NaN;
+  const moveStamp = await a
+    .from("sets")
+    .update({ published_at: "2099-01-01T00:00:00Z" })
+    .eq("id", stamped?.id ?? "");
+  check(
+    stampAge < 5 * 60 * 1000 && moveStamp.error?.code === "42501",
+    "attacker: a set published by hand is stamped now, and the stamp stays put",
+    `${Number.isNaN(stampAge) ? "no set" : `${Math.round(stampAge / 1000)}s`} / ${moveStamp.error?.code ?? "moved"}`,
+  );
+  // A challenge entry never arrives already picked. The week's own challenge when it is open;
+  // a throwaway one otherwise (gone in `finally`).
+  const { data: openOnes } = await admin
+    .from("contests")
+    .select("id")
+    .lte("opens_at", new Date().toISOString())
+    .gt("closes_at", new Date().toISOString())
+    .order("opens_at", { ascending: false })
+    .limit(1);
+  let contestId = openOnes?.[0]?.id ?? null;
+  if (!contestId) {
+    const { data: made } = await admin
+      .from("contests")
+      .insert({
+        title: "attack contest (ignore)",
+        opens_at: new Date(Date.now() - 60_000).toISOString(),
+        closes_at: new Date(Date.now() + 10 * 60_000).toISOString(),
+      })
+      .select("id")
+      .single();
+    contestId = made?.id ?? null;
+  }
+  const { data: entrySet } = await a
+    .from("sets")
+    .insert({
+      owner_id: attacker.id,
+      title: "attack song (ignore)",
+      status: "published",
+      visibility: "public",
+    })
+    .select("id")
+    .single();
+  const pickedByHand = await a.from("contest_entries").insert({
+    contest_id: contestId,
+    user_id: attacker.id,
+    set_id: entrySet?.id ?? "",
+    picked_at: new Date().toISOString(),
+  });
+  const plainEntry = await a
+    .from("contest_entries")
+    .insert({ contest_id: contestId, user_id: attacker.id, set_id: entrySet?.id ?? "" })
+    .select("picked_at")
+    .single();
+  check(
+    !!contestId &&
+      pickedByHand.error?.code === "42501" &&
+      !plainEntry.error &&
+      plainEntry.data?.picked_at === null,
+    "attacker: cannot enter a challenge already picked; a plain entry arrives unpicked",
+    `${contestId ? "" : "no contest / "}${pickedByHand.error?.code ?? "picked"} / ${plainEntry.error?.code ?? "entered"}`,
+  );
+  await a.from("contest_entries").delete().eq("contest_id", contestId).eq("user_id", attacker.id);
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
@@ -1044,6 +1157,8 @@ try {
   // The test accounts' templates go every run, whatever happened above: a published one would
   // otherwise sit in every person's builder row (it did, three times over, on 2026-10-05).
   await admin.from("templates").delete().in("owner_id", [victim.id, attacker.id]);
+  await admin.from("contest_entries").delete().eq("user_id", attacker.id);
+  await admin.from("contests").delete().eq("title", "attack contest (ignore)");
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack song (ignore)");
   await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);

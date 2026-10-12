@@ -31,11 +31,22 @@ insert into optout_sites (domain, source) values ('example.com', 'form');
 
 -- ---------------- items: creating and owning ----------------
 select pg_temp.act_as('11111111-1111-4111-8111-111111111111');
-select lives_ok($$ insert into items (id, owner_id, kind, title, source_url, source_domain)
-                   values ('aaaaaaaa-0000-4000-8000-000000000001',
-                           '11111111-1111-4111-8111-111111111111', 'product', 'A coat',
-                           'https://shop.example.com/coat', 'shop.example.com') $$,
-  'items: a signed-in person can clip an item of their own');
+-- Since 095 a store piece is written by the server (clip-url) only: by hand a person adds
+-- pieces of their own. The seed below is what clip-url does, with the secret key.
+select throws_ok($$ insert into items (id, owner_id, kind, title, source_url, source_domain)
+                    values ('aaaaaaaa-0000-4000-8000-000000000001',
+                            '11111111-1111-4111-8111-111111111111', 'product', 'A coat',
+                            'https://shop.example.com/coat', 'shop.example.com') $$,
+  '42501', null, 'items: a store piece is never written by hand (095)');
+reset role;
+-- act_as leaves the claims behind: cleared, so this insert is the server's (no auth.uid()).
+select set_config('request.jwt.claims', '', true);
+select set_config('request.jwt.claim.sub', '', true);
+insert into items (id, owner_id, kind, title, source_url, source_domain)
+  values ('aaaaaaaa-0000-4000-8000-000000000001',
+          '11111111-1111-4111-8111-111111111111', 'product', 'A coat',
+          'https://shop.example.com/coat', 'shop.example.com');
+select pg_temp.act_as('11111111-1111-4111-8111-111111111111');
 select throws_ok($$ insert into items (owner_id, kind, title)
                     values ('22222222-2222-4222-8222-222222222222', 'product', 'not mine') $$,
   '42501', null, 'items: nobody can create an item owned by someone else');

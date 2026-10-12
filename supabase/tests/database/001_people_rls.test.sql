@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(31);
+select plan(32);
 
 -- Two fake accounts (technical pack §7.4 names). Never real people.
 insert into auth.users (id, email) values
@@ -35,17 +35,21 @@ insert into blocked_identities (email_hash, reason) values ('hash-x', 'test');
 
 -- ---------------- profiles ----------------
 select pg_temp.act_as('11111111-1111-4111-8111-111111111111');
-select lives_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version)
-                   values ('11111111-1111-4111-8111-111111111111', 'owner.one', now(), '2026-09') $$,
-  'profiles: the owner can create their own profile');
+-- Since 095 the row is never written by hand, even your own: claim_profile is the one door,
+-- because it is where the sign-up rules live (the switch, banned identities, the invite, the
+-- username rules, the 18+ record).
+select throws_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version)
+                    values ('11111111-1111-4111-8111-111111111111', 'owner.one', now(), '2026-09') $$,
+  '42501', null, 'profiles: not even the owner writes their own row by hand (095)');
+select lives_ok($$ select claim_profile('owner.one', '', '2026-09') $$,
+  'profiles: the owner creates their own profile through claim_profile');
 select throws_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version)
                     values ('22222222-2222-4222-8222-222222222222', 'imposter', now(), '2026-09') $$,
   '42501', null, 'profiles: nobody can create a profile for someone else');
 
 select pg_temp.act_as('22222222-2222-4222-8222-222222222222');
-select lives_ok($$ insert into profiles (user_id, username, age_confirmed_at, terms_version)
-                   values ('22222222-2222-4222-8222-222222222222', 'stranger.two', now(), '2026-09') $$,
-  'profiles: a second account creates its own profile');
+select lives_ok($$ select claim_profile('stranger.two', '', '2026-09') $$,
+  'profiles: a second account creates its own profile the same way');
 select is((select count(*)::int from profiles where user_id = '11111111-1111-4111-8111-111111111111'), 1,
   'profiles: a signed-in stranger can read a public profile (permissions row 1)');
 update profiles set bio = 'hacked' where user_id = '11111111-1111-4111-8111-111111111111';

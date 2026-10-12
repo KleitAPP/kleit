@@ -5,6 +5,8 @@
  *
  * Run: bun scripts/check-song-page.ts   (CI runs it on every push)
  */
+import { readFileSync } from "node:fs";
+
 import {
   cleanSongUrl,
   coverAllowed,
@@ -12,6 +14,7 @@ import {
   readOembed,
   readSongPage,
   songService,
+  SONG_URL_SHAPE,
 } from "../supabase/functions/_shared/song-page.ts";
 
 let failed = 0;
@@ -77,6 +80,54 @@ check(
     "youtube",
   ) === "https://music.youtube.com/watch?v=dQw4w9WgXcQ",
   "YouTube Music keeps its own host and only the id",
+);
+check(
+  cleanSongUrl(
+    new URL("https://open.spotify.com/intl-de/track/4uLU6hMCjMI75M1A2tKUQC/"),
+    "spotify",
+  ) === "https://open.spotify.com/intl-de/track/4uLU6hMCjMI75M1A2tKUQC",
+  "Spotify: a market prefix stays, a trailing slash goes",
+);
+// 2b. A link on a service that is not a song is refused (migration 095): YouTube's own
+// redirect page would have sent the share page's reader anywhere.
+check(
+  cleanSongUrl(new URL("https://www.youtube.com/redirect?q=https://evil.example"), "youtube") ===
+    null,
+  "YouTube: /redirect is not a song",
+);
+check(
+  cleanSongUrl(new URL("https://www.youtube.com/@channel"), "youtube") === null,
+  "YouTube: a channel is not a song",
+);
+check(
+  cleanSongUrl(new URL("https://youtu.be/"), "youtube") === null,
+  "youtu.be with no id is not a song",
+);
+check(
+  cleanSongUrl(new URL("https://open.spotify.com/user/someone"), "spotify") === null,
+  "Spotify: a person's page is not a song",
+);
+check(
+  cleanSongUrl(new URL("https://music.apple.com/us/station/x/ra.1"), "apple") === null,
+  "Apple Music: a station is not a song",
+);
+check(
+  cleanSongUrl(
+    new URL("https://music.apple.com/us/playlist/todays-hits/pl.f4d106fed2bd41149aaacabb233eb5eb"),
+    "apple",
+  ) === "https://music.apple.com/us/playlist/todays-hits/pl.f4d106fed2bd41149aaacabb233eb5eb",
+  "Apple Music: a playlist is kept",
+);
+// The column keeps the very same shape (migration 095), so the two never drift apart.
+const migration = readFileSync(
+  new URL("../supabase/migrations/20261012090000_review_fixes_2.sql", import.meta.url),
+  "utf8",
+);
+const onColumn = migration.match(/song_url ~ '([^']+)'\)/)?.[1] ?? "";
+check(
+  onColumn === SONG_URL_SHAPE,
+  "the reader and the column keep the same shape",
+  onColumn ? "" : "no constraint found",
 );
 check(
   oembedUrl("https://music.apple.com/us/album/x/1?i=2", "apple") === null,

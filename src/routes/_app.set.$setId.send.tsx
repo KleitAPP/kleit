@@ -80,7 +80,9 @@ function SendSet() {
           ? t("send.tagNobody")
           : result.problem === "refused"
             ? t("send.tagRefused")
-            : t("send.tagFailed"),
+            : result.problem === "cant-see"
+              ? t("send.tagCantSee")
+              : t("send.tagFailed"),
       );
       return;
     }

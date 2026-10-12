@@ -188,6 +188,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/p/")) return pollPage(request, env);
+    if (url.pathname.startsWith("/e/brand/")) return brandPage(request, env);
     if (url.pathname.startsWith("/e/")) return embedPage(request, env);
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
     if (url.pathname === "/takedown" || url.pathname === "/copyright")
@@ -246,7 +247,7 @@ async function publicLinksOpen(env: Env): Promise<boolean> {
 async function askDatabase<T extends { id: string }>(
   env: Env,
   fn: string,
-  code: string,
+  args: Record<string, string>,
 ): Promise<T | null> {
   if (!(await publicLinksOpen(env))) return null;
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${fn}`, {
@@ -256,7 +257,7 @@ async function askDatabase<T extends { id: string }>(
       Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ p_code: code }),
+    body: JSON.stringify(args),
   });
   if (!response.ok) throw new Error(`${fn}: ${response.status}`);
   const body = (await response.json()) as T | null;
@@ -264,7 +265,7 @@ async function askDatabase<T extends { id: string }>(
 }
 
 function fetchSet(env: Env, code: string): Promise<SharedSet | null> {
-  return askDatabase<SharedSet>(env, "shared_set", code);
+  return askDatabase<SharedSet>(env, "shared_set", { p_code: code });
 }
 
 // ---------------------------------------------------------------------------
@@ -276,7 +277,7 @@ async function pollPage(request: Request, env: Env): Promise<Response> {
   if (!CODE.test(code)) return notAvailable(env);
   let poll: SharedPoll | null = null;
   try {
-    poll = await askDatabase<SharedPoll>(env, "shared_poll", code);
+    poll = await askDatabase<SharedPoll>(env, "shared_poll", { p_code: code });
   } catch {
     return notAvailable(env, 503);
   }
@@ -855,6 +856,186 @@ html,body.embed{margin:0;padding:0;background:transparent}
 .embed .disclosure{margin-top:6px}
 </style>`;
 
+// ---------------------------------------------------------------------------
+// The brand mini editor (roadmap M9.2; spec 16.5 #1, S109; OW23 option a).
+// ---------------------------------------------------------------------------
+// /e/brand/<domain> is a small editor a brand puts on its own site, in an iframe: four slots
+// and the pieces Kleit already has from that store, for anyone, no account needed to build.
+// Nothing here writes anywhere - the look lives in the page until "Keep it", which opens Kleit
+// with the piece ids in the link (/keep?pieces=…); the app makes the draft once the person is
+// signed in, through the same rows and rules as any set of theirs. The one question goes to
+// `brand_pieces` with the public key (migration 099): cleared store pieces, nobody named.
+type BrandPiece = {
+  id: string;
+  title: string | null;
+  price_cents: number | null;
+  price_currency: string | null;
+};
+type BrandPieces = { id: string; domain: string; pieces: BrandPiece[] };
+
+/** The lower-case host without `www.`, the way the clipper records a store (product-page.ts). */
+const DOMAIN = /^[a-z0-9][a-z0-9.-]{1,251}[a-z0-9]$/;
+
+async function brandPage(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  let domain = "";
+  try {
+    domain = decodeURIComponent(url.pathname.slice("/e/brand/".length))
+      .replace(/\/+$/, "")
+      .toLowerCase()
+      .replace(/^www\./, "");
+  } catch {
+    return notAvailable(env, 404, true);
+  }
+  if (!DOMAIN.test(domain) || !domain.includes(".")) return notAvailable(env, 404, true);
+  let store: BrandPieces | null = null;
+  try {
+    store = await askDatabase<BrandPieces>(env, "brand_pieces", { p_domain: domain });
+  } catch {
+    return notAvailable(env, 503, true);
+  }
+  if (!store) return notAvailable(env, 404, true);
+  const base = `${url.protocol}//${url.host}`;
+  const pieces = Array.isArray(store.pieces)
+    ? store.pieces.filter((p) => UUID_SHAPE.test(p.id)).slice(0, 48)
+    : [];
+  // A store nobody has clipped from yet is a page that says so, with no script on it at all.
+  if (pieces.length === 0) {
+    return new Response(renderBrandEmpty(domain, base), {
+      status: 200,
+      headers: pageHeaders(env, { framed: true }),
+    });
+  }
+  const nonce = newNonce();
+  return new Response(renderBrand(domain, pieces, base, env, nonce), {
+    status: 200,
+    headers: pageHeaders(env, { nonce, framed: true }),
+  });
+}
+
+function renderBrand(
+  domain: string,
+  pieces: BrandPiece[],
+  base: string,
+  env: Env,
+  nonce: string,
+): string {
+  const functions = `${env.SUPABASE_URL}/functions/v1`;
+  const cards = pieces
+    .map((p) => {
+      const name = p.title?.trim() || "A piece";
+      const tag = price(p);
+      const img = `${functions}/item-image?item=${p.id}`;
+      return `<li><button type="button" class="pick" data-id="${p.id}" data-name="${esc(name)}" data-img="${esc(img)}"><img src="${esc(img)}" alt="" loading="lazy"><span class="pick-name">${esc(name)}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}</button></li>`;
+    })
+    .join("");
+  const slots = [0, 1, 2, 3]
+    .map(
+      (i) =>
+        `<li><button type="button" class="slot" data-slot="${i}" aria-label="Slot ${i + 1}, empty"><span class="slot-n" aria-hidden="true">${i + 1}</span></button></li>`,
+    )
+    .join("");
+  // The page's own words, handed to its script as data: the one link it builds goes to this
+  // site and nowhere else.
+  const data = JSON.stringify({ keep: `${base}/keep?pieces=` }).replace(/</g, "\\u003c");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Build a look with ${esc(domain)} · Kleit</title>
+${STYLE}${EMBED_STYLE}${BRAND_STYLE}</head>
+<body class="embed brand">
+<main class="embed-wrap">
+  <p class="embed-head"><a class="embed-mark" href="${esc(base)}/welcome" target="_blank" rel="noopener">Kleit</a> · <span class="embed-title">Build a look with ${esc(domain)} pieces</span></p>
+  <section class="board" aria-label="Your look">
+    <ol class="slots">${slots}</ol>
+    <p id="notice" class="notice" role="status" hidden></p>
+    <p class="keep-row"><a id="keep" class="button keep" aria-disabled="true" target="_blank" rel="noopener">Keep it on Kleit</a> <span id="hint" class="keep-hint">Tap pieces to fill the four slots.</span></p>
+  </section>
+  <section aria-label="Pieces from ${esc(domain)}">
+    <ul class="pieces brand-pieces">${cards}</ul>
+  </section>
+  <p class="embed-foot">Pieces people clipped from ${esc(domain)}. <a href="${esc(base)}/welcome" target="_blank" rel="noopener">What's Kleit?</a></p>
+</main>
+<script nonce="${nonce}">window.KLEIT_BRAND=${data};</script>
+<script nonce="${nonce}">${BRAND_SCRIPT}</script>
+</body></html>`;
+}
+
+function renderBrandEmpty(domain: string, base: string): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${esc(domain)} · Kleit</title>
+${STYLE}${EMBED_STYLE}${BRAND_STYLE}</head>
+<body class="embed brand">
+<main class="embed-wrap">
+  <p class="embed-head"><a class="embed-mark" href="${esc(base)}/welcome" target="_blank" rel="noopener">Kleit</a> · <span class="embed-title">Build a look with ${esc(domain)} pieces</span></p>
+  <p class="notice">No pieces from ${esc(domain)} on Kleit yet. Clip one in the app and it shows up here once it has been checked.</p>
+  <p class="embed-foot"><a href="${esc(base)}/welcome" target="_blank" rel="noopener">Open Kleit</a></p>
+</main>
+</body></html>`;
+}
+
+// On top of the embed's stylesheet: the four slots, the pieces as buttons, Keep it.
+const BRAND_STYLE = `<style>
+.brand .board{background:#F4EFE6;border-radius:12px;padding:12px}
+.brand .slots{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:360px}
+.brand .slot{display:block;width:100%;aspect-ratio:1;border:2px dashed #b9b0a3;border-radius:10px;background:rgba(255,255,255,.75);padding:0;cursor:pointer;position:relative;color:#5f5a52;font:inherit}
+.brand .slot.selected{border-color:#c0442b;border-style:solid}
+.brand .slot.filled{border-style:solid;border-color:#e6e0d6}
+.brand .slot img{display:block;width:100%;height:100%;object-fit:contain;border-radius:8px}
+.brand .slot-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand .keep-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 0}
+.brand .keep{margin:0;min-height:44px;display:inline-flex;align-items:center;box-sizing:border-box}
+.brand .keep[aria-disabled="true"]{background:#e6e0d6;color:#5f5a52;cursor:default}
+.brand .keep-hint{font-size:14px;color:#5f5a52}
+.brand .notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:15px}
+.brand .brand-pieces{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-top:12px}
+.brand .pick{display:block;width:100%;padding:0;border:1px solid #e6e0d6;border-radius:8px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:#1f1d1a;overflow:hidden}
+.brand .pick:focus-visible,.brand .slot:focus-visible,.brand .keep:focus-visible{outline:3px solid #c0442b;outline-offset:2px}
+.brand .pick img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
+.brand .pick-name{display:block;padding:8px 8px 0;font-size:14px}
+.brand .pick .tag{display:block;padding:2px 8px 8px;margin:0}
+</style>`;
+
+// The editor's own script: four slots in memory, tap a piece to place it, tap a slot to clear
+// it, and one link that carries the ids to Kleit. No request leaves this page. Plain JS.
+const BRAND_SCRIPT = `(function(){
+  var C=window.KLEIT_BRAND, slots=[null,null,null,null], selected=null,
+      slotEls=[].slice.call(document.querySelectorAll('.slot')), keep=document.getElementById('keep'),
+      notice=document.getElementById('notice'), hint=document.getElementById('hint');
+  function say(t){ if(!t){ notice.hidden=true; notice.textContent=''; return; } notice.textContent=t; notice.hidden=false; }
+  function draw(){
+    slotEls.forEach(function(el,i){
+      var p=slots[i]; el.classList.toggle('filled',!!p); el.classList.toggle('selected',selected===i);
+      while(el.firstChild) el.removeChild(el.firstChild);
+      if(p){ var img=document.createElement('img'); img.src=p.img; img.alt=''; el.appendChild(img);
+             el.setAttribute('aria-label','Slot '+(i+1)+': '+p.name+'. Tap to remove'); }
+      else { var n=document.createElement('span'); n.className='slot-n'; n.setAttribute('aria-hidden','true'); n.textContent=String(i+1); el.appendChild(n);
+             el.setAttribute('aria-label','Slot '+(i+1)+', empty'+(selected===i?', chosen for the next piece':'')); }
+    });
+    var ids=slots.filter(Boolean).map(function(p){ return p.id; });
+    if(ids.length){ keep.href=C.keep+ids.join(','); keep.removeAttribute('aria-disabled');
+                    hint.textContent=(ids.length===1?'1 piece':ids.length+' pieces')+'. Keep it to finish on Kleit.'; }
+    else { keep.removeAttribute('href'); keep.setAttribute('aria-disabled','true'); hint.textContent='Tap pieces to fill the four slots.'; }
+  }
+  function pick(b){
+    var piece={id:b.getAttribute('data-id'),name:b.getAttribute('data-name'),img:b.getAttribute('data-img')};
+    var where=-1; slots.forEach(function(p,i){ if(p&&p.id===piece.id) where=i; });
+    if(where>=0&&selected===null){ say('Already in your look, in slot '+(where+1)+'.'); return; }
+    var at=selected===null?slots.indexOf(null):selected;
+    if(at<0){ say('All four slots are full. Tap a slot to clear it.'); return; }
+    if(where>=0) slots[where]=null;
+    slots[at]=piece; selected=null; say(''); draw();
+  }
+  slotEls.forEach(function(el,i){ el.addEventListener('click',function(){
+    if(slots[i]){ slots[i]=null; selected=null; } else { selected=(selected===i)?null:i; }
+    say(''); draw(); }); });
+  [].slice.call(document.querySelectorAll('.pick')).forEach(function(b){ b.addEventListener('click',function(){ pick(b); }); });
+  keep.addEventListener('click',function(e){ if(keep.getAttribute('aria-disabled')==='true'){ e.preventDefault(); say('Tap a piece first.'); } });
+  draw();
+})();`;
+
 function notAvailable(env: Env, status = 404, framed = false): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -921,7 +1102,7 @@ function esc(text: string | null | undefined): string {
   );
 }
 
-function price(piece: Piece): string | null {
+function price(piece: Pick<Piece, "price_cents" | "price_currency">): string | null {
   if (piece.price_cents == null) return null;
   try {
     return new Intl.NumberFormat("en-US", {

@@ -473,6 +473,13 @@ export const en = {
   "store.pieces": "{count} pieces people have clipped",
   "store.pieces.one": "1 piece people have clipped",
   "store.none": "Nothing clipped from here yet.",
+  "keep.bringing": "Bringing your look over",
+  "keep.badLink": "That link doesn't carry a look. Build one on the brand's page and tap Keep it.",
+  "keep.offline":
+    "You're offline. Your look needs a connection to come over - try again in a moment.",
+  "keep.noneAvailable": "Those pieces aren't on Kleit any more.",
+  "keep.failed": "Your look didn't come over. Try the link again.",
+  "keep.home": "Go to Home",
   "inbox.empty": "Nothing yet. When someone votes on your set, it lands here",
   "inbox.notifications": "Notifications",
   "notify.vote": "{count} new votes on your poll",

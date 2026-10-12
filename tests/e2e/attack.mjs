@@ -426,6 +426,123 @@ try {
     "stranger: the private set's embed is the same not-available page",
     String(embedPriv.status),
   );
+  // 7b. The brand mini editor (M9.2): a store's page lists its cleared store pieces and nothing
+  //     else - not a clip still being checked, not a person's own piece, not who clipped what.
+  //     The rows are the victim's, written by the server (the guard lets no member write a
+  //     store piece by hand); they go in `finally`.
+  const brandDomain = "attack-brand.kleit.example";
+  const { data: brandRows } = await admin
+    .from("items")
+    .insert([
+      {
+        owner_id: victim.id,
+        kind: "product",
+        title: `attack brand cleared (ignore) ${XSS}`,
+        price_cents: 1200,
+        price_currency: "USD",
+        source_url: `https://${brandDomain}/coat`,
+        source_domain: brandDomain,
+        image_id: `${victim.id}/attack-brand-ignore.jpg`,
+        image_bucket: "item-images",
+      },
+      {
+        owner_id: victim.id,
+        kind: "product",
+        title: "attack brand pending (ignore)",
+        price_cents: 1200,
+        price_currency: "USD",
+        source_url: `https://${brandDomain}/pending`,
+        source_domain: brandDomain,
+        image_id: `${victim.id}/attack-brand-ignore-2.jpg`,
+        image_bucket: "item-images",
+      },
+      {
+        owner_id: victim.id,
+        kind: "own",
+        title: "attack brand own (ignore)",
+        source_domain: brandDomain,
+      },
+    ])
+    .select("id, kind, title");
+  const brandCleared = (brandRows ?? []).find((r) => /cleared/.test(r.title));
+  const brandPending = (brandRows ?? []).find((r) => /pending/.test(r.title));
+  const brandOwn = (brandRows ?? []).find((r) => r.kind === "own");
+  const brandStamp = new Date().toISOString();
+  await admin.from("item_flags").upsert([
+    { item_id: brandCleared?.id, scan_state: "clean", scanned_at: brandStamp },
+    // A cleared own piece: still never a store's.
+    { item_id: brandOwn?.id, scan_state: "clean", scanned_at: brandStamp },
+  ]);
+  const brandPage = await fetch(`${SITE}/e/brand/${brandDomain}`);
+  const brandHtml = await brandPage.text();
+  const brandCsp = brandPage.headers.get("content-security-policy") ?? "";
+  check(
+    brandPage.status === 200 &&
+      !!brandCleared &&
+      brandHtml.includes(brandCleared.id) &&
+      !brandHtml.includes(brandPending?.id ?? "-") &&
+      !brandHtml.includes(brandOwn?.id ?? "-"),
+    "stranger: a brand's page lists the cleared store piece, not the clip still being checked nor a person's own piece",
+    `${brandPage.status} cleared=${brandHtml.includes(brandCleared?.id ?? "-")} pending=${brandHtml.includes(brandPending?.id ?? "-")} own=${brandHtml.includes(brandOwn?.id ?? "-")}`,
+  );
+  check(
+    !brandHtml.includes("attackvictim") &&
+      !brandHtml.includes(victim.id) &&
+      !brandHtml.includes("<img src=x") &&
+      !brandHtml.includes("<script>alert"),
+    "stranger: the brand page names nobody and writes the piece's title as text",
+  );
+  check(
+    brandCsp.includes("frame-ancestors *") &&
+      /script-src 'nonce-[A-Za-z0-9+/=]+' https:\/\/challenges\.cloudflare\.com/.test(brandCsp) &&
+      /noindex/.test(brandPage.headers.get("x-robots-tag") ?? "") &&
+      (brandHtml.match(/<script nonce="/g) ?? []).length === 2 &&
+      !/<script>/.test(brandHtml),
+    "stranger: the brand page may be framed, runs only its own two scripts, and is not indexed",
+    brandCsp.slice(0, 100),
+  );
+  const brandBad = await fetch(`${SITE}/e/brand/attackvictim`);
+  const brandNone = await fetch(`${SITE}/e/brand/nobody-${Date.now()}.example`);
+  const brandNoneHtml = await brandNone.text();
+  check(
+    brandBad.status === 404 &&
+      brandNone.status === 200 &&
+      /No pieces from/.test(brandNoneHtml) &&
+      !/<script/.test(brandNoneHtml),
+    "stranger: a store name with no dot is 404; a store nobody clipped from is an empty page with no script",
+    `${brandBad.status}/${brandNone.status}`,
+  );
+  const { data: doorAnon } = await anon.rpc("brand_pieces", { p_domain: brandDomain });
+  const doorPiece = doorAnon?.pieces?.[0] ?? {};
+  check(
+    Array.isArray(doorAnon?.pieces) &&
+      doorAnon.pieces.length === 1 &&
+      doorPiece.id === brandCleared?.id &&
+      Object.keys(doorPiece).sort().join() === "id,price_cents,price_currency,title",
+    "stranger: the door itself answers the one cleared piece, with its id, title and price and nothing else",
+    Object.keys(doorPiece).sort().join(),
+  );
+  // Keep it writes through the signed-in person's own rows: a cleared store piece may come
+  // along, a clip still being checked or a stranger's own piece never - whatever the link says.
+  const { data: keepDraft } = await a
+    .from("sets")
+    .insert({ owner_id: attacker.id, title: "attack keep (ignore)", status: "draft" })
+    .select("id")
+    .single();
+  const keepPending = await a
+    .from("set_items")
+    .insert({ set_id: keepDraft?.id, item_id: brandPending?.id, position: { slot: 0 } });
+  const keepOwn = await a
+    .from("set_items")
+    .insert({ set_id: keepDraft?.id, item_id: brandOwn?.id, position: { slot: 1 } });
+  const keepCleared = await a
+    .from("set_items")
+    .insert({ set_id: keepDraft?.id, item_id: brandCleared?.id, position: { slot: 2 } });
+  check(
+    keepPending.error?.code === "42501" && keepOwn.error?.code === "42501" && !keepCleared.error,
+    "attacker: a kept look can carry the cleared store piece, never the pending clip or the victim's own piece",
+    `${keepPending.error?.code ?? "written"} / ${keepOwn.error?.code ?? "written"} / ${keepCleared.error?.code ?? "ok"}`,
+  );
   const sharePage = await fetch(`${SITE}/s/${pub.share_code}`);
   const shareCsp = sharePage.headers.get("content-security-policy") ?? "";
   check(
@@ -1230,6 +1347,19 @@ try {
   await admin.from("contest_entries").delete().eq("user_id", attacker.id);
   await admin.from("contests").delete().eq("title", "attack contest (ignore)");
   await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack song (ignore)");
+  // The brand page's rows (7b): the kept draft first (its rows point at the pieces), then the
+  // pieces and their flags.
+  await admin.from("sets").delete().eq("owner_id", attacker.id).eq("title", "attack keep (ignore)");
+  const { data: brandLeft } = await admin
+    .from("items")
+    .select("id")
+    .eq("owner_id", victim.id)
+    .like("title", "attack brand %");
+  const brandIds = (brandLeft ?? []).map((r) => r.id);
+  if (brandIds.length) {
+    await admin.from("item_flags").delete().in("item_id", brandIds);
+    await admin.from("items").delete().in("id", brandIds);
+  }
   await admin.from("sets").delete().eq("owner_id", victim.id).eq("title", "attack layout (ignore)");
   await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);

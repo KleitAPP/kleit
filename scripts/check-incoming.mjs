@@ -6,8 +6,10 @@
  *   2. Chatter around the address ("look at this …") is ignored; the first address wins.
  *   3. One of our own set links becomes the set; a dead code becomes "not available".
  *   4. A poll link becomes the poll.
- *   5. Any other path on our own site opens as itself inside the app.
+ *   5. Any other path on our own site is dropped.
  *   6. Nonsense is dropped.
+ *   7. A Keep it link from a brand's site (M9.2) carries its piece ids and nothing else; the
+ *      same shape is the one the signed-out shell keeps across sign-in (safeNext).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -37,6 +39,20 @@ execFileSync(
   { stdio: "inherit" },
 );
 const { firstUrl, destinationFor, takeSharedAddress } = await import(`${dir}/incoming.mjs`);
+execFileSync(
+  "npx",
+  [
+    "esbuild",
+    `${process.cwd()}/src/auth/next.ts`,
+    "--bundle",
+    "--format=esm",
+    `--outfile=${dir}/next.mjs`,
+  ],
+  { stdio: "inherit" },
+);
+const { safeNext } = await import(`${dir}/next.mjs`);
+const A = "a1a1a1a1-0000-4000-8000-000000000001";
+const B = "a1a1a1a1-0000-4000-8000-000000000002";
 
 const lookup = {
   set: async (code) => (code === "liveSetCode00001" ? "set-id-1" : null),
@@ -93,6 +109,30 @@ const checks = [
     (await to("not an address")) === null && firstUrl("no link here") === null,
   ],
   ["a non-web scheme is dropped", (await to("javascript:alert(1)")) === null],
+  [
+    "a Keep it link from a brand's site opens the keep screen with its ids, lower-cased",
+    (await to(`https://kleit.app/keep?pieces=${A.toUpperCase()},${B}`)) ===
+      `/keep?pieces=${A},${B}`,
+  ],
+  [
+    "a keep link with a stray word, a fifth id, a repeat, or nothing at all is dropped whole",
+    (await to(`https://kleit.app/keep?pieces=${A},evil`)) === null &&
+      (await to(`https://kleit.app/keep?pieces=${A},${B},${A}`)) === null &&
+      (await to(
+        `https://kleit.app/keep?pieces=${[1, 2, 3, 4, 5].map((i) => A.slice(0, -1) + i).join(",")}`,
+      )) === null &&
+      (await to("https://kleit.app/keep?pieces=")) === null &&
+      (await to("https://kleit.app/keep")) === null,
+  ],
+  [
+    "signed out, the shell keeps a keep link across sign-in, and only the set, poll and keep shapes",
+    safeNext(`/keep?pieces=${A},${B}`) === `/keep?pieces=${A},${B}` &&
+      safeNext("/s/liveSetCode00001") === "/s/liveSetCode00001" &&
+      safeNext(`/keep?pieces=${A}&next=/evil`) === null &&
+      safeNext("/keep?pieces=evil") === null &&
+      safeNext("/settings/delete") === null &&
+      safeNext("//evil.example/keep?pieces=" + A) === null,
+  ],
 ];
 
 let failed = 0;

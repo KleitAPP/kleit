@@ -7,13 +7,17 @@
 const KEY = "kleit.next";
 
 /**
- * Only the two paths a shared page sends: the set and the poll. A path is not a safe thing to
- * keep just because it starts with a slash - `/\\evil.com` is a host to a URL parser, and any
- * other screen of ours is not one a stranger's link should choose for the person.
+ * Only the paths a page of ours sends a signed-out person from: the set and the poll (the share
+ * pages' Sign up), and /keep with its piece ids (the brand mini editor's Keep it, M9.2). A path
+ * is not a safe thing to keep just because it starts with a slash - `/\\evil.com` is a host to
+ * a URL parser, and any other screen of ours is not one a stranger's link should choose for the
+ * person.
  */
 export function safeNext(path: string | undefined): string | null {
   if (!path) return null;
-  return /^\/[sp]\/[A-Za-z0-9]{8,32}\/?$/.test(path) ? path : null;
+  if (/^\/[sp]\/[A-Za-z0-9]{8,32}\/?$/.test(path)) return path;
+  if (/^\/keep\?pieces=[0-9a-fA-F-]{36}(,[0-9a-fA-F-]{36}){0,3}$/.test(path)) return path;
+  return null;
 }
 
 export function rememberNext(path: string | undefined): void {

@@ -525,6 +525,125 @@ try {
     "remix: the piece came along",
     `${(remixPieces ?? []).length} piece(s)`,
   );
+
+  // 12. The brand mini editor (M9.2; OW23 a): two cleared store pieces from one store, the
+  //     editor framed by a page on ANOTHER origin, two taps, Keep it - and once signed in, the
+  //     look is a draft of theirs with the pieces in their slots. The store pieces are this
+  //     account's, written the way the clipper writes them (fixed ids, so a run adds no rows).
+  const brandDomain = "brand-test.kleit.example";
+  const brandIds = ["c0de1009-0000-4000-8000-000000000001", "c0de1009-0000-4000-8000-000000000002"];
+  for (const [i, id] of brandIds.entries()) {
+    const path = `${user.id}/core-loop-brand-${i + 1}.png`;
+    await admin.storage
+      .from("item-images")
+      .upload(path, makePng(), { contentType: "image/png", upsert: true });
+    await admin.from("items").upsert({
+      id,
+      owner_id: user.id,
+      kind: "product",
+      title: `Core loop piece ${i + 1}`,
+      price_cents: 2500 * (i + 1),
+      price_currency: "USD",
+      source_url: `https://${brandDomain}/piece-${i + 1}`,
+      source_domain: brandDomain,
+      image_id: path,
+      image_bucket: "item-images",
+      deleted_at: null,
+    });
+    await admin
+      .from("item_flags")
+      .upsert({ item_id: id, scan_state: "clean", scanned_at: new Date().toISOString() });
+  }
+  const shopper = await browser.newContext({ viewport: { width: 420, height: 900 } });
+  const sp = await shopper.newPage();
+  sp.setDefaultTimeout(20_000);
+  await sp.route("https://shop.brand-test.example/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: `<!doctype html><title>Our shop</title><h1>Our shop</h1><iframe title="Build a look" src="${SITE}/e/brand/${brandDomain}" style="width:100%;height:900px;border:0"></iframe>`,
+    }),
+  );
+  await sp.goto("https://shop.brand-test.example/looks");
+  const editor = sp.frameLocator('iframe[title="Build a look"]');
+  await editor.locator(`.pick[data-id="${brandIds[0]}"]`).waitFor();
+  check(
+    new URL(sp.url()).origin === "https://shop.brand-test.example" &&
+      (await editor.locator(".pick").count()) >= 2,
+    "brand editor: loads inside a page on another domain, with the store's pieces",
+    `${await editor.locator(".pick").count()} piece(s)`,
+  );
+  await editor.locator(`.pick[data-id="${brandIds[0]}"]`).click();
+  await editor.locator(`.pick[data-id="${brandIds[1]}"]`).click();
+  const keepHref = await editor.locator("#keep").getAttribute("href");
+  check(
+    keepHref === `${SITE}/keep?pieces=${brandIds[0]},${brandIds[1]}` &&
+      /^Slot 2: Core loop piece 2/.test(
+        await editor.locator(".slot").nth(1).getAttribute("aria-label"),
+      ),
+    "brand editor: two taps fill two slots and Keep it carries their ids in order",
+    keepHref ?? "no href",
+  );
+  // Accessibility inside the frame, under the page's own policy.
+  const editorFrame = sp.frames().find((f) => f.url().startsWith(`${SITE}/e/brand/`));
+  await editorFrame.evaluate(AXE);
+  const editorFound = await editorFrame.evaluate(async () => {
+    const r = await window.axe.run(document, {
+      runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
+    });
+    return r.violations.map((v) => `${v.impact} ${v.id}×${v.nodes.length}`);
+  });
+  check(
+    !editorFound.some((v) => /^(serious|critical)/.test(v)),
+    "a11y: the brand editor has no serious or critical WCAG problems",
+    editorFound.join("; ") || "clean",
+  );
+  // Keep it, signed out: Welcome opens and the look waits for after sign-in.
+  await sp.goto(keepHref ?? `${SITE}/keep`);
+  await sp
+    .getByText(/Get started|Build an outfit/)
+    .first()
+    .waitFor({ timeout: 20_000 });
+  check(
+    /\/welcome/.test(sp.url()),
+    "keep it: signed out, the Welcome screen opens first",
+    new URL(sp.url()).pathname,
+  );
+  await sp.evaluate(
+    ([key, value]) => window.localStorage.setItem(key, value),
+    [STORAGE_KEY, JSON.stringify(session)],
+  );
+  await sp.goto(`${SITE}/`);
+  await sp.waitForURL(/\/set\/[0-9a-f-]+\/edit$/, { timeout: 30_000 });
+  const keptId = sp.url().match(/\/set\/([0-9a-f-]+)\/edit/)?.[1] ?? "";
+  const { data: keptRow } = await admin
+    .from("sets")
+    .select("status, owner_id")
+    .eq("id", keptId)
+    .maybeSingle();
+  const { data: keptPieces } = await admin
+    .from("set_items")
+    .select("item_id, position")
+    .eq("set_id", keptId);
+  const slotOf = (id) => (keptPieces ?? []).find((r) => r.item_id === id)?.position?.slot;
+  check(
+    keptRow?.status === "draft" &&
+      keptRow.owner_id === user.id &&
+      (keptPieces ?? []).length === 2 &&
+      slotOf(brandIds[0]) === 0 &&
+      slotOf(brandIds[1]) === 1,
+    "keep it: after sign-in the look is a draft of theirs, the two pieces in their slots, the editor open on it",
+    `${keptRow?.status ?? "no set"} · ${(keptPieces ?? []).length} piece(s)`,
+  );
+  // Signed in already, the link goes straight to a new draft.
+  await sp.goto(`${SITE}/keep?pieces=${brandIds[1]}`);
+  await sp.waitForURL(/\/set\/[0-9a-f-]+\/edit$/, { timeout: 30_000 });
+  const keptAgain = sp.url().match(/\/set\/([0-9a-f-]+)\/edit/)?.[1] ?? "";
+  check(
+    keptAgain !== "" && keptAgain !== keptId,
+    "keep it: signed in, the link opens straight into a new draft",
+  );
+  await shopper.close();
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

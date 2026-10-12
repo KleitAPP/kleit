@@ -21,6 +21,7 @@ import { Route as AppAsksRouteImport } from './routes/_app.asks'
 import { Route as AppContestsRouteImport } from './routes/_app.contests'
 import { Route as AppGroupsRouteImport } from './routes/_app.groups'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
+import { Route as AppKeepRouteImport } from './routes/_app.keep'
 import { Route as AppModRouteImport } from './routes/_app.mod'
 import { Route as AppRecapRouteImport } from './routes/_app.recap'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
@@ -143,6 +144,11 @@ const AppGroupsRoute = AppGroupsRouteImport.update({
 const AppInboxRoute = AppInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKeepRoute = AppKeepRouteImport.update({
+  id: '/keep',
+  path: '/keep',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModRoute = AppModRouteImport.update({
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
+  '/keep': typeof AppKeepRoute
   '/mod': typeof AppModRoute
   '/recap': typeof AppRecapRoute
   '/search': typeof AppSearchRoute
@@ -557,6 +564,7 @@ export interface FileRoutesByTo {
   '/contests': typeof AppContestsRoute
   '/groups': typeof AppGroupsRoute
   '/inbox': typeof AppInboxRoute
+  '/keep': typeof AppKeepRoute
   '/mod': typeof AppModRoute
   '/recap': typeof AppRecapRoute
   '/search': typeof AppSearchRoute
@@ -636,6 +644,7 @@ export interface FileRoutesById {
   '/_app/contests': typeof AppContestsRoute
   '/_app/groups': typeof AppGroupsRoute
   '/_app/inbox': typeof AppInboxRoute
+  '/_app/keep': typeof AppKeepRoute
   '/_app/mod': typeof AppModRoute
   '/_app/recap': typeof AppRecapRoute
   '/_app/search': typeof AppSearchRoute
@@ -716,6 +725,7 @@ export interface FileRouteTypes {
     | '/contests'
     | '/groups'
     | '/inbox'
+    | '/keep'
     | '/mod'
     | '/recap'
     | '/search'
@@ -792,6 +802,7 @@ export interface FileRouteTypes {
     | '/contests'
     | '/groups'
     | '/inbox'
+    | '/keep'
     | '/mod'
     | '/recap'
     | '/search'
@@ -870,6 +881,7 @@ export interface FileRouteTypes {
     | '/_app/contests'
     | '/_app/groups'
     | '/_app/inbox'
+    | '/_app/keep'
     | '/_app/mod'
     | '/_app/recap'
     | '/_app/search'
@@ -1037,6 +1049,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/keep': {
+      id: '/_app/keep'
+      path: '/keep'
+      fullPath: '/keep'
+      preLoaderRoute: typeof AppKeepRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/mod': {
@@ -1495,6 +1514,7 @@ interface AppRouteChildren {
   AppContestsRoute: typeof AppContestsRoute
   AppGroupsRoute: typeof AppGroupsRoute
   AppInboxRoute: typeof AppInboxRoute
+  AppKeepRoute: typeof AppKeepRoute
   AppModRoute: typeof AppModRoute
   AppRecapRoute: typeof AppRecapRoute
   AppSearchRoute: typeof AppSearchRoute
@@ -1557,6 +1577,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppContestsRoute: AppContestsRoute,
   AppGroupsRoute: AppGroupsRoute,
   AppInboxRoute: AppInboxRoute,
+  AppKeepRoute: AppKeepRoute,
   AppModRoute: AppModRoute,
   AppRecapRoute: AppRecapRoute,
   AppSearchRoute: AppSearchRoute,

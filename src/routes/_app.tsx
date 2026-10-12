@@ -10,7 +10,7 @@ import { t } from "@/i18n/en";
 import { LaunchSplash } from "@/screens/LaunchGate";
 import { supabase } from "@/integrations/supabase/client";
 import { appSettingsQuery } from "@/app/appSettings";
-import { takeNext } from "@/auth/next";
+import { rememberNext, takeNext } from "@/auth/next";
 import { destinationFor, pollIdFor, setIdFor, watchIncoming } from "@/native/incoming";
 import { startPush } from "@/native/push";
 import { OfflineBanner } from "@/offline/OfflineBanner";
@@ -49,6 +49,9 @@ function AppShell() {
     void whereDoIBelong().then((where) => {
       if (cancelled) return;
       if (where === "signed-out") {
+        // A link that may come back after sign-in (only /keep qualifies here; the share pages
+        // never reach this shell) is kept the way a share page's Sign up keeps its set.
+        rememberNext(`${window.location.pathname}${window.location.search}`);
         void navigate({ to: "/welcome", replace: true });
         return;
       }
@@ -93,12 +96,22 @@ function AppShell() {
     if (allowed === true) watchOutbox();
   }, [allowed]);
 
-  // Back to the set a shared page sent the person from (spec 8.2 #2), once they are in.
+  // Back to the set a shared page sent the person from (spec 8.2 #2), once they are in - or on
+  // to the look they built on a brand's site (M9.2), which /keep turns into their draft.
   useEffect(() => {
     if (allowed !== true) return;
     const next = takeNext();
     if (!next) return;
-    void destinationFor(new URL(next, window.location.origin).toString(), {
+    const target = new URL(next, window.location.origin);
+    if (target.pathname === "/keep") {
+      void navigate({
+        to: "/keep",
+        search: { pieces: target.searchParams.get("pieces") ?? "" },
+        replace: true,
+      });
+      return;
+    }
+    void destinationFor(target.toString(), {
       set: setIdFor,
       poll: pollIdFor,
     }).then((path) => {

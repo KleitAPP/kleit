@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 
 import { supabase } from "@/integrations/supabase/client";
+import { safeKeep } from "@/sets/keepLink";
 
 /**
  * What the phone handed the app when it opened it (roadmap M8.2, M8.7): a share from a store
@@ -17,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
  *   - /s/<code> → the set, through the same `shared_set` question the share page asks (so a
  *     private or reset link lands on "not available" here too); /p/<code> → the poll;
  *   - /welcome?invite=<code> → the invite screen (S111);
+ *   - /keep?pieces=<ids> → the look built on a brand's site, as a draft of theirs (M9.2);
  *   - anything else on our own hosts is dropped: the app links the phone registers are /s/ and
  *     /p/, and an explicit intent from another app must not open any screen it names.
  * Nothing happens on the web, where the browser already does all of this.
@@ -70,6 +72,10 @@ export async function destinationFor(
   }
   const invite = url.pathname === "/welcome" ? url.searchParams.get("invite") : null;
   if (invite && /^[A-Z0-9]{4,16}$/i.test(invite)) return `/welcome?invite=${invite.toUpperCase()}`;
+  // Keep it from a brand's site (M9.2): the piece ids, checked to the letter; the screen reads
+  // them as the signed-in person, so a foreign id comes to nothing.
+  const kept = url.pathname === "/keep" ? safeKeep(url.searchParams.get("pieces")) : null;
+  if (kept) return `/keep?pieces=${kept.join(",")}`;
   return null;
 }
 

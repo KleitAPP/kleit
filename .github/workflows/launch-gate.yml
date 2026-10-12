@@ -21,6 +21,8 @@ on:
       - "scripts/check-offline.mjs"
       - "src/native/**"
       - "scripts/check-incoming.mjs"
+      - "worker/**"
+      - "scripts/check-brand-page.mjs"
       - "scripts/fixtures/**"
       - ".github/workflows/launch-gate.yml"
   schedule:
@@ -58,7 +60,7 @@ jobs:
           node-version: 22
       - name: Install Playwright
         run: |
-          npm install --no-save playwright@1 esbuild
+          npm install --no-save playwright@1 esbuild axe-core@4
           npx playwright install --with-deps chromium
       - name: A photo loses its location before it leaves the phone
         run: node scripts/check-photo-prepare.mjs
@@ -73,3 +75,7 @@ jobs:
       # A share or a link that reaches the phone app goes to the right screen (M8.2 / M8.7).
       - name: A share or a link that reaches the app lands on the right screen
         run: node scripts/check-incoming.mjs
+      # The brand mini editor (M9.2): the Worker's own page, framed by a page on another origin,
+      # tapped like a shopper would, under its own script policy.
+      - name: The brand mini editor builds a look inside a page on another origin
+        run: node scripts/check-brand-page.mjs

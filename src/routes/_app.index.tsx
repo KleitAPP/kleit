@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Toast } from "@/components/kleit";
 import { ContestCard } from "@/contests/ContestCard";
 import { RecapCard } from "@/contests/RecapCard";
 import { Feed } from "@/feed/Feed";
@@ -14,57 +13,84 @@ import { t } from "@/i18n/en";
  *
  * On day one the start cards sit ABOVE the featured feed, not instead of it: a new person needs
  * somewhere to begin, and an empty feed is not a beginning. Each card shrinks to a one-line tick
- * once it is done, and when all four are done they disappear for good and the feed takes over.
+ * once it is done, and when all three are done they disappear for good and the feed takes over.
  *
- * Three of the four need machinery that arrives in M2 and M3, so they say so when tapped rather
- * than doing nothing. Style vibes is real today.
+ * Clip a link, Snap and the style vibes are real; "Start from a stylist set" returns with the
+ * starter sets at M10 (decision 82), because a card that only says "not yet" is a dead button.
  */
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Kleit" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: Home,
 });
 
-type Card = { key: string; title: string; why: string; done: boolean; go?: () => void };
+type Card = { key: string; title: string; why: string; done: boolean; go: () => void };
+type Starts = { vibes: boolean; clipped: boolean; snapped: boolean };
+
+/** What the person has done so far: a vibe picked, a piece clipped, three of their own snapped. */
+async function starts(): Promise<Starts | null> {
+  const { data } = await supabase.auth.getUser();
+  const me = data.user?.id;
+  if (!me) return null;
+  const [profile, clipped, own] = await Promise.all([
+    supabase.from("profiles").select("style_vibes").eq("user_id", me).maybeSingle(),
+    supabase
+      .from("items")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_id", me)
+      .eq("kind", "product"),
+    supabase
+      .from("items")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_id", me)
+      .eq("kind", "own"),
+  ]);
+  return {
+    vibes: (profile.data?.style_vibes?.length ?? 0) > 0,
+    clipped: (clipped.count ?? 0) > 0,
+    snapped: (own.count ?? 0) >= 3,
+  };
+}
 
 function Home() {
   const navigate = useNavigate();
-  const [vibesPicked, setVibesPicked] = useState<boolean | null>(null);
-  const [nudge, setNudge] = useState<string | null>(null);
+  const [done, setDone] = useState<Starts | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      const { data } = await supabase.auth.getUser();
-      const me = data.user?.id;
-      if (!me) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("style_vibes")
-        .eq("user_id", me)
-        .maybeSingle();
-      if (cancelled) return;
-      setVibesPicked((profile?.style_vibes?.length ?? 0) > 0);
-    })();
+    void starts().then((s) => !cancelled && setDone(s));
     return () => {
       cancelled = true;
     };
   }, []);
 
   const cards: Card[] = [
-    { key: "stylist", title: t("start.stylist"), why: t("start.stylistWhy"), done: false },
-    { key: "clip", title: t("start.clip"), why: t("start.clipWhy"), done: false },
-    { key: "snap", title: t("start.snap"), why: t("start.snapWhy"), done: false },
+    {
+      key: "clip",
+      title: t("start.clip"),
+      why: t("start.clipWhy"),
+      done: done?.clipped === true,
+      go: () => void navigate({ to: "/add/link" }),
+    },
+    {
+      key: "snap",
+      title: t("start.snap"),
+      why: t("start.snapWhy"),
+      done: done?.snapped === true,
+      go: () => void navigate({ to: "/add/photo" }),
+    },
     {
       key: "vibes",
       title: t("start.vibes"),
       why: t("start.vibesWhy"),
-      done: vibesPicked === true,
+      done: done?.vibes === true,
       go: () => void navigate({ to: "/vibes" }),
     },
   ];
 
-  const done = cards.filter((c) => c.done).length;
-  const allDone = done === cards.length;
+  const doneCount = cards.filter((c) => c.done).length;
+  // Nothing is drawn until the answer is in: a card that ticks itself a moment after it
+  // appeared looks like a glitch, and a finished section must never flash on.
+  const allDone = done === null || doneCount === cards.length;
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pb-6 pt-8">
@@ -77,7 +103,7 @@ function Home() {
               {t("start.heading")}
             </h2>
             <p className="text-sm text-ink-soft">
-              {t("start.progress", { done, total: cards.length })}
+              {t("start.progress", { done: doneCount, total: cards.length })}
             </p>
           </div>
 
@@ -96,7 +122,7 @@ function Home() {
                 <li key={card.key}>
                   <button
                     type="button"
-                    onClick={() => (card.go ? card.go() : setNudge(t("start.notYet")))}
+                    onClick={card.go}
                     className="w-full rounded-md border border-line bg-surface p-4 text-left shadow-card transition-colors duration-fast hover:bg-surface-2"
                   >
                     <p className="text-base font-medium text-ink">{card.title}</p>
@@ -116,8 +142,6 @@ function Home() {
       <section aria-label={t("feed.label")} className="mt-8">
         <Feed />
       </section>
-
-      {nudge ? <Toast message={nudge} onDismiss={() => setNudge(null)} /> : null}
     </div>
   );
 }

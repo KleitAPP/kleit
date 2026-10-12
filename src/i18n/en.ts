@@ -427,16 +427,14 @@ export const en = {
 
   "start.heading": "Three ways to start",
   "start.progress": "{done} of {total} done",
-  "start.stylist": "Start from a stylist set",
-  "start.stylistWhy": "Swap a piece or two and it's yours.",
-  "start.clip": "Clip from these 10 stores",
-  "start.clipWhy": "Paste a link and we'll lift the picture.",
+  "start.clip": "Clip a piece from a store",
+  "start.clipWhy":
+    "Paste a link and we'll lift the picture. Gap, H&M, Madewell and more read well.",
   "start.snap": "Snap 3 pieces",
   "start.snapWhy": "Your own clothes, cut out on a plain tile.",
   "start.vibes": "Pick your style vibes",
   "start.vibesWhy": "About three. It shapes what you see here.",
   "start.done": "Done",
-  "start.notYet": "This one isn't built yet. It's on the way.",
 
   "vibes.title": "What are you into?",
   "vibes.hint": "Pick about three. You can change them any time.",
@@ -1003,6 +1001,8 @@ export const en = {
   "drawer.empty": "Nothing clipped yet",
   "clip.title": "Clip a link",
   "clip.what": "Paste the address of a product page from any store.",
+  "clip.worksWell":
+    "Reads well from H&M, Urban Outfitters, Anthropologie, American Eagle, Gap, Old Navy, Madewell, Lululemon and Revolve. A store that refuses still lets you add the piece yourself.",
   "clip.field": "Store address",
   "clip.read": "Read the page",
   "clip.reading": "Reading the page and copying the picture. A few seconds.",

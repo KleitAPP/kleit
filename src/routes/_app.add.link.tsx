@@ -164,6 +164,7 @@ function AddLink() {
       {stage.at === "paste" || stage.at === "reading" ? (
         <>
           <p className="mt-3 text-base text-ink-soft">{t("clip.what")}</p>
+          <p className="mt-1 text-sm text-ink-soft">{t("clip.worksWell")}</p>
           <label className="mt-6 block">
             <span className="text-sm text-ink-soft">{t("clip.field")}</span>
             <input

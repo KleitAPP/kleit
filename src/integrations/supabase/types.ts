@@ -1799,6 +1799,7 @@ export type Database = {
           set_id: string
           state: string
           tagged_by: string
+          told_at: string | null
           user_id: string
         }
         Insert: {
@@ -1807,6 +1808,7 @@ export type Database = {
           set_id: string
           state?: string
           tagged_by: string
+          told_at?: string | null
           user_id: string
         }
         Update: {
@@ -1815,6 +1817,7 @@ export type Database = {
           set_id?: string
           state?: string
           tagged_by?: string
+          told_at?: string | null
           user_id?: string
         }
         Relationships: [

@@ -60,6 +60,14 @@ await page.addScriptTag({ content: bundle });
 
 const result = await page.evaluate(async () => {
   const K = window.KleitOffline;
+  // Nobody signed in: nothing is kept and nothing comes back (the store is the person's).
+  localStorage.removeItem("kleit.lastSignedIn");
+  await K.cachePut("closet", [{ id: "nobody" }]);
+  const nobodyKept = (await K.cacheGet("closet")) === null;
+  const nobodyQueued =
+    (await K.outboxAdd({ kind: "clear_slot", setId: "s0", slot: 0, at: 0 })) === false;
+  // The first person signs in.
+  localStorage.setItem("kleit.lastSignedIn", "person-one");
   await K.cachePut("closet", [{ id: "a" }, { id: "b" }]);
   const got = await K.cacheGet("closet");
   const listBack = JSON.stringify(got?.value) === JSON.stringify([{ id: "a" }, { id: "b" }]);
@@ -86,12 +94,29 @@ const result = await page.evaluate(async () => {
   const afterOne = await K.outboxAll();
   const firstGone = afterOne.length === 2 && afterOne[0].entry.kind === "place_item";
 
+  // A second person on the same phone sees none of the first's, and their outbox is their own.
+  localStorage.setItem("kleit.lastSignedIn", "person-two");
+  const otherSeesNothing =
+    (await K.cacheGet("closet")) === null && (await K.blobGet("item-1")) === null;
+  const otherOutboxEmpty = (await K.outboxAll()).length === 0;
+  await K.outboxAdd({ kind: "clear_slot", setId: "s2", slot: 2, at: 4 });
+  const otherOutboxOwn = (await K.outboxAll()).map((e) => e.entry.setId).join() === "s2";
+  // Signing out takes the whole store with it.
+  await K.clearOffline();
+  localStorage.setItem("kleit.lastSignedIn", "person-one");
+  const clearedForOne =
+    (await K.cacheGet("closet")) === null &&
+    (await K.blobGet("item-1")) === null &&
+    (await K.outboxAll()).length === 0;
+
   const netErr = K.isNetworkError(new TypeError("Failed to fetch"));
   const authErr = K.isNetworkError({ name: "AuthRetryableFetchError", message: "x" });
   const refusal = K.isNetworkError({ code: "P0006", message: "caption carries a phone number" });
   const nothing = K.isNetworkError(null);
 
   return {
+    nobodyKept,
+    nobodyQueued,
     listBack,
     stamped,
     missing,
@@ -99,6 +124,10 @@ const result = await page.evaluate(async () => {
     inOrder,
     countThree,
     firstGone,
+    otherSeesNothing,
+    otherOutboxEmpty,
+    otherOutboxOwn,
+    clearedForOne,
     netErr,
     authErr,
     refusal,
@@ -109,6 +138,8 @@ const result = await page.evaluate(async () => {
 await browser.close();
 
 const checks = [
+  ["with nobody signed in, nothing is kept", result.nobodyKept === true],
+  ["with nobody signed in, no edit is queued", result.nobodyQueued === true],
   ["a cached list comes back as it went in", result.listBack === true],
   ["the cache remembers when it was taken", result.stamped === true],
   ["an unknown key is null, not an error", result.missing === true],
@@ -116,6 +147,13 @@ const checks = [
   ["edits queue in the order they were made", result.inOrder === true],
   ["the count is the count", result.countThree === true],
   ["an edit leaves the queue on its own, the rest stay in order", result.firstGone === true],
+  [
+    "a second person on the phone sees none of the first's closet or pictures",
+    result.otherSeesNothing === true,
+  ],
+  ["nor their waiting edits", result.otherOutboxEmpty === true],
+  ["and queues their own", result.otherOutboxOwn === true],
+  ["signing out empties the store for everyone", result.clearedForOne === true],
   ["a fetch that never reached the server is a network error", result.netErr === true],
   ["a token refresh with no network is a network error", result.authErr === true],
   ["a server refusal is not a network error", result.refusal === false],

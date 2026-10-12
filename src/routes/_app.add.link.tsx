@@ -10,6 +10,7 @@ import {
   type SaveProblem,
 } from "@/items/clipLink";
 import { t } from "@/i18n/en";
+import { takeSharedAddress } from "@/native/incoming";
 
 /**
  * S29 Paste a link → S30 Reading the page → S31 Pick the image → S32 Item details → checking,
@@ -28,8 +29,11 @@ export const Route = createFileRoute("/_app/add/link")({
   head: () => ({
     meta: [{ title: "Clip a link" }, { name: "robots", content: "noindex, nofollow" }],
   }),
-  // ?url= is how a share from another app or the browser extension arrives (M8.2, M9.1): the
-  // address is filled in and read at once. ?image= is the picture the person right-clicked.
+  // ?url= is how the browser extension arrives (M9.1): the address is filled in, and the person
+  // taps Read - a link in a chat can carry ?url= too, and the signed-in app must not fetch an
+  // address on a stranger's say-so. A share from another app on the phone (M8.2) hands its
+  // address over in memory instead (takeSharedAddress) and that one is read at once. ?image=
+  // is the picture the person right-clicked.
   validateSearch: (search: Record<string, unknown>): { url?: string; image?: string } => ({
     ...(typeof search["url"] === "string" && search["url"] ? { url: search["url"] } : {}),
     ...(typeof search["image"] === "string" && /^https?:\/\//.test(search["image"])
@@ -70,8 +74,9 @@ const SAVE_WORDS: Record<SaveProblem, string> = {
 function AddLink() {
   const navigate = useNavigate();
   const { url: shared, image: sharedImage } = Route.useSearch();
+  const [fromPhone] = useState(() => takeSharedAddress());
   const [stage, setStage] = useState<Stage>({ at: "paste" });
-  const [url, setUrl] = useState(shared ?? "");
+  const [url, setUrl] = useState(fromPhone ?? shared ?? "");
 
   // The details, editable (name and price - spec 4.1 #9), and the picture picked.
   const [title, setTitle] = useState("");
@@ -79,11 +84,11 @@ function AddLink() {
   const [image, setImage] = useState<string | null>(null);
   const [own, setOwn] = useState(false);
 
-  // A shared address does not wait for a tap.
+  // An address the phone shared does not wait for a tap; one from a link does.
   useEffect(() => {
-    if (shared && stage.at === "paste") void readAddress(shared);
+    if (fromPhone && stage.at === "paste") void readAddress(fromPhone);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shared]);
+  }, [fromPhone]);
 
   function read() {
     return readAddress(url);

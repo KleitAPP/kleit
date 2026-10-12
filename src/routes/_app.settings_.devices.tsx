@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 import { EmptyState } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
@@ -62,9 +63,9 @@ function Devices() {
       <button
         type="button"
         onClick={() => {
-          void supabase.auth
-            .signOut({ scope: "global" })
-            .then(() => navigate({ to: "/welcome", replace: true }));
+          void signOutEverywhereOnThisPhone({ scope: "global" }).then(() =>
+            navigate({ to: "/welcome", replace: true }),
+          );
         }}
         className="mt-6 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
       >

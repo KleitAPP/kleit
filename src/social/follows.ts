@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { patternSafe } from "@/search/search";
 import type { AccountLabel } from "@/social/labels";
 
 /**
@@ -172,7 +173,7 @@ export async function myRequests(): Promise<Person[]> {
 
 /** Find friends (S78) by username: a prefix search, a handful of results. */
 export async function findPeople(query: string): Promise<Person[]> {
-  const q = query.trim().toLowerCase().replace(/^@/, "");
+  const q = patternSafe(query.trim().toLowerCase().replace(/^@/, ""));
   if (q.length < 2) return [];
   const { data } = await supabase
     .from("profiles")

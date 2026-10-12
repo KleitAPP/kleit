@@ -1,4 +1,12 @@
 # Private test site: never indexed (roadmap M1.2, security plan #21).
-# Remove or change this before the live site at M10 — public shared set pages must be indexable (spec 8.4).
+# Remove or change the robots line before the live site at M10 — public shared set pages must be
+# indexable (spec 8.4). The other four stay: the app's own screens are never framed by anyone
+# (clickjacking), a file is what its type says, and the address of a screen is not handed to the
+# sites a person taps through to (the app-code review, 2026-10-12). The share pages the Worker
+# serves carry their own, fuller policy (worker/index.ts, pageHeaders).
 /*
   X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

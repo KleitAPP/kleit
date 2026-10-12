@@ -40,12 +40,30 @@ public class IncomingPlugin extends Plugin {
       }
     } else if (Intent.ACTION_VIEW.equals(action)) {
       Uri data = intent.getData();
-      if (data != null) {
+      if (data != null && isOurLink(data)) {
         pendingUrl = data.toString();
         pendingText = null;
       }
     }
     if (live != null && (pendingText != null || pendingUrl != null)) live.announce();
+  }
+
+  /**
+   * Only the links the manifest registers: https, one of our hosts, a set, a poll or an invite.
+   * An explicit intent from another app can name any address at all; one that is not a link of
+   * ours is not kept, so no other app can open a screen of its choosing with a URL.
+   */
+  static boolean isOurLink(Uri data) {
+    if (!"https".equals(data.getScheme())) return false;
+    String host = data.getHost();
+    if (host == null) return false;
+    boolean ours = host.equals("kleit.app") || host.equals("www.kleit.app")
+        || host.equals("kleit-test.kleitapp-team.workers.dev");
+    if (!ours) return false;
+    String path = data.getPath();
+    if (path == null) return false;
+    if (path.matches("^/[sp]/[A-Za-z0-9]{8,32}/?$")) return true;
+    return path.equals("/welcome") && data.getQueryParameter("invite") != null;
   }
 
   @Override

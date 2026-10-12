@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import { rememberInvite } from "@/auth/beta";
-import { rememberNext } from "@/auth/next";
+import { rememberNext, safeNext } from "@/auth/next";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/welcome")({
   validateSearch: (
     search: Record<string, unknown>,
   ): { next?: string; back?: string; invite?: string } => ({
-    ...(typeof search["next"] === "string" && search["next"].startsWith("/")
+    ...(typeof search["next"] === "string" && safeNext(search["next"])
       ? { next: search["next"] }
       : {}),
     ...(typeof search["back"] === "string" ? { back: search["back"] } : {}),

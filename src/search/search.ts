@@ -82,8 +82,21 @@ export function parseTags(text: string): string[] {
   return out;
 }
 
+/**
+ * A typed search term, made safe for a PostgREST pattern: the wildcards `%` and `_` are
+ * escaped so "j_y" means those letters, and the characters PostgREST's filter grammar reads
+ * (`,` `(` `)` `"` `\`) are dropped - a comma would otherwise end one filter and start another
+ * of the typer's choosing (the app-code review, 2026-10-12). A dot stays: usernames have them.
+ */
+export function patternSafe(q: string): string {
+  return q
+    .replace(/[,()"\\]/g, "")
+    .replace(/[%_]/g, (c) => `\\${c}`)
+    .slice(0, 60);
+}
+
 export async function searchPeople(q: string): Promise<Person[]> {
-  const needle = q.trim().toLowerCase().replace(/^@/, "");
+  const needle = patternSafe(q.trim().toLowerCase().replace(/^@/, ""));
   if (needle.length < 2) return [];
   const { data } = await supabase
     .from("profiles")

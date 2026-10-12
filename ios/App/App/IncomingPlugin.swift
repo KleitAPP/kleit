@@ -39,7 +39,23 @@ public class IncomingPlugin: CAPPlugin, CAPBridgedPlugin {
         remember(url)
     }
 
+    /// Only the links the app registers: https, one of our hosts, a set, a poll or an invite.
+    /// Anything else that reaches the app as a URL is not kept, so nothing outside the app can
+    /// choose a screen for it (the app-code review, 2026-10-12).
+    private func isOurLink(_ url: URL) -> Bool {
+        guard url.scheme == "https", let host = url.host else { return false }
+        let ours = ["kleit.app", "www.kleit.app", "kleit-test.kleitapp-team.workers.dev"]
+        guard ours.contains(host) else { return false }
+        let path = url.path
+        if path.range(of: "^/[sp]/[A-Za-z0-9]{8,32}/?$", options: .regularExpression) != nil { return true }
+        if path == "/welcome", let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems {
+            return items.contains { $0.name == "invite" && !($0.value ?? "").isEmpty }
+        }
+        return false
+    }
+
     private func remember(_ url: URL) {
+        guard isOurLink(url) else { return }
         pendingUrl = url.absoluteString
         notifyListeners("incoming", data: take(), retainUntilConsumed: true)
     }

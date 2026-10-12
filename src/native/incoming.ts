@@ -10,10 +10,15 @@ import { supabase } from "@/integrations/supabase/client";
  * hears the ones that arrive while the app is open.
  *
  * Where each goes:
- *   - any web address that is not ours → Clip a link, with the address filled in and read at once;
+ *   - any web address that is not ours → Clip a link, with the address filled in and read at
+ *     once. The address travels in memory (`takeSharedAddress`), never in the screen's own
+ *     `?url=`: a web link can carry `?url=` too, and that one waits for a tap - a link in a chat
+ *     must not be able to make the signed-in app fetch an address on its own;
  *   - /s/<code> → the set, through the same `shared_set` question the share page asks (so a
  *     private or reset link lands on "not available" here too); /p/<code> → the poll;
- *   - any other path on our own site → that path inside the app.
+ *   - /welcome?invite=<code> → the invite screen (S111);
+ *   - anything else on our own hosts is dropped: the app links the phone registers are /s/ and
+ *     /p/, and an explicit intent from another app must not open any screen it names.
  * Nothing happens on the web, where the browser already does all of this.
  */
 type IncomingPlugin = {
@@ -50,7 +55,8 @@ export async function destinationFor(
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   if (!OUR_HOSTS.includes(url.hostname)) {
-    return `/add/link?url=${encodeURIComponent(url.toString())}`;
+    sharedAddress = url.toString();
+    return "/add/link";
   }
   const set = /^\/s\/([A-Za-z0-9]{8,32})\/?$/.exec(url.pathname);
   if (set) {
@@ -62,7 +68,17 @@ export async function destinationFor(
     const id = await lookup.poll(poll[1]!);
     return id ? `/poll/${id}` : "/not-available";
   }
-  return url.pathname + url.search;
+  const invite = url.pathname === "/welcome" ? url.searchParams.get("invite") : null;
+  if (invite && /^[A-Z0-9]{4,16}$/i.test(invite)) return `/welcome?invite=${invite.toUpperCase()}`;
+  return null;
+}
+
+/** A store address the phone just shared; read once by Clip a link, then gone. */
+let sharedAddress: string | null = null;
+export function takeSharedAddress(): string | null {
+  const address = sharedAddress;
+  sharedAddress = null;
+  return address;
 }
 
 export async function setIdFor(code: string): Promise<string | null> {

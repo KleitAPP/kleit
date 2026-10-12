@@ -8,7 +8,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // Kleit's own bridge, so the Cutout and Incoming plugins are registered on the bridge that
+        // is actually shown (a plain CAPBridgeViewController here left both unavailable - the
+        // app-code review, 2026-10-12).
+        window?.rootViewController = KleitViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)

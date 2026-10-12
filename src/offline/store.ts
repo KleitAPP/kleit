@@ -12,10 +12,30 @@
  * Everything here is best effort: a phone with no IndexedDB (private mode, a locked-down
  * browser) gets null back and the app behaves as it did before - online only. Nothing in here
  * is trusted by the server; the row policies decide what a replayed edit may do.
+ *
+ * Everything is the signed-in person's: every key is prefixed with their id (the same id the
+ * offline stand-in uses, `kleit.lastSignedIn`), nothing is kept or read with nobody signed in,
+ * and signing out deletes the whole database - so a shared or sold phone, switched to flight
+ * mode, shows the next person nothing of the last (the app-code review, 2026-10-12).
  */
 
 const DB_NAME = "kleit-offline";
 const DB_VERSION = 1;
+const OWNER_KEY = "kleit.lastSignedIn";
+
+/** Whose store this is right now: the id the last good sign-in left behind, or nobody. */
+function owner(): string | null {
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function scoped(key: string): string | null {
+  const me = owner();
+  return me ? `${me}:${key}` : null;
+}
 
 type Box = "cache" | "blobs" | "outbox";
 
@@ -75,38 +95,76 @@ function run<T>(
 export type Cached<T> = { at: number; value: T };
 
 export async function cacheGet<T>(key: string): Promise<Cached<T> | null> {
-  const got = await run<Cached<T> | undefined>("cache", "readonly", (s) => s.get(key));
+  const k = scoped(key);
+  if (!k) return null;
+  const got = await run<Cached<T> | undefined>("cache", "readonly", (s) => s.get(k));
   return got ?? null;
 }
 
 export async function cachePut<T>(key: string, value: T): Promise<void> {
-  await run("cache", "readwrite", (s) => s.put({ at: Date.now(), value }, key));
+  const k = scoped(key);
+  if (!k) return;
+  await run("cache", "readwrite", (s) => s.put({ at: Date.now(), value }, k));
 }
 
 export async function blobGet(key: string): Promise<Blob | null> {
-  const got = await run<Blob | undefined>("blobs", "readonly", (s) => s.get(key));
+  const k = scoped(key);
+  if (!k) return null;
+  const got = await run<Blob | undefined>("blobs", "readonly", (s) => s.get(k));
   return got instanceof Blob ? got : null;
 }
 
 export async function blobPut(key: string, blob: Blob): Promise<void> {
-  await run("blobs", "readwrite", (s) => s.put(blob, key));
+  const k = scoped(key);
+  if (!k) return;
+  await run("blobs", "readwrite", (s) => s.put(blob, k));
 }
 
-/** One edit made offline. The kinds are exactly the calls `src/sets/sets.ts` makes online. */
-export type OutboxEntry =
+/**
+ * The whole store goes: on sign-out, so nothing of the person stays on the phone. The open
+ * connection is closed first, or the browser would wait for it and never delete.
+ */
+export async function clearOffline(): Promise<void> {
+  try {
+    const db = await open();
+    db?.close();
+    opening = null;
+    if (typeof indexedDB === "undefined") return;
+    await new Promise<void>((resolve) => {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+      request.onblocked = () => resolve();
+    });
+  } catch {
+    // Nothing to clear, or nothing we may touch.
+  }
+}
+
+/**
+ * One edit made offline. The kinds are exactly the calls `src/sets/sets.ts` makes online. An
+ * entry remembers whose it is and replays only for them.
+ */
+export type OutboxEntry = { owner?: string } & (
   | { kind: "save_set_layout"; setId: string; layout: unknown; at: number }
   | { kind: "place_item"; setId: string; slot: number; itemId: string; at: number }
-  | { kind: "clear_slot"; setId: string; slot: number; at: number };
+  | { kind: "clear_slot"; setId: string; slot: number; at: number }
+);
 
 export async function outboxAdd(entry: OutboxEntry): Promise<boolean> {
-  const key = await run<IDBValidKey>("outbox", "readwrite", (s) => s.add(entry));
+  const me = owner();
+  if (!me) return false;
+  const key = await run<IDBValidKey>("outbox", "readwrite", (s) => s.add({ ...entry, owner: me }));
   return key !== null;
 }
 
+/** The signed-in person's own waiting edits, in order; anybody else's are dropped on sight. */
 export async function outboxAll(): Promise<{ key: IDBValidKey; entry: OutboxEntry }[]> {
   const db = await open();
-  if (!db) return [];
-  return new Promise((resolve) => {
+  const me = owner();
+  if (!db || !me) return [];
+  const strangers: IDBValidKey[] = [];
+  const mine = await new Promise<{ key: IDBValidKey; entry: OutboxEntry }[]>((resolve) => {
     const out: { key: IDBValidKey; entry: OutboxEntry }[] = [];
     try {
       const tx = db.transaction("outbox", "readonly");
@@ -117,7 +175,9 @@ export async function outboxAll(): Promise<{ key: IDBValidKey; entry: OutboxEntr
           resolve(out);
           return;
         }
-        out.push({ key: cursor.key, entry: cursor.value as OutboxEntry });
+        const entry = cursor.value as OutboxEntry;
+        if (entry.owner === me) out.push({ key: cursor.key, entry });
+        else strangers.push(cursor.key);
         cursor.continue();
       };
       request.onerror = () => resolve(out);
@@ -125,6 +185,8 @@ export async function outboxAll(): Promise<{ key: IDBValidKey; entry: OutboxEntr
       resolve(out);
     }
   });
+  for (const key of strangers) await outboxRemove(key);
+  return mine;
 }
 
 export async function outboxRemove(key: IDBValidKey): Promise<void> {
@@ -132,5 +194,5 @@ export async function outboxRemove(key: IDBValidKey): Promise<void> {
 }
 
 export async function outboxCount(): Promise<number> {
-  return (await run<number>("outbox", "readonly", (s) => s.count())) ?? 0;
+  return (await outboxAll()).length;
 }

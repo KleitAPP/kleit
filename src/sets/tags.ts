@@ -28,10 +28,12 @@ export async function tagPerson(
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;
   if (!me) return { ok: false, problem: "failed" };
+  // Usernames are lower case by rule (migration 003), so an exact match is the lookup; a
+  // pattern would let "j_y" tag whoever "jay" is.
   const { data: person } = await supabase
     .from("profiles")
     .select("user_id, username")
-    .ilike("username", name)
+    .eq("username", name)
     .maybeSingle();
   if (!person) return { ok: false, problem: "no-such-person" };
   const { data: row, error } = await supabase

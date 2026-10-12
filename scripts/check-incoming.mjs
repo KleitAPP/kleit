@@ -36,7 +36,7 @@ execFileSync(
   ],
   { stdio: "inherit" },
 );
-const { firstUrl, destinationFor } = await import(`${dir}/incoming.mjs`);
+const { firstUrl, destinationFor, takeSharedAddress } = await import(`${dir}/incoming.mjs`);
 
 const lookup = {
   set: async (code) => (code === "liveSetCode00001" ? "set-id-1" : null),
@@ -46,9 +46,10 @@ const to = (raw) => destinationFor(raw, lookup);
 
 const checks = [
   [
-    "a store address shared from another app becomes Clip a link, filled in",
-    (await to("https://www.zara.com/us/en/jacket-p01.html")) ===
-      "/add/link?url=" + encodeURIComponent("https://www.zara.com/us/en/jacket-p01.html"),
+    "a store address shared from another app becomes Clip a link, the address handed over in memory",
+    (await to("https://www.zara.com/us/en/jacket-p01.html")) === "/add/link" &&
+      takeSharedAddress() === "https://www.zara.com/us/en/jacket-p01.html" &&
+      takeSharedAddress() === null,
   ],
   [
     "chatter around the address is ignored; the first address wins",
@@ -77,8 +78,15 @@ const checks = [
       "/set/set-id-1",
   ],
   [
-    "another path on our site opens as itself",
-    (await to("https://kleit.app/u/zokono")) === "/u/zokono",
+    "an invite link opens the invite screen, the code tidied",
+    (await to("https://kleit.app/welcome?invite=abcd2345")) === "/welcome?invite=ABCD2345",
+  ],
+  [
+    "any other path on our own site is dropped - another app cannot pick a screen",
+    (await to("https://kleit.app/u/zokono")) === null &&
+      (await to("https://kleit.app/add/link?url=https://evil.example")) === null &&
+      (await to("https://kleit.app/settings/delete")) === null &&
+      (await to("https://kleit.app/welcome?invite=not%20a%20code")) === null,
   ],
   [
     "nonsense is dropped",

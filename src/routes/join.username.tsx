@@ -10,7 +10,7 @@ import {
   type UsernameStatus,
 } from "@/auth/profile";
 import { PrimaryButton } from "@/components/kleit";
-import { hasAgreed, rememberAgreement } from "@/auth/agreement";
+import { TERMS_VERSION, hasAgreed, rememberAgreement } from "@/auth/agreement";
 import { betaOnly, forgetInvite, peekInvite } from "@/auth/beta";
 import { LegalSheet, type LegalDoc } from "@/legal/LegalSheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,7 +109,7 @@ function PickUsername() {
   async function take() {
     setClaiming(true);
     setRefusal(null);
-    const result = await claimProfile(name, "", "v0.1", peekInvite());
+    const result = await claimProfile(name, "", TERMS_VERSION, peekInvite());
     setClaiming(false);
     if (result.ok) {
       forgetInvite();

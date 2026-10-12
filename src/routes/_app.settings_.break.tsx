@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { signOutEverywhereOnThisPhone } from "@/auth/signOut";
 import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 
@@ -59,7 +60,7 @@ function TakeABreak() {
     }
     // Signed out everywhere, so the account is really gone from view rather than still open on
     // another device. Signing in again is what brings it back.
-    await supabase.auth.signOut({ scope: "global" });
+    await signOutEverywhereOnThisPhone({ scope: "global" });
     void navigate({ to: "/welcome", replace: true, search: { back: "hidden" } });
   }
 

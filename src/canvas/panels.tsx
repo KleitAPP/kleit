@@ -71,6 +71,8 @@ export function SelectedPanel({
   cropping,
   onNudge,
   onSize,
+  canvasWidth,
+  onSizeTo,
   onRotate,
   onFlip,
   onOrder,
@@ -88,6 +90,9 @@ export function SelectedPanel({
   cropping: boolean;
   onNudge: (dx: number, dy: number) => void;
   onSize: (factor: number) => void;
+  /** Spec 6.1 #8: the size slider - the piece's width as a share of the canvas, 5–150%. */
+  canvasWidth: number;
+  onSizeTo: (widthPx: number) => void;
   onRotate: (deg: number) => void;
   onFlip: (axis: "x" | "y") => void;
   onOrder: (move: OrderMove) => void;
@@ -159,6 +164,22 @@ export function SelectedPanel({
         <PanelButton label={t("panel.hide")} onPress={onHide} />
         <PanelButton label={t("panel.remove")} onPress={onRemove} danger />
       </div>
+      <label className="flex items-center gap-3 text-sm text-ink">
+        <span className="shrink-0">{t("panel.size")}</span>
+        <input
+          type="range"
+          min={5}
+          max={150}
+          value={Math.round((layer.w / canvasWidth) * 100)}
+          disabled={locked}
+          onChange={(e) => onSizeTo(Math.round((Number(e.target.value) / 100) * canvasWidth))}
+          aria-label={t("panel.size")}
+          className="w-full accent-brand"
+        />
+        <span className="w-10 text-right tabular-nums text-ink-soft">
+          {Math.round((layer.w / canvasWidth) * 100)}%
+        </span>
+      </label>
       <label className="flex items-center gap-3 text-sm text-ink">
         <span className="shrink-0">{t("panel.opacity")}</span>
         <input

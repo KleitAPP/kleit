@@ -21,6 +21,7 @@ import {
   loadSet,
   remixSet,
   setRemixMode,
+  startFromStyle,
   templates,
   type Placement,
   type RemixMode,
@@ -92,6 +93,7 @@ function SetPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [remixing, setRemixing] = useState(false);
+  const [styling, setStyling] = useState(false);
   // People tagged in the set (spec 7.4): approved for everyone; waiting ones for the owner and
   // the person themselves, who can say yes or take themselves off.
   const [people, setPeople] = useState<TaggedPerson[]>([]);
@@ -153,6 +155,22 @@ function SetPage() {
   }
   async function removeMe() {
     if (me && (await untag(setId, me))) setPeople((list) => list.filter((p) => p.user_id !== me));
+  }
+
+  /** "Use this set's style" (spec 6.4 #4): the look without the pieces, as a draft of yours. */
+  async function useStyle() {
+    if (!set || styling) return;
+    setStyling(true);
+    const result = await startFromStyle(set.id);
+    if (!result) {
+      setStyling(false);
+      setNotice(t("setpage.styleFailed"));
+      return;
+    }
+    void navigate({
+      to: result.creative ? "/set/$setId/canvas" : "/set/$setId/edit",
+      params: { setId: result.id },
+    });
   }
 
   /** Remix (spec 7.4): a new draft of yours, credited; then straight into the editor. */
@@ -560,6 +578,20 @@ function SetPage() {
             {t("setpage.remix")}
           </button>
           <p className="mt-2 text-sm text-ink-soft">{t("setpage.remixWhat")}</p>
+        </div>
+      ) : null}
+
+      {set.status === "published" && !mine ? (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => void useStyle()}
+            disabled={styling}
+            className="flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+          >
+            {t("setpage.useStyle")}
+          </button>
+          <p className="mt-2 text-sm text-ink-soft">{t("setpage.useStyleWhat")}</p>
         </div>
       ) : null}
 

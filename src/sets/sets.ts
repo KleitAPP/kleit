@@ -59,6 +59,9 @@ export type SetSummary = {
   featured_at?: string | null;
   /** The song card (spec 11 #12): a link that opens in Spotify, Apple Music or YouTube Music. */
   song?: Song | null;
+  /** Spec 6.6 #1 / 7.1 #12: a description, and alt text for people who can't see the picture. */
+  description?: string;
+  alt_text?: string | null;
 };
 
 export type Placement = { slot: number; item: ItemSummary };
@@ -125,7 +128,7 @@ export async function loadSet(
   const { data: set, error: setError } = await supabase
     .from("sets")
     .select(
-      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label, featured_at, song_url, song_title, song_artist, song_cover_url",
+      "id, title, status, visibility, share_code, tags, layout, updated_at, remix_mode, remixed_from_set_id, remixed_from_label, featured_at, song_url, song_title, song_artist, song_cover_url, description, alt_text",
     )
     .eq("id", id)
     .maybeSingle();
@@ -420,6 +423,73 @@ export async function setRemixMode(setId: string, mode: RemixMode): Promise<bool
   return !error;
 }
 
+/**
+ * "Use this set's style" (spec 6.4 #4): a new draft of yours with the set's look but none of its
+ * pieces - the canvas shape, the background, the words and the decorations stay; the pieces go,
+ * for your own things. Nothing of the original is copied but the arrangement, so it needs no
+ * credit and no remix permission; it works on any set you can see. A Quick set gives a Quick
+ * draft on the same template and background.
+ */
+export async function startFromStyle(
+  setId: string,
+): Promise<{ id: string; creative: boolean } | null> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return null;
+  const { data: source } = await supabase
+    .from("sets")
+    .select("layout")
+    .eq("id", setId)
+    .maybeSingle();
+  if (!source) return null;
+  type Json = import("@/integrations/supabase/types").Json;
+  const raw = source.layout as {
+    version?: number;
+    template?: string;
+    background?: string;
+    canvas?: Json;
+    backgroundAsset?: string | null;
+    order?: string[];
+    texts?: Record<string, Json>;
+    decor?: Record<string, Json>;
+  } | null;
+  const comments_setting = await commentsDefault(me);
+  if (raw?.version === 2) {
+    const texts = raw.texts ?? {};
+    const decor = raw.decor ?? {};
+    const order = (raw.order ?? []).filter((id) => texts[id] || decor[id]);
+    const layout: Json = {
+      version: 2,
+      mode: "creative",
+      canvas: raw.canvas ?? null,
+      background: raw.background ?? DEFAULT_BACKGROUND,
+      backgroundAsset: raw.backgroundAsset ?? null,
+      caption: "",
+      order,
+      texts,
+      decor,
+    };
+    const { data, error } = await supabase
+      .from("sets")
+      .insert({ owner_id: me, layout, status: "draft", comments_setting })
+      .select("id")
+      .single();
+    return error || !data ? null : { id: data.id, creative: true };
+  }
+  const layout: QuickLayout = {
+    version: 1,
+    template: typeof raw?.template === "string" ? raw.template : "",
+    background: typeof raw?.background === "string" ? raw.background : DEFAULT_BACKGROUND,
+    caption: "",
+  };
+  const { data, error } = await supabase
+    .from("sets")
+    .insert({ owner_id: me, layout, status: "draft", comments_setting })
+    .select("id")
+    .single();
+  return error || !data ? null : { id: data.id, creative: false };
+}
+
 /** "Black boots + 3 more" - a title written for you (spec 5.1 #15). */
 export function autoTitle(placements: Placement[]): string {
   const sorted = [...placements].sort((a, b) => a.slot - b.slot);
@@ -428,6 +498,41 @@ export function autoTitle(placements: Placement[]): string {
   const name = first.item.title?.trim() || (first.item.kind === "own" ? "My piece" : "A piece");
   const rest = sorted.length - 1;
   return rest > 0 ? `${name} + ${rest} more` : name;
+}
+
+/**
+ * Alt text written for you (spec 6.6 #1, 7.1 #12; design pack G5): the pieces by colour, name and
+ * store - "A set of 3 pieces: black boots from Zara, a white linen shirt (your own piece), …" -
+ * capped at the column's 300 characters. Editable under Advanced on the send screen; this is only
+ * the starting point, never overwritten once the person has written their own.
+ */
+export function autoAltText(placements: Placement[]): string {
+  const sorted = [...placements].sort((a, b) => a.slot - b.slot);
+  if (sorted.length === 0) return "";
+  const parts = sorted.map(({ item }) => {
+    const colour = item.color_name ? `${item.color_name} ` : "";
+    const name = item.title?.trim() || (item.kind === "own" ? "piece" : "piece");
+    const where =
+      item.kind === "own"
+        ? " (their own piece)"
+        : item.store_name
+          ? ` from ${item.store_name}`
+          : "";
+    return `${colour}${name}${where}`;
+  });
+  const head = sorted.length === 1 ? "A set of one piece: " : `A set of ${sorted.length} pieces: `;
+  let text = head + parts.join(", ") + ".";
+  if (text.length > 300) {
+    const kept: string[] = [];
+    for (const part of parts) {
+      const next =
+        head + [...kept, part].join(", ") + ` and ${parts.length - kept.length - 1} more.`;
+      if (next.length > 300) break;
+      kept.push(part);
+    }
+    text = head + kept.join(", ") + ` and ${parts.length - kept.length} more.`;
+  }
+  return text.slice(0, 300);
 }
 
 /** The running total of the priced pieces, in cents, and how many had no price. */

@@ -377,6 +377,17 @@ function TemplateMaker() {
             cropping={false}
             canMoveUp={index < doc.order.length - 1}
             canMoveDown={index > 0}
+            canvasWidth={doc.canvas.w}
+            onSizeTo={(widthPx) => {
+              const w = Math.max(24, widthPx);
+              const h = Math.max(24, Math.round((sel.h / sel.w) * w));
+              change(sel.id, {
+                w,
+                h,
+                x: Math.round(sel.x + (sel.w - w) / 2),
+                y: Math.round(sel.y + (sel.h - h) / 2),
+              });
+            }}
             onNudge={(dx, dy) => change(sel.id, { x: sel.x + dx, y: sel.y + dy })}
             onSize={(k) => {
               const w = Math.max(24, Math.round(sel.w * k));

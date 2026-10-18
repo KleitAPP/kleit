@@ -361,6 +361,14 @@ export function fit(doc: Doc, id: string, natural: { w: number; h: number }): Do
   });
 }
 
+/** Spec 6.1 #11, "free size": the width stays 1080 so nothing moves; only the height changes. */
+export const FREE_HEIGHT = { min: 540, max: 2160 } as const;
+export function setFreeHeight(doc: Doc, h: number): Doc {
+  const height = Math.round(Math.min(FREE_HEIGHT.max, Math.max(FREE_HEIGHT.min, h)));
+  if (doc.canvas.shape === "free" && doc.canvas.h === height) return doc;
+  return { ...doc, canvas: { w: 1080, h: height, shape: "free" } };
+}
+
 /** Spec 6.1 #11: switching the shape keeps the layout - pieces scale with the width and stay put. */
 export function setShape(doc: Doc, shape: Exclude<CanvasShape, "free">): Doc {
   const next = CANVAS_SHAPES[shape];

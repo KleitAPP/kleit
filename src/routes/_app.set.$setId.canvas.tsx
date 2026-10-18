@@ -23,7 +23,9 @@ import {
   redo,
   removeLayer,
   reorder,
+  setFreeHeight,
   setShape,
+  FREE_HEIGHT,
   undo,
   updateLayer,
   type CanvasShape,
@@ -51,6 +53,7 @@ import { lastSaveProblem } from "@/sets/sets";
 import type { ItemSummary } from "@/items/items";
 import { ItemPicker } from "@/sets/ItemPicker";
 import { SWATCHES } from "@/sets/swatches";
+import { COLOUR_SWATCHES, isColourName } from "@/items/colour";
 import {
   download,
   exportCarousel,
@@ -95,6 +98,9 @@ function CanvasScreen() {
   const [library, setLibrary] = useState<"assets" | "backgrounds" | null>(null);
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  // Ctrl+C holds the id of the copied piece; Ctrl+V duplicates it (spec 6.1 #23).
+  const clipboardRef = useRef<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportSize, setExportSize] = useState<ExportSize>(1080);
@@ -226,6 +232,46 @@ function CanvasScreen() {
 
   const sel = selected && doc ? doc.layers[selected] : null;
 
+  // Spec 6.1 #22, "colours from this set": the named colour of every piece on the canvas, once each.
+  const setColours: Array<{ hex: string; name: string }> = [];
+  if (doc) {
+    const seen = new Set<string>();
+    for (const id of doc.order) {
+      const l = doc.layers[id];
+      const item = l?.kind === "item" && l.itemId ? items[l.itemId] : null;
+      const name = item?.color_name;
+      if (name && isColourName(name) && !seen.has(name)) {
+        seen.add(name);
+        setColours.push({ hex: COLOUR_SWATCHES[name], name });
+      }
+    }
+  }
+  const eyedropperAvailable = typeof window !== "undefined" && "EyeDropper" in window;
+  async function pickFromScreen(onColour: (hex: string) => void) {
+    try {
+      const Dropper = (
+        window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } }
+      ).EyeDropper;
+      if (!Dropper) return;
+      const r = await new Dropper().open();
+      if (/^#[0-9a-fA-F]{6}$/.test(r.sRGBHex)) onColour(r.sRGBHex);
+    } catch {
+      /* the person pressed Escape */
+    }
+  }
+
+  function sizeTo(widthPx: number) {
+    if (!doc || !sel) return;
+    const w = Math.max(24, widthPx);
+    const h = Math.max(24, Math.round((sel.h / sel.w) * w));
+    change(sel.id, {
+      w,
+      h,
+      x: Math.round(sel.x + (sel.w - w) / 2),
+      y: Math.round(sel.y + (sel.h - h) / 2),
+    });
+  }
+
   function change(id: string, patch: Partial<Doc["layers"][string]>) {
     if (!doc) return;
     apply(updateLayer(doc, id, patch));
@@ -316,33 +362,35 @@ function CanvasScreen() {
       );
   }
 
-  async function duplicate() {
-    if (!doc || !sel) return;
+  async function duplicate(fromId?: string) {
+    if (!doc) return;
+    const from = fromId ? doc.layers[fromId] : sel;
+    if (!from) return;
     if (doc.order.length >= LAYER_CAP) {
       setNotice(t("canvas.capReached", { cap: LAYER_CAP }));
       return;
     }
-    if (sel.kind !== "item") {
+    if (from.kind !== "item") {
       // Words and decorations live in the layout: a copy needs no row, only an id of its own.
-      const copyId = `${sel.kind === "text" ? "text" : "decor"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-      const cloned = cloneLayer(doc, sel.id, copyId);
+      const copyId = `${from.kind === "text" ? "text" : "decor"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const cloned = cloneLayer(doc, from.id, copyId);
       if (!cloned.ok) return;
       apply(cloned.doc);
       setSelected(copyId);
       return;
     }
-    const probe = cloneLayer(doc, sel.id, "probe");
+    const probe = cloneLayer(doc, from.id, "probe");
     if (!probe.ok) return;
     const copy = probe.doc.layers["probe"]!;
     const { id: _id, itemId: _itemId, ...position } = copy;
-    const rowId = await addRow(setId, sel.itemId, position);
+    const rowId = await addRow(setId, from.itemId, position);
     if (!rowId) {
       setSaveState("failed");
       return;
     }
     setHistory((h) => {
       if (!h) return h;
-      const cloned = cloneLayer(h.present, sel.id, rowId);
+      const cloned = cloneLayer(h.present, from.id, rowId);
       if (!cloned.ok) return h;
       lastSaved.current = lastSaved.current
         ? {
@@ -412,6 +460,25 @@ function CanvasScreen() {
       } else if (mod && e.key.toLowerCase() === "d" && sel) {
         e.preventDefault();
         void duplicate();
+      } else if (mod && e.key.toLowerCase() === "c" && sel) {
+        e.preventDefault();
+        clipboardRef.current = sel.id;
+      } else if (
+        mod &&
+        e.key.toLowerCase() === "v" &&
+        clipboardRef.current &&
+        doc?.layers[clipboardRef.current]
+      ) {
+        e.preventDefault();
+        setSelected(clipboardRef.current);
+        // The copy lands a step down and right of the original, as a paste does everywhere else.
+        void duplicate(clipboardRef.current);
+      } else if (!mod && e.key.toLowerCase() === "l" && sel) {
+        e.preventDefault();
+        change(sel.id, { locked: !sel.locked });
+      } else if (e.key === "?" && !mod) {
+        e.preventDefault();
+        setHelpOpen(true);
       } else if ((e.key === "Delete" || e.key === "Backspace") && sel) {
         e.preventDefault();
         remove(sel.id);
@@ -492,7 +559,31 @@ function CanvasScreen() {
             onToggle={() => apply(setShape(doc, shape))}
           />
         ))}
+        <Chip
+          label={t("canvas.shape.free")}
+          selected={doc.canvas.shape === "free"}
+          onToggle={() => apply(setFreeHeight(doc, doc.canvas.h))}
+        />
+        <PanelButton label="?" onPress={() => setHelpOpen(true)} />
       </div>
+      {doc.canvas.shape === "free" ? (
+        <label className="mt-2 flex items-center gap-3 text-sm text-ink">
+          <span className="shrink-0">{t("canvas.freeHeight")}</span>
+          <input
+            type="range"
+            min={FREE_HEIGHT.min}
+            max={FREE_HEIGHT.max}
+            step={10}
+            value={doc.canvas.h}
+            onChange={(e) => apply(setFreeHeight(doc, Number(e.target.value)))}
+            aria-label={t("canvas.freeHeight")}
+            className="w-full accent-brand"
+          />
+          <span className="w-16 text-right tabular-nums text-ink-soft">
+            {doc.canvas.w}×{doc.canvas.h}
+          </span>
+        </label>
+      ) : null}
 
       <div
         className="mt-3 overflow-hidden rounded-md border border-line bg-surface-2 touch-none"
@@ -548,6 +639,19 @@ function CanvasScreen() {
               onAdvanced={() => setAdvanced((a) => !a)}
             />
             {advanced ? (
+              <ColourExtras
+                colours={setColours}
+                current={sel.text.colour}
+                eyedropper={eyedropperAvailable}
+                onPick={(hex) => change(sel.id, { text: { ...sel.text!, colour: hex } })}
+                onEyedropper={() =>
+                  void pickFromScreen((hex) =>
+                    change(sel.id, { text: { ...sel.text!, colour: hex } }),
+                  )
+                }
+              />
+            ) : null}
+            {advanced ? (
               <label className="mt-2 block">
                 <span className="text-sm text-ink-soft">{t("text.hex")}</span>
                 <input
@@ -578,6 +682,13 @@ function CanvasScreen() {
                 style={{ backgroundColor: c.hex }}
               />
             ))}
+            <ColourExtras
+              colours={setColours}
+              current={sel.colour}
+              eyedropper={eyedropperAvailable}
+              onPick={(hex) => change(sel.id, { colour: hex })}
+              onEyedropper={() => void pickFromScreen((hex) => change(sel.id, { colour: hex }))}
+            />
           </div>
         ) : null}
         {sel ? (
@@ -586,6 +697,8 @@ function CanvasScreen() {
             cropping={cropping}
             canMoveUp={index < doc.order.length - 1}
             canMoveDown={index > 0}
+            canvasWidth={doc.canvas.w}
+            onSizeTo={sizeTo}
             onNudge={(dx, dy) => change(sel.id, { x: sel.x + dx, y: sel.y + dy })}
             onSize={(k) => {
               const w = Math.max(24, Math.round(sel.w * k));
@@ -648,7 +761,32 @@ function CanvasScreen() {
                   style={{ backgroundColor: s.hex }}
                 />
               ))}
+              <ColourExtras
+                colours={setColours}
+                current={doc.background}
+                eyedropper={eyedropperAvailable}
+                onPick={(hex) => apply({ ...doc, background: hex, backgroundAsset: null })}
+                onEyedropper={() =>
+                  void pickFromScreen((hex) =>
+                    apply({ ...doc, background: hex, backgroundAsset: null }),
+                  )
+                }
+              />
             </div>
+            <label className="block">
+              <span className="text-sm text-ink-soft">{t("canvas.backgroundHex")}</span>
+              <input
+                type="text"
+                defaultValue={doc.background}
+                maxLength={7}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (/^#[0-9a-fA-F]{6}$/.test(v))
+                    apply({ ...doc, background: v, backgroundAsset: null });
+                }}
+                className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+              />
+            </label>
             <label className="block">
               <span className="text-sm text-ink-soft">{t("builder.caption")}</span>
               <input
@@ -691,6 +829,9 @@ function CanvasScreen() {
           } else addDecoration(id, asset);
         }}
       />
+      <Sheet open={helpOpen} onOpenChange={setHelpOpen} title={t("canvas.helpTitle")}>
+        <p className="text-base text-ink">{t("canvas.helpList")}</p>
+      </Sheet>
       <Sheet
         open={exporting}
         onOpenChange={setExporting}
@@ -782,6 +923,50 @@ function CanvasScreen() {
         onToggleHidden={(id) => change(id, { hidden: !doc.layers[id]?.hidden })}
         onToggleLocked={(id) => change(id, { locked: !doc.layers[id]?.locked })}
       />
+    </div>
+  );
+}
+
+/**
+ * Spec 6.1 #22: "colours from this set" (the named colour of each piece on the canvas) and the
+ * browser's own eyedropper where it exists (Chrome and Edge on a computer; nowhere on iPhone yet).
+ * Shown for words, one-colour decorations and the background alike.
+ */
+function ColourExtras({
+  colours,
+  current,
+  eyedropper,
+  onPick,
+  onEyedropper,
+}: {
+  colours: Array<{ hex: string; name: string }>;
+  current: string | null | undefined;
+  eyedropper: boolean;
+  onPick: (hex: string) => void;
+  onEyedropper: () => void;
+}) {
+  if (colours.length === 0 && !eyedropper) return null;
+  return (
+    <div
+      className="mt-2 flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label={t("canvas.coloursFromSet")}
+    >
+      {colours.length > 0 ? (
+        <span className="text-sm text-ink-soft">{t("canvas.coloursFromSet")}</span>
+      ) : null}
+      {colours.map((c) => (
+        <button
+          key={c.hex}
+          type="button"
+          onClick={() => onPick(c.hex)}
+          aria-label={c.name}
+          aria-pressed={(current ?? "").toLowerCase() === c.hex.toLowerCase()}
+          className={`size-12 rounded-pill border-2 ${(current ?? "").toLowerCase() === c.hex.toLowerCase() ? "border-ink" : "border-line"}`}
+          style={{ backgroundColor: c.hex }}
+        />
+      ))}
+      {eyedropper ? <PanelButton label={t("canvas.eyedropper")} onPress={onEyedropper} /> : null}
     </div>
   );
 }

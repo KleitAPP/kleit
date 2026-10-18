@@ -3,12 +3,21 @@ import { useEffect, useState } from "react";
 
 import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { supabase } from "@/integrations/supabase/client";
-import { refreshPreview, autoTitle, loadSet, type Placement, type SetSummary } from "@/sets/sets";
+import {
+  refreshPreview,
+  autoAltText,
+  autoTitle,
+  loadSet,
+  type Placement,
+  type SetSummary,
+} from "@/sets/sets";
 import { t } from "@/i18n/en";
 import { parseTags } from "@/search/search";
 import { siteUrl } from "@/lib/site";
 import { noteSetSent } from "@/native/review";
-import { saveSetImage } from "@/sets/saveImage";
+import { needsPrimer, usePermissionPrimer } from "@/native/primers";
+import { askPhoneForPush, savePushSetting } from "@/native/push";
+import { saveSetImage, type SaveImageShape } from "@/sets/saveImage";
 import { peopleOnSet, tagPerson, untag, type TaggedPerson } from "@/sets/tags";
 
 /**
@@ -53,11 +62,27 @@ function SendSet() {
   const [note, setNote] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
+  const [savedAlt, setSavedAlt] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [choosingSize, setChoosingSize] = useState(false);
   const [tagText, setTagText] = useState("");
   // People in the set (spec 7.4): named by username; a tag waits for them unless they follow you.
   const [people, setPeople] = useState<TaggedPerson[]>([]);
   const [personText, setPersonText] = useState("");
   const [personNote, setPersonNote] = useState<string | null>(null);
+
+  // Spec 3.4 #4: the one right moment to ask for notifications is just after the first send -
+  // "Get told when friends vote". The primer says why; the phone's own prompt follows a yes.
+  // On the web, or once the primer has been shown, nothing happens here.
+  const pushPrimer = usePermissionPrimer("notifications", () => {
+    void (async () => {
+      if (await askPhoneForPush()) await savePushSetting(true);
+    })();
+  });
+  function afterSend() {
+    void noteSetSent(); // S107: the third set sent may ask for a rating, once, on a phone
+    if (needsPrimer("notifications")) window.setTimeout(() => pushPrimer.ask(), 600);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +135,11 @@ function SendSet() {
       setPlacements(loaded.placements);
       setTitle(loaded.set.title || autoTitle(loaded.placements));
       setTagText((loaded.set.tags ?? []).join(", "));
+      // G5: alt text is written for you from the pieces and only ever a starting point - what the
+      // person saved stays; an empty field shows the draft, never wipes a saved line (6.6 #1).
+      setSavedAlt(loaded.set.alt_text ?? null);
+      setAltText(loaded.set.alt_text ?? autoAltText(loaded.placements));
+      setDescription(loaded.set.description ?? "");
     })();
     return () => {
       cancelled = true;
@@ -138,9 +168,15 @@ function SendSet() {
     if (!set) return;
     setBusy(true);
     setProblem(null);
+    const alt = (altText.trim() || autoAltText(placements)).slice(0, 300) || null;
     const { error } = await supabase
       .from("sets")
-      .update({ title: title.trim().slice(0, 80) || autoTitle(placements), status: "published" })
+      .update({
+        title: title.trim().slice(0, 80) || autoTitle(placements),
+        status: "published",
+        alt_text: alt,
+        description: description.trim().slice(0, 1000),
+      })
       .eq("id", set.id);
     setBusy(false);
     if (error) {
@@ -160,10 +196,22 @@ function SendSet() {
 
   async function saveAltText() {
     if (!set) return;
-    await supabase
-      .from("sets")
-      .update({ alt_text: altText.trim() || null })
-      .eq("id", set.id);
+    // An emptied field falls back to the written-for-you line; nothing is ever saved as nothing.
+    const next = (altText.trim() || autoAltText(placements)).slice(0, 300) || null;
+    if (next === savedAlt) return;
+    const { error } = await supabase.from("sets").update({ alt_text: next }).eq("id", set.id);
+    if (!error) {
+      setSavedAlt(next);
+      if (!altText.trim() && next) setAltText(next);
+    }
+  }
+
+  async function saveDescription() {
+    if (!set) return;
+    const next = description.trim().slice(0, 1000);
+    if (next === (set.description ?? "")) return;
+    const { error } = await supabase.from("sets").update({ description: next }).eq("id", set.id);
+    if (!error) setSet({ ...set, description: next });
   }
 
   async function changeVisibility(next: Visibility) {
@@ -181,7 +229,7 @@ function SendSet() {
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ title: text, url: link });
-        void noteSetSent(); // S107: the third set sent may ask for a rating, once, on a phone
+        afterSend();
         return;
       }
     } catch {
@@ -191,14 +239,29 @@ function SendSet() {
   }
 
   /** S47: the chat picture, to the share sheet or the downloads (drawn a moment after publish). */
-  async function saveImage() {
+  async function saveImage(shape: SaveImageShape) {
     if (saving) return;
+    setChoosingSize(false);
     setSaving(true);
     setNote(null);
-    const r = await saveSetImage(setId, set?.title || autoTitle(placements));
+    const r = await saveSetImage(setId, set?.title || autoTitle(placements), shape);
     setSaving(false);
     if (r === "not-yet") setNote(t("send.imageNotYet"));
     else if (r === "failed") setNote(t("send.imageFailed"));
+  }
+
+  /** 6.6 #3: Pinterest has a plain share address; Instagram and TikTok only take the share sheet. */
+  function pinterest() {
+    const params = new URLSearchParams({
+      url: link,
+      description: set?.title || autoTitle(placements),
+    });
+    window.open(
+      `https://www.pinterest.com/pin/create/button/?${params.toString()}`,
+      "_blank",
+      "noopener",
+    );
+    afterSend();
   }
 
   async function copy() {
@@ -206,7 +269,7 @@ function SendSet() {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-      void noteSetSent();
+      afterSend();
     } catch {
       setProblem(t("send.copyFailed"));
     }
@@ -214,6 +277,7 @@ function SendSet() {
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8">
+      {pushPrimer.sheet}
       <h1 className="font-display text-2xl text-ink">
         {set.status === "published" ? t("send.title") : t("send.publishTitle")}
       </h1>
@@ -226,6 +290,19 @@ function SendSet() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+        />
+      </label>
+
+      <label className="mt-4 block">
+        <span className="text-sm text-ink-soft">{t("send.description")}</span>
+        <textarea
+          rows={2}
+          maxLength={1000}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onBlur={() => void saveDescription()}
+          placeholder={t("send.descriptionHint")}
+          className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-ink"
         />
       </label>
 
@@ -339,6 +416,9 @@ function SendSet() {
         {set.visibility === "link" ? (
           <p className="mt-2 text-sm text-ink-soft">{t("send.linkWarning")}</p>
         ) : null}
+        {set.status === "published" && set.visibility !== "public" && set.visibility !== "link" ? (
+          <p className="mt-2 text-sm text-ink-soft">{t("send.privateWarning")}</p>
+        ) : null}
       </div>
 
       {problem ? (
@@ -381,8 +461,9 @@ function SendSet() {
           <div className="mt-3 grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => void saveImage()}
+              onClick={() => setChoosingSize(!choosingSize)}
               disabled={saving}
+              aria-expanded={choosingSize}
               className="min-h-12 rounded-pill border border-line bg-surface px-4 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-50"
             >
               {saving ? t("send.savingImage") : t("send.saveImage")}
@@ -395,11 +476,29 @@ function SendSet() {
               {t("send.makePoll")}
             </Link>
           </div>
+          {choosingSize ? (
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              role="group"
+              aria-label={t("send.saveImage")}
+            >
+              <Chip label={t("send.sizeChat")} onToggle={() => void saveImage("chat")} />
+              <Chip label={t("send.sizeStory")} onToggle={() => void saveImage("story")} />
+              <Chip label={t("send.sizePost")} onToggle={() => void saveImage("post")} />
+            </div>
+          ) : null}
           {note ? (
             <p role="status" className="mt-2 text-sm text-ink-soft">
               {note}
             </p>
           ) : null}
+          <button
+            type="button"
+            onClick={pinterest}
+            className="mt-3 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("send.pinterest")}
+          </button>
           <p className="mt-3 text-sm text-ink-soft">{t("disclosure.commission")}</p>
           <Link
             to="/set/$setId/edit"

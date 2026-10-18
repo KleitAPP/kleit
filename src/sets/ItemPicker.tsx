@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { EmptyState, ItemCardSkeleton, Sheet, Tabs, type TabItem } from "@/components/kleit";
+import { Chip, EmptyState, ItemCardSkeleton, Sheet, Tabs, type TabItem } from "@/components/kleit";
+import { CATEGORIES, categoryOf, type Category } from "@/items/category";
+import { ColourChips } from "@/items/ColourChips";
+import { type ColourName } from "@/items/colour";
 import { ItemTile } from "@/items/ItemTile";
 import {
   imageUrlFor,
@@ -8,11 +11,12 @@ import {
   myDrawer,
   mySavedItems,
   myScanStates,
+  priceLabel,
   type ItemSummary,
   type ScanState,
 } from "@/items/items";
 import { t } from "@/i18n/en";
-import { searchItems } from "@/search/search";
+import { searchItems, stores, type Store } from "@/search/search";
 
 /**
  * S44 — the item picker sheet: Recent clips · Closet · My items · Search (design pack §2.3;
@@ -38,6 +42,8 @@ const TABS: readonly TabItem<Tab>[] = [
 
 /** The picker's page of search results: a sheet, not a screen. */
 const SEARCH_PAGE = 24;
+/** Spec 6.3 #2: the price filter's three ceilings, the same as the Search tab's. */
+const PRICE_CAPS = [5000, 10000, 25000] as const;
 
 type Loaded = { item: ItemSummary; imageUrl: string | null; state: ScanState };
 
@@ -59,6 +65,15 @@ export function ItemPicker({
   const [tab, setTab] = useState<Tab>("recent");
   const [lists, setLists] = useState<Partial<Record<Tab, Loaded[]>>>({});
   const [q, setQ] = useState("");
+  // Spec 6.3 #1–#2: category tabs on every list, and store / price / colour filters on the search.
+  const [category, setCategory] = useState<Category | null>(null);
+  const [store, setStore] = useState<string | null>(null);
+  const [cap, setCap] = useState<number | null>(null);
+  const [colour, setColour] = useState<ColourName | null>(null);
+  const [storeList, setStoreList] = useState<Store[]>([]);
+  useEffect(() => {
+    if (open && tab === "search" && storeList.length === 0) void stores().then(setStoreList);
+  }, [open, tab, storeList.length]);
 
   useEffect(() => {
     if (!open || lists[tab] || tab === "search") return;
@@ -85,7 +100,7 @@ export function ItemPicker({
     let cancelled = false;
     const timer = window.setTimeout(() => {
       void (async () => {
-        const loaded = await withPictures(await searchItems(q, null, null, null, SEARCH_PAGE));
+        const loaded = await withPictures(await searchItems(q, store, cap, colour, SEARCH_PAGE));
         if (!cancelled) setLists((l) => ({ ...l, search: loaded }));
       })();
     }, 250);
@@ -93,14 +108,23 @@ export function ItemPicker({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [open, tab, q]);
+  }, [open, tab, q, store, cap, colour]);
+
+  /** A changed filter drops the old search page at once, so a skeleton shows while it looks. */
+  function resetSearch(set: () => void) {
+    set();
+    setLists(({ search: _gone, ...rest }) => rest);
+  }
 
   // Fresh lists each time the sheet opens: a clip made a moment ago must show up.
   useEffect(() => {
     if (open) setLists({});
   }, [open]);
 
-  const current = lists[tab];
+  const all = lists[tab];
+  // A kind is read from the name (nothing in the catalogue records one); "All" shows everything.
+  const current =
+    all && category ? all.filter(({ item }) => categoryOf(item.title) === category) : all;
 
   return (
     <Sheet
@@ -149,6 +173,79 @@ export function ItemPicker({
             className="mt-3 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
           />
         ) : null}
+        {tab === "search" ? (
+          <div className="mt-3 flex flex-col gap-2">
+            {storeList.length > 0 ? (
+              <div
+                className="flex gap-2 overflow-x-auto pb-1"
+                role="group"
+                aria-label={t("picker.store")}
+              >
+                <Chip
+                  label={t("picker.anyStore")}
+                  selected={store === null}
+                  onToggle={() => resetSearch(() => setStore(null))}
+                />
+                {storeList.slice(0, 12).map((s) => (
+                  <Chip
+                    key={s.domain}
+                    label={s.store_name ?? s.domain}
+                    selected={store === s.domain}
+                    onToggle={() =>
+                      resetSearch(() => setStore(store === s.domain ? null : s.domain))
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+            <div
+              className="flex gap-2 overflow-x-auto pb-1"
+              role="group"
+              aria-label={t("picker.price")}
+            >
+              <Chip
+                label={t("picker.anyPrice")}
+                selected={cap === null}
+                onToggle={() => resetSearch(() => setCap(null))}
+              />
+              {PRICE_CAPS.map((c) => (
+                <Chip
+                  key={c}
+                  label={t("search.under", {
+                    price: priceLabel({ price_cents: c, price_currency: "USD" }) ?? "",
+                  })}
+                  selected={cap === c}
+                  onToggle={() => resetSearch(() => setCap(cap === c ? null : c))}
+                />
+              ))}
+            </div>
+            <ColourChips
+              value={colour}
+              onChange={(c) => resetSearch(() => setColour(c))}
+              label={t("search.colour")}
+              none={t("search.anyColour")}
+            />
+          </div>
+        ) : null}
+        <div
+          className="mt-3 flex gap-2 overflow-x-auto pb-1"
+          role="group"
+          aria-label={t("picker.kind")}
+        >
+          <Chip
+            label={t("picker.allKinds")}
+            selected={category === null}
+            onToggle={() => setCategory(null)}
+          />
+          {CATEGORIES.map((c) => (
+            <Chip
+              key={c}
+              label={t(`picker.kind.${c}`)}
+              selected={category === c}
+              onToggle={() => setCategory(category === c ? null : c)}
+            />
+          ))}
+        </div>
         {current === undefined ? (
           <div className="mt-4 grid grid-cols-3 gap-3">
             <ItemCardSkeleton />
@@ -158,13 +255,15 @@ export function ItemPicker({
         ) : current.length === 0 ? (
           <EmptyState
             line={t(
-              tab === "recent"
-                ? "picker.recentEmpty"
-                : tab === "closet"
-                  ? "closet.empty"
-                  : tab === "saved"
-                    ? "myItems.empty"
-                    : "picker.searchEmpty",
+              category && all && all.length > 0
+                ? "picker.kindEmpty"
+                : tab === "recent"
+                  ? "picker.recentEmpty"
+                  : tab === "closet"
+                    ? "closet.empty"
+                    : tab === "saved"
+                      ? "myItems.empty"
+                      : "picker.searchEmpty",
             )}
           />
         ) : (

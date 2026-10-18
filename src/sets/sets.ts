@@ -71,13 +71,33 @@ const ITEM_FIELDS =
 
 /** The person's default for comments on a new set (spec 11 #1). */
 export async function commentsDefault(me: string): Promise<"everyone" | "following" | "off"> {
+  return (await newSetDefaults(me)).comments_setting;
+}
+
+/**
+ * What a new set of mine starts as (spec 7.1 #2, 7.4 #2, 11 #1; migration 103): who sees it, who
+ * may remix it, who may comment. Each is the person's own column on profiles; the set's own
+ * switches take over the moment it exists.
+ */
+export async function newSetDefaults(me: string): Promise<{
+  comments_setting: "everyone" | "following" | "off";
+  visibility: SetSummary["visibility"];
+  remix_mode: RemixMode;
+}> {
   const { data } = await supabase
     .from("profiles")
-    .select("comments_default")
+    .select("comments_default, default_visibility, remix_default")
     .eq("user_id", me)
     .maybeSingle();
-  const v = data?.comments_default;
-  return v === "following" || v === "off" ? v : "everyone";
+  const c = data?.comments_default;
+  const v = data?.default_visibility;
+  const r = data?.remix_default;
+  return {
+    comments_setting: c === "following" || c === "off" ? c : "everyone",
+    visibility:
+      v === "link" || v === "followers" || v === "friends" || v === "only_me" ? v : "public",
+    remix_mode: r === "followers" || r === "off" ? r : "anyone",
+  };
 }
 
 /** The templates the builder offers: Kleit's first, then yours, then published ones (M4.5). */
@@ -110,7 +130,7 @@ export async function createQuickDraft(): Promise<string | null> {
   };
   const { data, error } = await supabase
     .from("sets")
-    .insert({ owner_id: me, layout, status: "draft", comments_setting: await commentsDefault(me) })
+    .insert({ owner_id: me, layout, status: "draft", ...(await newSetDefaults(me)) })
     .select("id")
     .single();
   if (error || !data) return null;
@@ -453,7 +473,7 @@ export async function startFromStyle(
     texts?: Record<string, Json>;
     decor?: Record<string, Json>;
   } | null;
-  const comments_setting = await commentsDefault(me);
+  const defaults = await newSetDefaults(me);
   if (raw?.version === 2) {
     const texts = raw.texts ?? {};
     const decor = raw.decor ?? {};
@@ -471,7 +491,7 @@ export async function startFromStyle(
     };
     const { data, error } = await supabase
       .from("sets")
-      .insert({ owner_id: me, layout, status: "draft", comments_setting })
+      .insert({ owner_id: me, layout, status: "draft", ...defaults })
       .select("id")
       .single();
     return error || !data ? null : { id: data.id, creative: true };
@@ -484,7 +504,7 @@ export async function startFromStyle(
   };
   const { data, error } = await supabase
     .from("sets")
-    .insert({ owner_id: me, layout, status: "draft", comments_setting })
+    .insert({ owner_id: me, layout, status: "draft", ...defaults })
     .select("id")
     .single();
   return error || !data ? null : { id: data.id, creative: false };

@@ -37,6 +37,12 @@ type DmSetting = (typeof DM_CHOICES)[number];
 /** Spec 11 #1 / gap C10: the default for new sets; each set can differ. */
 const COMMENT_CHOICES = ["everyone", "following", "off"] as const;
 type CommentsDefault = (typeof COMMENT_CHOICES)[number];
+// Spec 7.1 #2 and 7.4 #2 (migration 103): who sees, and who may remix, a NEW set of mine. The
+// set's own switches on the send screen and the set page still decide for each set.
+const VISIBILITY_CHOICES = ["public", "link", "followers", "friends", "only_me"] as const;
+type VisibilityDefault = (typeof VISIBILITY_CHOICES)[number];
+const REMIX_CHOICES = ["anyone", "followers", "off"] as const;
+type RemixDefault = (typeof REMIX_CHOICES)[number];
 /** Spec 7.4 #4: who may mention you in a comment; "people I follow" by default. */
 const MENTION_CHOICES = ["everyone", "following", "nobody"] as const;
 type MentionSetting = (typeof MENTION_CHOICES)[number];
@@ -62,6 +68,8 @@ function Privacy() {
   const [busy, setBusy] = useState<keyof Switches | null>(null);
   const [dm, setDm] = useState<DmSetting | null>(null);
   const [commentsDefault, setCommentsDefault] = useState<CommentsDefault | null>(null);
+  const [visibilityDefault, setVisibilityDefault] = useState<VisibilityDefault | null>(null);
+  const [remixDefault, setRemixDefault] = useState<RemixDefault | null>(null);
   const [mention, setMention] = useState<MentionSetting | null>(null);
   const [bulk, setBulk] = useState<"linkOnly" | "lockDown" | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -112,6 +120,38 @@ function Privacy() {
     } else setSaved(true);
   }
 
+  async function chooseVisibility(next: VisibilityDefault) {
+    if (visibilityDefault === null) return;
+    const before = visibilityDefault;
+    setVisibilityDefault(next);
+    setFailed(false);
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    const { error } = me
+      ? await supabase.from("profiles").update({ default_visibility: next }).eq("user_id", me)
+      : { error: new Error("signed out") };
+    if (error) {
+      setVisibilityDefault(before);
+      setFailed(true);
+    } else setSaved(true);
+  }
+
+  async function chooseRemix(next: RemixDefault) {
+    if (remixDefault === null) return;
+    const before = remixDefault;
+    setRemixDefault(next);
+    setFailed(false);
+    const { data } = await supabase.auth.getUser();
+    const me = data.user?.id;
+    const { error } = me
+      ? await supabase.from("profiles").update({ remix_default: next }).eq("user_id", me)
+      : { error: new Error("signed out") };
+    if (error) {
+      setRemixDefault(before);
+      setFailed(true);
+    } else setSaved(true);
+  }
+
   async function chooseMention(next: MentionSetting) {
     if (mention === null) return;
     const before = mention;
@@ -153,12 +193,26 @@ function Privacy() {
       const { data: profile } = await supabase
         .from("profiles")
         .select(
-          "is_private, findable_by_email, findable_by_phone, suggestable, dm_setting, comments_default, mention_setting",
+          "is_private, findable_by_email, findable_by_phone, suggestable, dm_setting, comments_default, mention_setting, default_visibility, remix_default",
         )
         .eq("user_id", me)
         .maybeSingle();
       if (!cancelled && profile) {
-        const { dm_setting, comments_default, mention_setting, ...switches } = profile;
+        const {
+          dm_setting,
+          comments_default,
+          mention_setting,
+          default_visibility,
+          remix_default,
+          ...switches
+        } = profile;
+        setVisibilityDefault(
+          (VISIBILITY_CHOICES.find((c) => c === default_visibility) ??
+            "public") as VisibilityDefault,
+        );
+        setRemixDefault(
+          (REMIX_CHOICES.find((c) => c === remix_default) ?? "anyone") as RemixDefault,
+        );
         setMention(
           (MENTION_CHOICES.find((c) => c === mention_setting) ?? "following") as MentionSetting,
         );
@@ -245,6 +299,40 @@ function Privacy() {
             label={t(`privacy.dm.${c}`)}
             selected={dm === c}
             onToggle={() => void chooseDm(c)}
+          />
+        ))}
+      </div>
+
+      <h2 className="mt-6 text-base font-medium text-ink">{t("privacy.visibilityDefault")}</h2>
+      <p className="text-sm text-ink-soft">{t("privacy.visibilityDefaultWhy")}</p>
+      <div
+        className="mt-2 flex flex-wrap gap-2"
+        role="group"
+        aria-label={t("privacy.visibilityDefault")}
+      >
+        {VISIBILITY_CHOICES.map((c) => (
+          <Chip
+            key={c}
+            label={t(`privacy.visibility.${c}`)}
+            selected={visibilityDefault === c}
+            onToggle={() => void chooseVisibility(c)}
+          />
+        ))}
+      </div>
+
+      <h2 className="mt-6 text-base font-medium text-ink">{t("privacy.remixDefault")}</h2>
+      <p className="text-sm text-ink-soft">{t("privacy.remixDefaultWhy")}</p>
+      <div
+        className="mt-2 flex flex-wrap gap-2"
+        role="group"
+        aria-label={t("privacy.remixDefault")}
+      >
+        {REMIX_CHOICES.map((c) => (
+          <Chip
+            key={c}
+            label={t(`privacy.remix.${c}`)}
+            selected={remixDefault === c}
+            onToggle={() => void chooseRemix(c)}
           />
         ))}
       </div>

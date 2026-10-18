@@ -132,6 +132,10 @@ type SharedSet = {
   visibility: "public" | "link";
   remixed_from?: string | null;
   published_at: string | null;
+  /** When the set last changed (migration 103): "Edited" when that is well after the publish. */
+  updated_at?: string | null;
+  /** The owner's alt text for the whole set (spec 7.1 #12), for the preview picture's description. */
+  alt_text?: string | null;
   owner: { username: string; display_name: string; label?: string | null; photo?: string | null };
   /** The song card (spec 11 #12): opens the service; nothing plays here. */
   song?: { url: string; title: string | null; artist: string | null; cover: string | null } | null;
@@ -828,7 +832,7 @@ function renderEmbed(set: SharedSet, code: string, base: string, env: Env): stri
           ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(name)}" loading="lazy">`
           : `<div class="noimg" aria-hidden="true"></div>`;
       const buy = p.buyable
-        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a>`
+        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a><p class="from">We earn a commission from purchases.</p>`
         : "";
       return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
     })
@@ -1173,7 +1177,7 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
           ? `<img src="${functions}/item-image?item=${p.id}" alt="${esc(name)}" loading="lazy">`
           : `<div class="noimg" aria-hidden="true"></div>`;
       const buy = p.buyable
-        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a>`
+        ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a><p class="from">We earn a commission from purchases.</p>`
         : "";
       return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${p.source_domain ? `<p class="from">from ${esc(p.source_domain)}</p>` : ""}${buy}</div></li>`;
     })
@@ -1197,6 +1201,7 @@ ${
     ? `<meta property="og:image" content="${esc(preview)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="1200">
+<meta property="og:image:alt" content="${esc((set.alt_text ?? "").trim() || description)}">
 <meta name="twitter:image" content="${esc(preview)}">`
     : ""
 }
@@ -1208,7 +1213,7 @@ ${STYLE}</head>
 <header class="wrap top"><a class="mark" href="/welcome" aria-label="Kleit">Kleit</a></header>
 <main class="wrap">
   <h1>${esc(title)}</h1>
-  <p class="by">${ownerPhoto(set.owner.photo, functions)}by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}</p>
+  <p class="by">${ownerPhoto(set.owner.photo, functions)}by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}${edited(set) ? " · Edited" : ""}</p>
   ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
   ${songCard(set.song)}
@@ -1225,9 +1230,17 @@ ${STYLE}</head>
   ${sources.length ? `<section class="sources"><h2>Sources</h2><ul>${sources.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : ""}
 </main>
 <footer class="wrap foot">
-  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
+  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/contact">Report</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 </body></html>`;
+}
+
+/** Spec 7.1 #6: "Edited" once the set changed well after it was published (autosave right after a publish is not an edit). */
+function edited(set: SharedSet): boolean {
+  if (!set.published_at || !set.updated_at) return false;
+  const published = Date.parse(set.published_at);
+  const updated = Date.parse(set.updated_at);
+  return Number.isFinite(published) && Number.isFinite(updated) && updated - published > 2 * 60_000;
 }
 
 // One small stylesheet, inline: the share page is under 1 MB and needs nothing from the app.

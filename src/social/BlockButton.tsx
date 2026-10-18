@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, Sheet } from "@/components/kleit";
@@ -135,7 +135,12 @@ export function BlockButton({ them, me }: { them: Person; me: string | null }) {
           </PrimaryButton>
         }
       >
-        <p className="text-sm text-ink-soft">{t("block.signedOutNote")}</p>
+        <p className="text-sm text-ink-soft">
+          {t("block.signedOutNote")}{" "}
+          <Link to="/settings/privacy" className="underline">
+            {t("block.lockDownLink")}
+          </Link>
+        </p>
       </Sheet>
     </>
   );

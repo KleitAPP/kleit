@@ -1470,6 +1470,8 @@ export type Database = {
           banned_at: string | null
           bio: string
           comments_default: string
+          default_visibility: Database["public"]["Enums"]["set_visibility"]
+          remix_default: Database["public"]["Enums"]["remix_mode"]
           created_at: string
           deactivated_at: string | null
           display_name: string
@@ -1494,6 +1496,8 @@ export type Database = {
           banned_at?: string | null
           bio?: string
           comments_default?: string
+          default_visibility?: Database["public"]["Enums"]["set_visibility"]
+          remix_default?: Database["public"]["Enums"]["remix_mode"]
           created_at?: string
           deactivated_at?: string | null
           display_name?: string
@@ -1518,6 +1522,8 @@ export type Database = {
           banned_at?: string | null
           bio?: string
           comments_default?: string
+          default_visibility?: Database["public"]["Enums"]["set_visibility"]
+          remix_default?: Database["public"]["Enums"]["remix_mode"]
           created_at?: string
           deactivated_at?: string | null
           display_name?: string

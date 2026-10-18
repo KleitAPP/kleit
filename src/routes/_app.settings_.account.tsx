@@ -3,11 +3,14 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
+import { tidyUsername, usernameStatus } from "@/auth/profile";
 
 /**
  * S16 — Account (design pack §2.1).
- * Your name and bio are editable here (the bio is screened on the server: no phone numbers or
- * addresses, migration 062). Changing an email needs the code-to-the-new-address flow with an
+ * Your name, bio and username are editable here (the bio is screened on the server: no phone
+ * numbers or addresses, migration 062; the username at most twice every 14 days, the old one
+ * held 14 days for you and nobody else, no redirect - spec 3.6 #5, migration 001's rule).
+ * Changing an email needs the code-to-the-new-address flow with an
  * alert to the old one (spec 3.6 #4), and the phone number needs Twilio (M1.11); neither is
  * built, so neither is offered. Showing a field you cannot change is honest; offering a button
  * that does nothing is not.
@@ -24,6 +27,51 @@ function Account() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "refused" | "failed">("idle");
+  const [newName, setNewName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [renameNote, setRenameNote] = useState<string | null>(null);
+  const [renameBusy, setRenameBusy] = useState(false);
+
+  /** Spec 3.6 #5: the database checks the shape, the reserved list, the holds and the 2-per-14-days rule. */
+  async function rename() {
+    if (!userId || renameBusy) return;
+    const candidate = tidyUsername(newName);
+    if (!candidate || candidate === username) return;
+    setRenameBusy(true);
+    setRenameNote(null);
+    const status = await usernameStatus(candidate);
+    if (status !== "free") {
+      setRenameBusy(false);
+      setRenameNote(
+        status === "taken"
+          ? t("username.takenPlain", { name: candidate })
+          : status === "reserved"
+            ? t("username.reserved", { name: candidate })
+            : t("username.characters"),
+      );
+      return;
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username: candidate })
+      .eq("user_id", userId);
+    setRenameBusy(false);
+    if (error) {
+      const message = (error as { message?: string }).message ?? "";
+      setRenameNote(
+        message.includes("14 days") && message.includes("changes")
+          ? t("account.usernameTooOften")
+          : message.includes("held")
+            ? t("account.usernameHeld")
+            : t("account.usernameFailed"),
+      );
+      return;
+    }
+    setUsername(candidate);
+    setNewName("");
+    setRenaming(false);
+    setRenameNote(t("account.usernameChanged", { name: candidate }));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -130,6 +178,68 @@ function Account() {
           value={username ? `@${username}` : ""}
           why={t("account.usernameRule")}
         />
+        <div className="border-t border-line px-4 py-3">
+          {renaming ? (
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void rename();
+              }}
+            >
+              <label className="block text-sm text-ink-soft">
+                {t("account.newUsername")}
+                <input
+                  type="text"
+                  value={newName}
+                  maxLength={30}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  onChange={(e) => {
+                    setNewName(e.target.value);
+                    setRenameNote(null);
+                  }}
+                  className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
+                />
+              </label>
+              <p className="text-sm text-ink-soft">{t("account.usernameWarning")}</p>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={
+                    renameBusy || !tidyUsername(newName) || tidyUsername(newName) === username
+                  }
+                  className="min-h-12 rounded-pill bg-brand px-5 text-base font-medium text-brand-ink disabled:opacity-40"
+                >
+                  {renameBusy ? t("loading") : t("account.changeUsername")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRenaming(false);
+                    setRenameNote(null);
+                  }}
+                  className="min-h-12 rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink"
+                >
+                  {t("break.cancel")}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRenaming(true)}
+              className="min-h-12 rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink"
+            >
+              {t("account.changeUsername")}
+            </button>
+          )}
+          {renameNote ? (
+            <p role="status" className="mt-2 text-sm text-ink">
+              {renameNote}
+            </p>
+          ) : null}
+        </div>
         <Field label={t("account.phone")} value={t("account.phoneNone")} />
       </dl>
     </div>

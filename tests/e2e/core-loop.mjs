@@ -450,7 +450,7 @@ try {
     check(
       zipAnswer.ok && isZip && zipBytes.length > 200,
       "download my data: the link opens a real ZIP",
-      `${zipBytes.length} bytes`,
+      `${zipBytes.length} bytes${isZip ? "" : `: ${text.slice(0, 160).replace(/\s+/g, " ")}`}`,
     );
     check(
       /profile\.json/.test(text) && /sets\.json/.test(text) && /README\.txt/.test(text),

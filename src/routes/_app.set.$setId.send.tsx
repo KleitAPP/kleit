@@ -180,7 +180,11 @@ function SendSet() {
       .eq("id", set.id);
     setBusy(false);
     if (error) {
-      setProblem(t("send.publishFailed"));
+      setProblem(
+        (error as { code?: string }).code === "P0006"
+          ? t("screen.noContact")
+          : t("send.publishFailed"),
+      );
       return;
     }
     setSet({ ...set, status: "published", title: title.trim() || autoTitle(placements) });
@@ -211,7 +215,10 @@ function SendSet() {
     const next = description.trim().slice(0, 1000);
     if (next === (set.description ?? "")) return;
     const { error } = await supabase.from("sets").update({ description: next }).eq("id", set.id);
-    if (!error) setSet({ ...set, description: next });
+    if (!error) {
+      setSet({ ...set, description: next });
+      setProblem(null);
+    } else if ((error as { code?: string }).code === "P0006") setProblem(t("screen.noContact"));
   }
 
   async function changeVisibility(next: Visibility) {

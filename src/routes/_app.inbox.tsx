@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { EmptyState, Tabs, type TabItem } from "@/components/kleit";
@@ -24,6 +24,7 @@ const TABS: readonly TabItem<Tab>[] = [
 ];
 
 function InboxTab() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("notifications");
   const [convs, setConvs] = useState<Conversation[] | null>(null);
   const [notes, setNotes] = useState<Notification[] | null>(null);
@@ -64,7 +65,11 @@ function InboxTab() {
               <div className="kl-skeleton mt-3 h-24 w-full rounded-md bg-surface-2" />
             ) : notes.length === 0 ? (
               <div className="mt-3">
-                <EmptyState line={t("inbox.empty")} />
+                <EmptyState
+                  line={t("inbox.empty")}
+                  actionLabel={t("inbox.emptyAction")}
+                  onAction={() => void navigate({ to: "/" })}
+                />
               </div>
             ) : (
               <ul className="mt-3 overflow-hidden rounded-md border border-line bg-surface">
@@ -89,7 +94,11 @@ function InboxTab() {
                 </section>
               ) : null}
               {normal.length === 0 ? (
-                <EmptyState line={t("inbox.noMessages")} />
+                <EmptyState
+                  line={t("inbox.noMessages")}
+                  actionLabel={t("inbox.noMessagesAction")}
+                  onAction={() => void navigate({ to: "/you/people" })}
+                />
               ) : (
                 <ul className="overflow-hidden rounded-md border border-line bg-surface">
                   {normal.map((c) => (

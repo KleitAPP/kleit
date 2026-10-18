@@ -429,6 +429,23 @@ jobs:
           NO="$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$BASE/functions/v1/export-data" -H "Content-Type: application/json" -d '{}')"
           test "$NO" = "401" || { echo "::error::export-data answered $NO to a caller with no token"; exit 1; }
           echo "export-data: 401 for a stranger"
+      - name: Database health (connections, timers)
+        # The core loop read a 429 "too many connections issued to the database" from storage on
+        # 2026-10-18. These counts say whether the project is near its connection limit and whether
+        # the timers (pg_cron) are piling up. Numbers only - nothing about a person.
+        run: |
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          POOLER="$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/database/pooler")"
+          HOST="$(echo "$POOLER" | jq -r '.[0].db_host')"
+          USER="$(echo "$POOLER" | jq -r '.[0].db_user')"
+          DSN="host=$HOST port=5432 user=$USER dbname=postgres sslmode=require"
+          echo "connections by application and state:"
+          psql "$DSN" -c "select coalesce(application_name, '') as app, state, count(*) from pg_stat_activity group by 1, 2 order by 3 desc limit 20"
+          psql "$DSN" -tAq -c "select 'max_connections=' || current_setting('max_connections') || ' in_use=' || (select count(*) from pg_stat_activity)"
+          echo "timers in the last hour (status, count, longest run):"
+          psql "$DSN" -c "select j.jobname, d.status, count(*), max(d.end_time - d.start_time) as longest from cron.job_run_details d join cron.job j on j.jobid = d.jobid where d.start_time > now() - interval '1 hour' group by 1, 2 order by 1, 2"
+          psql "$DSN" -tAq -c "select 'running_now=' || count(*) from cron.job_run_details where status = 'running'"
       - name: Prove a removed picture stays removed
         run: |
           export PGPASSWORD="$SUPABASE_DB_PASSWORD"

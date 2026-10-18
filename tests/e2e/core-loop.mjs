@@ -443,7 +443,13 @@ try {
     `http ${exportAnswer.status}`,
   );
   if (exported?.url) {
-    const zipAnswer = await fetch(exported.url);
+    // Storage answers 429 "too many connections" now and then (2026-10-18); the link is good, so
+    // ask again after a breath, up to five times, before calling it a failure.
+    let zipAnswer = await fetch(exported.url);
+    for (let tries = 0; zipAnswer.status === 429 && tries < 5; tries++) {
+      await wait(3000);
+      zipAnswer = await fetch(exported.url);
+    }
     const zipBytes = new Uint8Array(await zipAnswer.arrayBuffer());
     const isZip = zipBytes[0] === 0x50 && zipBytes[1] === 0x4b;
     const text = new TextDecoder("latin1").decode(zipBytes);

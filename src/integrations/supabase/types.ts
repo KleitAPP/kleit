@@ -1885,6 +1885,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -1916,6 +1917,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          edited_at?: string | null
           featured_at?: string | null
           id?: string
           layout?: Json
@@ -1947,6 +1949,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          edited_at?: string | null
           featured_at?: string | null
           id?: string
           layout?: Json
@@ -2525,6 +2528,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -2565,6 +2569,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -2837,6 +2842,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -2888,6 +2894,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -2960,6 +2967,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json
@@ -3000,6 +3008,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          edited_at: string | null
           featured_at: string | null
           id: string
           layout: Json

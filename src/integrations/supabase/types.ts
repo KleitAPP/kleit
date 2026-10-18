@@ -1470,10 +1470,9 @@ export type Database = {
           banned_at: string | null
           bio: string
           comments_default: string
-          default_visibility: Database["public"]["Enums"]["set_visibility"]
-          remix_default: Database["public"]["Enums"]["remix_mode"]
           created_at: string
           deactivated_at: string | null
+          default_visibility: Database["public"]["Enums"]["set_visibility"]
           display_name: string
           dm_setting: string
           findable_by_email: boolean
@@ -1482,6 +1481,7 @@ export type Database = {
           label: Database["public"]["Enums"]["account_label"]
           mention_setting: string
           points: number
+          remix_default: Database["public"]["Enums"]["remix_mode"]
           style_vibes: string[]
           suggestable: boolean
           terms_version: string
@@ -1496,10 +1496,9 @@ export type Database = {
           banned_at?: string | null
           bio?: string
           comments_default?: string
-          default_visibility?: Database["public"]["Enums"]["set_visibility"]
-          remix_default?: Database["public"]["Enums"]["remix_mode"]
           created_at?: string
           deactivated_at?: string | null
+          default_visibility?: Database["public"]["Enums"]["set_visibility"]
           display_name?: string
           dm_setting?: string
           findable_by_email?: boolean
@@ -1508,6 +1507,7 @@ export type Database = {
           label?: Database["public"]["Enums"]["account_label"]
           mention_setting?: string
           points?: number
+          remix_default?: Database["public"]["Enums"]["remix_mode"]
           style_vibes?: string[]
           suggestable?: boolean
           terms_version: string
@@ -1522,10 +1522,9 @@ export type Database = {
           banned_at?: string | null
           bio?: string
           comments_default?: string
-          default_visibility?: Database["public"]["Enums"]["set_visibility"]
-          remix_default?: Database["public"]["Enums"]["remix_mode"]
           created_at?: string
           deactivated_at?: string | null
+          default_visibility?: Database["public"]["Enums"]["set_visibility"]
           display_name?: string
           dm_setting?: string
           findable_by_email?: boolean
@@ -1534,6 +1533,7 @@ export type Database = {
           label?: Database["public"]["Enums"]["account_label"]
           mention_setting?: string
           points?: number
+          remix_default?: Database["public"]["Enums"]["remix_mode"]
           style_vibes?: string[]
           suggestable?: boolean
           terms_version?: string
@@ -2419,6 +2419,7 @@ export type Database = {
           comments_default: string
           created_at: string
           deactivated_at: string | null
+          default_visibility: Database["public"]["Enums"]["set_visibility"]
           display_name: string
           dm_setting: string
           findable_by_email: boolean
@@ -2427,6 +2428,7 @@ export type Database = {
           label: Database["public"]["Enums"]["account_label"]
           mention_setting: string
           points: number
+          remix_default: Database["public"]["Enums"]["remix_mode"]
           style_vibes: string[]
           suggestable: boolean
           terms_version: string

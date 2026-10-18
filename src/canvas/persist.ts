@@ -10,6 +10,7 @@ import {
   layoutOf,
   positionOf,
   CANVAS_SHAPES,
+  normaliseCanvas,
   type Doc,
   type LayoutV2,
   type PositionV2,
@@ -58,7 +59,7 @@ export async function loadDoc(setId: string): Promise<Loaded | null> {
     ...emptyDoc(shape, raw?.background ?? "#F4EFE6"),
     backgroundAsset: raw?.backgroundAsset ?? null,
     caption: raw?.caption ?? "",
-    canvas: raw?.canvas && raw.canvas.shape === "free" ? raw.canvas : CANVAS_SHAPES[shape],
+    canvas: raw?.canvas ? normaliseCanvas(raw.canvas) : CANVAS_SHAPES[shape],
   };
   const layers: Doc["layers"] = {};
   const seen: string[] = [];

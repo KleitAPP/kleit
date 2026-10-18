@@ -781,7 +781,8 @@ export const en = {
   "dm.requestBanner": "@{name} wants to message you. Accept to reply, or decline quietly.",
   "dm.youAsked": "Your message is in @{name}'s requests until they accept.",
   "dm.refused": "@{name} isn't taking messages from you right now.",
-  "dm.noLinksYet": "New accounts can't send links for the first 7 days.",
+  "dm.noLinksYet":
+    "Links can't go into a message request, and new accounts can't send them for the first 7 days.",
   "dm.tooMany": "That's a lot of messages. Give it a little while.",
   "dm.failed": "That didn't send. Try again.",
   "dm.newTo": "To @{name}",
@@ -934,7 +935,7 @@ export const en = {
   "canvas.coloursFromSet": "Colours from this set",
   "canvas.eyedropper": "Pick a colour from the screen",
   "canvas.backgroundHex": "Background colour (hex)",
-  "canvas.help": "Keyboard shortcuts",
+  "canvas.help": "Shortcuts",
   "canvas.helpTitle": "Keyboard shortcuts",
   "canvas.helpList":
     "Ctrl+Z undo · Ctrl+Shift+Z or Ctrl+Y redo · Ctrl+C / Ctrl+V copy and paste a piece · Ctrl+D duplicate · arrows nudge (Shift for 1 px) · [ and ] layer order · L lock or unlock · Delete remove · Esc deselect · ? this list",
@@ -1335,7 +1336,7 @@ export const en = {
   "picker.kind.shoes": "Shoes",
   "picker.kind.bag": "Bags",
   "picker.kind.accessory": "Accessories",
-  "picker.kindEmpty": "Nothing of that kind here. Try All.",
+  "picker.kindEmpty": "Nothing of that kind in these results. Try All, or another word.",
   "search.colour": "Colour",
   "search.anyColour": "Any colour",
   "colour.black": "Black",

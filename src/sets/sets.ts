@@ -15,7 +15,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { Song } from "@/sets/song";
-import type { TemplateLayoutV2 } from "@/canvas/doc";
+import { normaliseCanvas, type TemplateLayoutV2 } from "@/canvas/doc";
 import { allTemplates } from "@/templates/templates";
 import { type ItemSummary } from "@/items/items";
 import { isNetworkError, isOnline } from "@/offline/net";
@@ -445,10 +445,11 @@ export async function setRemixMode(setId: string, mode: RemixMode): Promise<bool
 
 /**
  * "Use this set's style" (spec 6.4 #4): a new draft of yours with the set's look but none of its
- * pieces - the canvas shape, the background, the words and the decorations stay; the pieces go,
- * for your own things. Nothing of the original is copied but the arrangement, so it needs no
- * credit and no remix permission; it works on any set you can see. A Quick set gives a Quick
- * draft on the same template and background.
+ * pieces and none of its words - the canvas shape, the background and the decorations stay (all
+ * of them Kleit's own library or a colour); the pieces and the text layers go, for your own
+ * things. Nothing of the person's is copied, so it needs no credit and no remix permission; it
+ * works on any set you can see. A Quick set gives a Quick draft on the same template and
+ * background. The canvas is normalised on the way: a known shape, or a free height within range.
  */
 export async function startFromStyle(
   setId: string,
@@ -475,18 +476,19 @@ export async function startFromStyle(
   } | null;
   const defaults = await newSetDefaults(me);
   if (raw?.version === 2) {
-    const texts = raw.texts ?? {};
     const decor = raw.decor ?? {};
-    const order = (raw.order ?? []).filter((id) => texts[id] || decor[id]);
+    const order = (raw.order ?? []).filter((id) => decor[id]);
     const layout: Json = {
       version: 2,
       mode: "creative",
-      canvas: raw.canvas ?? null,
-      background: raw.background ?? DEFAULT_BACKGROUND,
-      backgroundAsset: raw.backgroundAsset ?? null,
+      canvas: normaliseCanvas(raw.canvas) as unknown as Json,
+      background: /^#[0-9a-fA-F]{6}$/.test(raw.background ?? "")
+        ? raw.background!
+        : DEFAULT_BACKGROUND,
+      backgroundAsset: typeof raw.backgroundAsset === "string" ? raw.backgroundAsset : null,
       caption: "",
       order,
-      texts,
+      texts: {},
       decor,
     };
     const { data, error } = await supabase
@@ -550,7 +552,11 @@ export function autoAltText(placements: Placement[]): string {
       if (next.length > 300) break;
       kept.push(part);
     }
-    text = head + kept.join(", ") + ` and ${parts.length - kept.length} more.`;
+    // Even the first name alone may be too long: then the count is the whole description.
+    text =
+      kept.length > 0
+        ? head + kept.join(", ") + ` and ${parts.length - kept.length} more.`
+        : head.replace(/: $/, ".");
   }
   return text.slice(0, 300);
 }

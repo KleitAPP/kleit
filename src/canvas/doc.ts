@@ -361,6 +361,25 @@ export function fit(doc: Doc, id: string, natural: { w: number; h: number }): Do
   });
 }
 
+/**
+ * A canvas read from a layout somebody saved: one of the known shapes, or a free one with the
+ * width 1080 and a height within range; anything else becomes portrait. `save_set_layout` lets an
+ * owner store any JSON, so nothing downstream trusts the numbers as they came.
+ */
+export function normaliseCanvas(raw: unknown): CanvasSize {
+  const c = raw as { w?: unknown; h?: unknown; shape?: unknown } | null;
+  const shape = c?.shape;
+  if (shape === "square" || shape === "portrait" || shape === "story") return CANVAS_SHAPES[shape];
+  if (shape === "free" && typeof c?.h === "number" && Number.isFinite(c.h)) {
+    return {
+      w: 1080,
+      h: Math.round(Math.min(FREE_HEIGHT.max, Math.max(FREE_HEIGHT.min, c.h))),
+      shape: "free",
+    };
+  }
+  return CANVAS_SHAPES.portrait;
+}
+
 /** Spec 6.1 #11, "free size": the width stays 1080 so nothing moves; only the height changes. */
 export const FREE_HEIGHT = { min: 540, max: 2160 } as const;
 export function setFreeHeight(doc: Doc, h: number): Doc {

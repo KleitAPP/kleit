@@ -353,6 +353,9 @@ function SetPage() {
               <AccountLabelChip label={creator.label} className="ml-1 align-middle" />
             </p>
           ) : null}
+          {set.description ? (
+            <p className="mt-1 whitespace-pre-wrap text-base text-ink">{set.description}</p>
+          ) : null}
           {set.layout.caption ? (
             <p className="mt-1 text-base text-ink-soft">{set.layout.caption}</p>
           ) : null}

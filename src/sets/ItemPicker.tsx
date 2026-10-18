@@ -110,15 +110,26 @@ export function ItemPicker({
     };
   }, [open, tab, q, store, cap, colour]);
 
-  /** A changed filter drops the old search page at once, so a skeleton shows while it looks. */
-  function resetSearch(set: () => void) {
-    set();
+  /**
+   * A changed filter drops the old search page at once, so a skeleton shows while it looks. A tap
+   * on the value already chosen changes nothing - dropping the page then would leave the
+   * skeleton for ever, because the search effect would never run again.
+   */
+  function resetSearch<T>(current: T, next: T, set: (value: T) => void) {
+    if (current === next) return;
+    set(next);
     setLists(({ search: _gone, ...rest }) => rest);
   }
 
   // Fresh lists each time the sheet opens: a clip made a moment ago must show up.
   useEffect(() => {
-    if (open) setLists({});
+    if (open) {
+      setLists({});
+      setCategory(null);
+      setStore(null);
+      setCap(null);
+      setColour(null);
+    }
   }, [open]);
 
   const all = lists[tab];
@@ -184,7 +195,7 @@ export function ItemPicker({
                 <Chip
                   label={t("picker.anyStore")}
                   selected={store === null}
-                  onToggle={() => resetSearch(() => setStore(null))}
+                  onToggle={() => resetSearch(store, null, setStore)}
                 />
                 {storeList.slice(0, 12).map((s) => (
                   <Chip
@@ -192,7 +203,7 @@ export function ItemPicker({
                     label={s.store_name ?? s.domain}
                     selected={store === s.domain}
                     onToggle={() =>
-                      resetSearch(() => setStore(store === s.domain ? null : s.domain))
+                      resetSearch(store, store === s.domain ? null : s.domain, setStore)
                     }
                   />
                 ))}
@@ -206,7 +217,7 @@ export function ItemPicker({
               <Chip
                 label={t("picker.anyPrice")}
                 selected={cap === null}
-                onToggle={() => resetSearch(() => setCap(null))}
+                onToggle={() => resetSearch(cap, null, setCap)}
               />
               {PRICE_CAPS.map((c) => (
                 <Chip
@@ -215,13 +226,13 @@ export function ItemPicker({
                     price: priceLabel({ price_cents: c, price_currency: "USD" }) ?? "",
                   })}
                   selected={cap === c}
-                  onToggle={() => resetSearch(() => setCap(cap === c ? null : c))}
+                  onToggle={() => resetSearch(cap, cap === c ? null : c, setCap)}
                 />
               ))}
             </div>
             <ColourChips
               value={colour}
-              onChange={(c) => resetSearch(() => setColour(c))}
+              onChange={(c) => resetSearch(colour, c, setColour)}
               label={t("search.colour")}
               none={t("search.anyColour")}
             />

@@ -102,7 +102,7 @@ select throws_ok(
 select pg_temp.as_server();
 
 -- 6. shared_set carries updated_at.
-select ok((select (shared_set((select share_code from sets where id = 'd3000000-0000-4000-8000-000000000001'))) ? 'updated_at'), 'shared_set says when the set last changed, for the share page''s Edited line (7.1 #6)');
+select ok((select (shared_set((select share_code from sets where id = 'd3000000-0000-4000-8000-000000000001'))) ? 'edited_at'), 'shared_set says whether the set was edited since the publish, for the share page''s Edited line (7.1 #6; the column is 104''s)');
 
 select * from finish();
 rollback;

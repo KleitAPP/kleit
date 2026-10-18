@@ -99,6 +99,19 @@ function check(ok, what, detail = "") {
   if (!ok) failed += 1;
 }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+/**
+ * Supabase Storage answers 429 "too many connections issued to the database" now and then (2026-10-18:
+ * twice on the export link, once on the chat picture - the project's own connections were 20 of 60
+ * each time, so it is Storage's pool, not ours). The file is there; ask again after a breath.
+ */
+async function fetchPatiently(url, tries = 5) {
+  let answer = await fetch(url);
+  for (let n = 0; answer.status === 429 && n < tries; n++) {
+    await wait(3000);
+    answer = await fetch(url);
+  }
+  return answer;
+}
 
 // ---------------------------------------------------------------------------
 // A small PNG, made here so the run carries no fixture: 240×240 (over the 200 px floor of spec
@@ -335,7 +348,7 @@ try {
     ogImage = await gp.getAttribute('meta[property="og:image"]', "content").catch(() => null);
     if (!ogImage) await wait(2000);
   }
-  const picture = ogImage ? await fetch(ogImage) : null;
+  const picture = ogImage ? await fetchPatiently(ogImage) : null;
   check(
     !!picture &&
       picture.status === 200 &&
@@ -443,13 +456,7 @@ try {
     `http ${exportAnswer.status}`,
   );
   if (exported?.url) {
-    // Storage answers 429 "too many connections" now and then (2026-10-18); the link is good, so
-    // ask again after a breath, up to five times, before calling it a failure.
-    let zipAnswer = await fetch(exported.url);
-    for (let tries = 0; zipAnswer.status === 429 && tries < 5; tries++) {
-      await wait(3000);
-      zipAnswer = await fetch(exported.url);
-    }
+    const zipAnswer = await fetchPatiently(exported.url);
     const zipBytes = new Uint8Array(await zipAnswer.arrayBuffer());
     const isZip = zipBytes[0] === 0x50 && zipBytes[1] === 0x4b;
     const text = new TextDecoder("latin1").decode(zipBytes);

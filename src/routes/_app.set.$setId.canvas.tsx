@@ -99,6 +99,8 @@ function CanvasScreen() {
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  // The background hex field while it is being typed; null shows the canvas's own colour.
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
   // Ctrl+C holds the id of the copied piece; Ctrl+V duplicates it (spec 6.1 #23).
   const clipboardRef = useRef<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -446,7 +448,27 @@ function CanvasScreen() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      )
+        return;
+      // A key pressed with a sheet open (the picker, the library, the layers, export, help) is the
+      // sheet's, not the canvas's: L must not lock a hidden piece, Delete must not remove one.
+      if (
+        picking ||
+        library ||
+        layersOpen ||
+        helpOpen ||
+        exporting ||
+        target?.closest("[role=dialog]")
+      )
+        return;
+      // Holding a key down is one press for the actions that add rows.
+      if (e.repeat && ["c", "v", "d"].includes(e.key.toLowerCase())) return;
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
         e.preventDefault();
@@ -499,7 +521,7 @@ function CanvasScreen() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel, doc]);
+  }, [sel, doc, picking, library, layersOpen, helpOpen, exporting]);
 
   if (missing) {
     return (
@@ -564,7 +586,7 @@ function CanvasScreen() {
           selected={doc.canvas.shape === "free"}
           onToggle={() => apply(setFreeHeight(doc, doc.canvas.h))}
         />
-        <PanelButton label="?" onPress={() => setHelpOpen(true)} />
+        <PanelButton label={t("canvas.help")} onPress={() => setHelpOpen(true)} />
       </div>
       {doc.canvas.shape === "free" ? (
         <label className="mt-2 flex items-center gap-3 text-sm text-ink">
@@ -777,13 +799,17 @@ function CanvasScreen() {
               <span className="text-sm text-ink-soft">{t("canvas.backgroundHex")}</span>
               <input
                 type="text"
-                defaultValue={doc.background}
+                value={hexDraft ?? doc.background}
                 maxLength={7}
                 onChange={(e) => {
                   const v = e.target.value.trim();
-                  if (/^#[0-9a-fA-F]{6}$/.test(v))
+                  setHexDraft(v);
+                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
                     apply({ ...doc, background: v, backgroundAsset: null });
+                    setHexDraft(null);
+                  }
                 }}
+                onBlur={() => setHexDraft(null)}
                 className="mt-1 min-h-12 w-full rounded-md border border-line bg-surface px-3 text-base text-ink"
               />
             </label>

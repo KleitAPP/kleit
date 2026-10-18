@@ -111,6 +111,8 @@ type Piece = {
   price_currency: string | null;
   store_name: string | null;
   source_domain: string | null;
+  /** One of the sixteen colour words, when somebody named it (migration 102). */
+  color_name?: string | null;
   buyable: boolean;
   pictured: boolean;
 };
@@ -132,9 +134,11 @@ type SharedSet = {
   visibility: "public" | "link";
   remixed_from?: string | null;
   published_at: string | null;
-  /** When the set last changed (migration 103): "Edited" when that is well after the publish. */
-  updated_at?: string | null;
-  /** The owner's alt text for the whole set (spec 7.1 #12), for the preview picture's description. */
+  /** Stamped by the server when a published set's layout, title, description or pieces change (104). */
+  edited_at?: string | null;
+  /** The owner's own description (spec 6.6 #1), or "". */
+  description?: string;
+  /** The owner's own alt text (spec 7.1 #12); null while it is still the line written for them. */
   alt_text?: string | null;
   owner: { username: string; display_name: string; label?: string | null; photo?: string | null };
   /** The song card (spec 11 #12): opens the service; nothing plays here. */
@@ -1156,7 +1160,9 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
   const title = set.title || "A set on Kleit";
   const who = set.owner.display_name?.trim() || `@${set.owner.username}`;
   const description =
-    set.caption || `${set.pieces.length} piece${set.pieces.length === 1 ? "" : "s"} by ${who}`;
+    set.caption ||
+    set.description?.trim() ||
+    `${set.pieces.length} piece${set.pieces.length === 1 ? "" : "s"} by ${who}`;
   const background = /^#[0-9a-fA-F]{6}$/.test(set.layout?.background ?? "")
     ? (set.layout!.background as string)
     : "#F4EFE6";
@@ -1201,7 +1207,7 @@ ${
     ? `<meta property="og:image" content="${esc(preview)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="1200">
-<meta property="og:image:alt" content="${esc((set.alt_text ?? "").trim() || description)}">
+<meta property="og:image:alt" content="${esc((set.alt_text ?? "").trim() || autoAlt(set) || description)}">
 <meta name="twitter:image" content="${esc(preview)}">`
     : ""
 }
@@ -1216,6 +1222,7 @@ ${STYLE}</head>
   <p class="by">${ownerPhoto(set.owner.photo, functions)}by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}${edited(set) ? " · Edited" : ""}</p>
   ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
+  ${set.description?.trim() ? `<p class="caption">${esc(set.description.trim())}</p>` : ""}
   ${songCard(set.song)}
   ${creativeCanvas(set, functions, background)}
   <section class="canvas" style="background:${background}" aria-label="The set">
@@ -1235,12 +1242,40 @@ ${STYLE}</head>
 </body></html>`;
 }
 
-/** Spec 7.1 #6: "Edited" once the set changed well after it was published (autosave right after a publish is not an edit). */
+/** Spec 7.1 #6: "Edited" once a published set's layout, title, description or pieces changed (the server stamps it - 104). */
 function edited(set: SharedSet): boolean {
-  if (!set.published_at || !set.updated_at) return false;
-  const published = Date.parse(set.published_at);
-  const updated = Date.parse(set.updated_at);
-  return Number.isFinite(published) && Number.isFinite(updated) && updated - published > 2 * 60_000;
+  return !!set.edited_at;
+}
+
+/**
+ * The alt text written for a set when its owner left it to us (spec 7.1 #12) - the same words the
+ * app drafts (`autoAltText` in src/sets/sets.ts): the pieces by colour, name and store, capped at 300.
+ */
+function autoAlt(set: SharedSet): string {
+  const parts = set.pieces.map((p) => {
+    const colour = p.color_name ? `${p.color_name} ` : "";
+    const name = p.title?.trim() || "a piece";
+    const where =
+      p.kind === "own" ? " (their own piece)" : p.store_name ? ` from ${p.store_name}` : "";
+    return `${colour}${name}${where}`;
+  });
+  if (parts.length === 0) return "";
+  const head = parts.length === 1 ? "A set of one piece: " : `A set of ${parts.length} pieces: `;
+  let text = head + parts.join(", ") + ".";
+  if (text.length > 300) {
+    const kept: string[] = [];
+    for (const part of parts) {
+      const next =
+        head + [...kept, part].join(", ") + ` and ${parts.length - kept.length - 1} more.`;
+      if (next.length > 300) break;
+      kept.push(part);
+    }
+    text =
+      kept.length > 0
+        ? head + kept.join(", ") + ` and ${parts.length - kept.length} more.`
+        : head.replace(/: $/, ".");
+  }
+  return text.slice(0, 300);
 }
 
 // One small stylesheet, inline: the share page is under 1 MB and needs nothing from the app.

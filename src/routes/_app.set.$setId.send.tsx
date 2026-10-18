@@ -135,8 +135,10 @@ function SendSet() {
       setPlacements(loaded.placements);
       setTitle(loaded.set.title || autoTitle(loaded.placements));
       setTagText((loaded.set.tags ?? []).join(", "));
-      // G5: alt text is written for you from the pieces and only ever a starting point - what the
-      // person saved stays; an empty field shows the draft, never wipes a saved line (6.6 #1).
+      // G5: alt text is written for you from the pieces and only ever a starting point. The row
+      // holds null while it is still the written-for-you line (so it follows the pieces and the
+      // share page writes it fresh each time), and the person's own words once they change it;
+      // an empty field goes back to the written one, never to nothing (6.6 #1).
       setSavedAlt(loaded.set.alt_text ?? null);
       setAltText(loaded.set.alt_text ?? autoAltText(loaded.placements));
       setDescription(loaded.set.description ?? "");
@@ -168,13 +170,12 @@ function SendSet() {
     if (!set) return;
     setBusy(true);
     setProblem(null);
-    const alt = (altText.trim() || autoAltText(placements)).slice(0, 300) || null;
     const { error } = await supabase
       .from("sets")
       .update({
         title: title.trim().slice(0, 80) || autoTitle(placements),
         status: "published",
-        alt_text: alt,
+        alt_text: ownAltText(),
         description: description.trim().slice(0, 1000),
       })
       .eq("id", set.id);
@@ -187,7 +188,12 @@ function SendSet() {
       );
       return;
     }
-    setSet({ ...set, status: "published", title: title.trim() || autoTitle(placements) });
+    setSet({
+      ...set,
+      status: "published",
+      title: title.trim() || autoTitle(placements),
+      description: description.trim().slice(0, 1000),
+    });
     refreshPreview(set.id);
   }
 
@@ -198,16 +204,20 @@ function SendSet() {
     if (!error) setTagText(tags.join(", "));
   }
 
+  /** The person's own alt text, or null while the field still says what was written for them. */
+  function ownAltText(): string | null {
+    const typed = altText.trim().slice(0, 300);
+    return typed && typed !== autoAltText(placements) ? typed : null;
+  }
+
   async function saveAltText() {
     if (!set) return;
-    // An emptied field falls back to the written-for-you line; nothing is ever saved as nothing.
-    const next = (altText.trim() || autoAltText(placements)).slice(0, 300) || null;
+    const next = ownAltText();
+    if (!altText.trim()) setAltText(autoAltText(placements));
     if (next === savedAlt) return;
     const { error } = await supabase.from("sets").update({ alt_text: next }).eq("id", set.id);
-    if (!error) {
-      setSavedAlt(next);
-      if (!altText.trim() && next) setAltText(next);
-    }
+    if (!error) setSavedAlt(next);
+    else if ((error as { code?: string }).code === "P0006") setProblem(t("screen.noContact"));
   }
 
   async function saveDescription() {

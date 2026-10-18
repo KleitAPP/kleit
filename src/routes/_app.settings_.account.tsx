@@ -43,11 +43,13 @@ function Account() {
     if (status !== "free") {
       setRenameBusy(false);
       setRenameNote(
-        status === "taken"
-          ? t("username.takenPlain", { name: candidate })
-          : status === "reserved"
-            ? t("username.reserved", { name: candidate })
-            : t("username.characters"),
+        status === null
+          ? t("account.usernameFailed")
+          : status === "taken"
+            ? t("username.takenPlain", { name: candidate })
+            : status === "reserved"
+              ? t("username.reserved", { name: candidate })
+              : t("username.characters"),
       );
       return;
     }

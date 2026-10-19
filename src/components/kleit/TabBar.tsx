@@ -29,12 +29,12 @@ export function TabBar({ current, onSelect }: { current: TabId; onSelect: (tab: 
           const label = t(labelKey);
           if (id === "create") {
             return (
-              <li key={id} className="flex">
+              <li key={id} className="flex min-w-0 flex-1">
                 <button
                   type="button"
                   onClick={() => onSelect(id)}
                   aria-label={label}
-                  className="flex min-h-12 min-w-16 flex-col items-center justify-center gap-1 py-1"
+                  className="flex min-h-12 w-full min-w-0 flex-col items-center justify-center gap-1 py-1"
                 >
                   <span className="flex size-10 items-center justify-center rounded-pill bg-brand text-brand-ink shadow-card">
                     <Icon className="size-5" aria-hidden="true" />
@@ -45,18 +45,18 @@ export function TabBar({ current, onSelect }: { current: TabId; onSelect: (tab: 
             );
           }
           return (
-            <li key={id} className="flex">
+            <li key={id} className="flex min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => onSelect(id)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-12 min-w-16 flex-col items-center justify-center gap-0.5 py-1 text-xs transition-colors duration-fast",
+                  "flex min-h-12 w-full min-w-0 flex-col items-center justify-center gap-0.5 py-1 text-xs transition-colors duration-fast",
                   active ? "font-semibold text-brand" : "text-ink-soft",
                 )}
               >
                 <Icon className="size-6" aria-hidden="true" strokeWidth={active ? 2.4 : 1.8} />
-                <span>{label}</span>
+                <span className="max-w-full truncate px-0.5">{label}</span>
               </button>
             </li>
           );

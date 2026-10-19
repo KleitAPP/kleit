@@ -3062,7 +3062,7 @@ export type Database = {
       review_sitting: {
         Args: never
         Returns: {
-          break_until: string | null
+          break_until: string
           decisions: number
           latest_at: string
           started_at: string

@@ -232,9 +232,18 @@ export const en = {
   "mod.takedowns": "Takedown requests",
   "takedowns.title": "Takedown requests",
   "takedowns.why":
-    "Intimate images first - 48 hours by law; copyright 72. Paste the picture's id from the link; it goes with its fingerprint and every identical copy.",
+    "Intimate images first - 48 hours by law; copyright, impersonation and trademark 72. For a picture, paste its id from the link; it goes with its fingerprint and every identical copy.",
   "takedowns.intimate": "Intimate image",
   "takedowns.copyright": "Copyright",
+  "takedowns.impersonation": "Impersonation",
+  "takedowns.trademark": "Trademark",
+  "takedowns.idPhotos": "ID photos:",
+  "takedowns.idPhoto": "photo {count}",
+  "takedowns.photoFailed":
+    "Couldn't open the photo. It may have been purged (30 days), or you're not a moderator.",
+  "takedowns.claimHow":
+    "Act on the account in People (a label, a rename, a suspension), then record the decision here. The sender is told by email.",
+  "takedowns.acted": "Acted on it",
   "takedowns.due": "{count} hours left",
   "takedowns.due.one": "1 hour left",
   "takedowns.work": "The work",

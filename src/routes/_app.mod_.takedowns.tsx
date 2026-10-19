@@ -7,9 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { myRoles, whyItFailed } from "@/safety/moderation";
 
 /**
- * Takedown requests for moderators (M7.4; spec 13.3 #3–#4): TAKE IT DOWN first (48 hours),
- * then copyright (72). To remove, paste the item id from the link the sender gave; the
- * picture, its fingerprint and every identical copy go together.
+ * Takedown requests for moderators (M7.4; spec 13.3 #3–#4; 10.5 #2, #4): TAKE IT DOWN first (48
+ * hours), then copyright, impersonation and trademark (72). To remove a picture, paste the item
+ * id from the link the sender gave; the picture, its fingerprint and every identical copy go
+ * together. An impersonation or trademark claim is acted on through the people tools (a label,
+ * a rename, a suspension) and then resolved here, which records the decision; an ID photo opens
+ * through the id-photo function - a two-minute address, only for a moderator (migration 108).
  */
 export const Route = createFileRoute("/_app/mod_/takedowns")({
   head: () => ({
@@ -21,7 +24,8 @@ export const Route = createFileRoute("/_app/mod_/takedowns")({
 type Row = {
   id: string;
   request_ref: string;
-  kind: "intimate" | "copyright";
+  kind: "intimate" | "copyright" | "impersonation" | "trademark";
+  id_paths: string[];
   name: string;
   email: string;
   urls: string[];
@@ -43,7 +47,9 @@ function Takedowns() {
   async function refresh() {
     const { data } = await supabase
       .from("takedown_requests")
-      .select("id, request_ref, kind, name, email, urls, details, work, signature, created_at")
+      .select(
+        "id, request_ref, kind, name, email, urls, details, work, signature, id_paths, created_at",
+      )
       .eq("state", "open")
       .order("kind")
       .order("created_at");
@@ -56,6 +62,19 @@ function Takedowns() {
       if (ok) await refresh();
     });
   }, []);
+
+  /** Opens one ID photo in a new tab: the function signs a two-minute address for a moderator. */
+  async function openPhoto(path: string) {
+    const { data, error } = await supabase.functions.invoke<{ url?: string }>(
+      `id-photo?path=${encodeURIComponent(path)}`,
+      { method: "GET" },
+    );
+    if (error || !data?.url) {
+      setFailure({ ...failure, photo: t("takedowns.photoFailed") });
+      return;
+    }
+    window.open(data.url, "_blank", "noopener");
+  }
 
   async function resolve(r: Row, outcome: "removed" | "rejected") {
     if (busy) return;
@@ -89,6 +108,11 @@ function Takedowns() {
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{t("takedowns.title")}</h1>
       <p className="mt-1 text-sm text-ink-soft">{t("takedowns.why")}</p>
+      {failure["photo"] ? (
+        <p role="alert" className="mt-2 text-sm font-medium text-danger">
+          {failure["photo"]}
+        </p>
+      ) : null}
       {rows.length === 0 ? (
         <div className="mt-4">
           <EmptyState line={t("mod.empty")} />
@@ -100,8 +124,7 @@ function Takedowns() {
             return (
               <li key={r.id} className="rounded-md border border-line bg-surface p-3 shadow-card">
                 <p className="text-sm text-ink-soft">
-                  {r.request_ref} ·{" "}
-                  {r.kind === "intimate" ? t("takedowns.intimate") : t("takedowns.copyright")} ·{" "}
+                  {r.request_ref} · {t(`takedowns.${r.kind}`)} ·{" "}
                   <span className={left < 6 ? "font-medium text-danger" : ""}>
                     {t("takedowns.due", { count: left })}
                   </span>
@@ -127,6 +150,24 @@ function Takedowns() {
                     {t("takedowns.signed")}: {r.signature}
                   </p>
                 ) : null}
+                {r.id_paths.length > 0 ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                    <span className="text-ink-soft">{t("takedowns.idPhotos")}</span>
+                    {r.id_paths.map((path, n) => (
+                      <button
+                        key={path}
+                        type="button"
+                        onClick={() => void openPhoto(path)}
+                        className="underline underline-offset-2 text-ink"
+                      >
+                        {t("takedowns.idPhoto", { count: n + 1 })}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {r.kind === "impersonation" || r.kind === "trademark" ? (
+                  <p className="mt-1 text-sm text-ink-soft">{t("takedowns.claimHow")}</p>
+                ) : null}
                 <input
                   type="text"
                   value={item[r.id] ?? ""}
@@ -151,7 +192,9 @@ function Takedowns() {
                     onClick={() => void resolve(r, "removed")}
                     className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
                   >
-                    {t("takedowns.remove")}
+                    {r.kind === "impersonation" || r.kind === "trademark"
+                      ? t("takedowns.acted")
+                      : t("takedowns.remove")}
                   </button>
                   <button
                     type="button"

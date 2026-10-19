@@ -238,6 +238,9 @@ jobs:
       # Reads saved pieces' store pages for price drops (migration 088); hourly, with the sweep secret.
       - name: Deploy price-watch
         run: supabase functions deploy price-watch --no-verify-jwt --project-ref "$SUPABASE_PROJECT_REF"
+      # A moderator's two-minute address for one ID photo of an impersonation claim (migration 108).
+      - name: Deploy id-photo
+        run: supabase functions deploy id-photo --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

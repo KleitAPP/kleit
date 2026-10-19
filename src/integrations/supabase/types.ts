@@ -2033,6 +2033,8 @@ export type Database = {
           details: string
           email: string
           id: string
+          id_paths: string[]
+          id_purged_at: string | null
           ip_hash: string | null
           kind: string
           name: string
@@ -2051,6 +2053,8 @@ export type Database = {
           details?: string
           email: string
           id?: string
+          id_paths?: string[]
+          id_purged_at?: string | null
           ip_hash?: string | null
           kind: string
           name: string
@@ -2069,6 +2073,8 @@ export type Database = {
           details?: string
           email?: string
           id?: string
+          id_paths?: string[]
+          id_purged_at?: string | null
           ip_hash?: string | null
           kind?: string
           name?: string

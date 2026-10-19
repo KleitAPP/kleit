@@ -216,7 +216,12 @@ export default {
     if (url.pathname.startsWith("/e/brand/")) return brandPage(request, env);
     if (url.pathname.startsWith("/e/")) return embedPage(request, env);
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
-    if (url.pathname === "/takedown" || url.pathname === "/copyright")
+    if (
+      url.pathname === "/takedown" ||
+      url.pathname === "/copyright" ||
+      url.pathname === "/impersonation" ||
+      url.pathname === "/trademark"
+    )
       return takedownFormPage(request, env);
     if (url.pathname === "/sitemap.xml") return sitemap(request, env);
     if (url.pathname === "/contact") return contactPage(request, env);
@@ -542,22 +547,67 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
 function takedownFormPage(request: Request, env: Env): Response {
   const url = new URL(request.url);
   const nonce = newNonce();
-  const copyright = url.pathname === "/copyright";
+  const kind: "intimate" | "copyright" | "impersonation" | "trademark" =
+    url.pathname === "/copyright"
+      ? "copyright"
+      : url.pathname === "/impersonation"
+        ? "impersonation"
+        : url.pathname === "/trademark"
+          ? "trademark"
+          : "intimate";
   const config = JSON.stringify({
     fn: `${env.SUPABASE_URL}/functions/v1/takedown-request`,
     anon: env.SUPABASE_ANON_KEY,
     siteKey: env.TURNSTILE_SITE_KEY || TURNSTILE_TEST_SITE_KEY,
-    kind: copyright ? "copyright" : "intimate",
+    kind,
   });
-  const title = copyright ? "Report a copyright problem" : "Remove an intimate image";
-  const intro = copyright
-    ? "If a picture on Kleit uses your work without permission, tell us here (a DMCA notice). No account needed. We answer within 72 hours, and the picture - and every identical copy - comes down if the notice is complete and in good faith."
-    : "If an intimate image of you is on Kleit without your consent, tell us here. No account needed, and you don't have to say anything you'd rather not. We remove it, and every identical copy, within 48 hours. You get a reference to check on.";
-  const dmcaFields = copyright
-    ? `<label>The work that's yours<textarea name="work" maxlength="1000" required placeholder="What the original is and where it can be seen"></textarea></label>
+  const title = {
+    intimate: "Remove an intimate image",
+    copyright: "Report a copyright problem",
+    impersonation: "Report an account pretending to be you",
+    trademark: "Report a trademark problem",
+  }[kind];
+  const intro = {
+    copyright:
+      "If a picture on Kleit uses your work without permission, tell us here (a DMCA notice). No account needed. We answer within 72 hours, and the picture - and every identical copy - comes down if the notice is complete and in good faith.",
+    intimate:
+      "If an intimate image of you is on Kleit without your consent, tell us here. No account needed, and you don't have to say anything you'd rather not. We remove it, and every identical copy, within 48 hours. You get a reference to check on.",
+    impersonation:
+      "If an account is passing itself off as you, or as your business, tell us here. No account needed. A photo of an ID (yours, or a document showing you act for the business) lets us check quickly; we keep it 30 days and then delete it, and nobody but the person handling your claim sees it. We answer within 72 hours.",
+    trademark:
+      "If an account or a set uses your registered mark in a way that misleads, tell us here. No account needed. We answer within 72 hours.",
+  }[kind];
+  const whereLabel =
+    kind === "impersonation"
+      ? "The account - one link per line (a kleit link, like /u/name)"
+      : kind === "trademark"
+        ? "Where the mark is used - one link per line (a kleit link, like /u/name or /s/…)"
+        : "Where the picture is - one link per line (a kleit link, like /s/… or /item/…)";
+  const detailsLabel =
+    kind === "impersonation"
+      ? "Who you are, and how the account passes itself off as you"
+      : "Anything else that helps (optional)";
+  const detailsRequired = kind === "impersonation" ? " required" : "";
+  const extraFields =
+    kind === "copyright"
+      ? `<label>The work that's yours<textarea name="work" maxlength="1000" required placeholder="What the original is and where it can be seen"></textarea></label>
 <label class="check"><input type="checkbox" name="statements" required> I have a good-faith belief this use isn't authorised by the owner, its agent or the law; the information here is accurate; and, under penalty of perjury, I am the owner or authorised to act for them.</label>
 <label>Your signature (type your full name)<input name="signature" maxlength="120" required></label>`
-    : "";
+      : kind === "trademark"
+        ? `<label>The mark, and where it is registered (the registration number if you have it)<textarea name="work" maxlength="1000" required placeholder="e.g. BRAND, US reg. 1234567"></textarea></label>
+<label class="check"><input type="checkbox" name="statements" required> I have a good-faith belief this use of the mark is not authorised and is likely to mislead; the information here is accurate; and I am the owner of the mark or authorised to act for them.</label>
+<label>Your signature (type your full name)<input name="signature" maxlength="120" required></label>`
+        : kind === "impersonation"
+          ? `<label>A photo of an ID, or of a document showing you act for the business (optional, up to two; JPEG, PNG, WebP or HEIC, 5 MB each)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic" multiple></label>`
+          : "";
+  const note = {
+    copyright: "A false notice can carry liability under US law.",
+    intimate:
+      "Nobody else is told who asked. If you're under 18, tell us in the box above and we'll treat it as urgent.",
+    impersonation:
+      "The photo is for checking the claim and nothing else: it is kept 30 days, seen only by the person handling the claim, and then deleted. A false claim can carry liability.",
+    trademark: "A false claim can carry liability under US law.",
+  }[kind];
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>${title} · Kleit</title>${STYLE}
@@ -570,11 +620,11 @@ input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6
 <form id="f" novalidate>
 <label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>
 <label>Your email (for updates on this request)<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
-<label>Where the picture is - one link per line (a kleit link, like /s/… or /item/…)<textarea name="urls" required placeholder="https://…"></textarea></label>
-<label>Anything else that helps (optional)<textarea name="details" maxlength="2000"></textarea></label>
-${dmcaFields}
+<label>${whereLabel}<textarea name="urls" required placeholder="https://…"></textarea></label>
+<label>${detailsLabel}<textarea name="details" maxlength="2000"${detailsRequired}></textarea></label>
+${extraFields}
 <div id="turnstile" class="turnstile"></div>
-<p class="note">${copyright ? "A false notice can carry liability under US law." : "Nobody else is told who asked. If you're under 18, tell us in the box above and we'll treat it as urgent."}</p>
+<p class="note">${note}</p>
 <button class="button" type="submit">Send</button>
 <p id="msg" class="note" role="status" aria-live="polite"></p>
 </form>
@@ -612,9 +662,12 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
       if (!row) line = "No request with that reference. Check the letters and try again.";
       else if (row.state === "open")
         line =
-          "Received and waiting for a person to look at it. We answer within 48 hours for an intimate image, 72 for copyright.";
+          "Received and waiting for a person to look at it. We answer within 48 hours for an intimate image, 72 for the rest.";
       else if (row.state === "removed")
-        line = "Done: the picture and any identical copies were removed.";
+        line =
+          row.kind === "impersonation" || row.kind === "trademark"
+            ? "Done: we acted on the claim. The email we sent says what changed."
+            : "Done: the picture and any identical copies were removed.";
       else
         line =
           "Reviewed: we couldn't act on this request as sent. Reply to the email we sent if you have more to add.";
@@ -630,7 +683,7 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
 <h1>Where your request got to</h1>
 <form method="get" action="/takedown/status"><input name="ref" value="${esc(ref)}" placeholder="T-XXXXXXXX" aria-label="Your reference" maxlength="20" required><button class="button" type="submit">Check</button></form>
 ${line ? `<p>${esc(line)}</p>` : ""}
-<footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a></footer>
+<footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a> · <a href="/impersonation">Impersonation</a> · <a href="/trademark">Trademark</a></footer>
 </main></body></html>`;
   return new Response(html, { headers: pageHeaders(env) });
 }
@@ -660,12 +713,16 @@ const TAKEDOWN_SCRIPT = `(function(){
     e.preventDefault(); if(busy) return;
     var d=new FormData(f); var urls=String(d.get('urls')||'').split(/\\s+/).filter(Boolean);
     var body={kind:C.kind,name:d.get('name'),email:d.get('email'),urls:urls,details:d.get('details')||'',work:d.get('work')||'',signature:d.get('signature')||'',statements:!!d.get('statements')};
-    if(!body.name||!body.email||!urls.length||(C.kind==='copyright'&&(!body.work||!body.signature||!body.statements))){ msg.textContent='Please fill in every box with a line under it.'; return; }
+    var signed=(C.kind==='copyright'||C.kind==='trademark');
+    if(!body.name||!body.email||!urls.length||(signed&&(!body.work||!body.signature||!body.statements))||(C.kind==='impersonation'&&!body.details)){ msg.textContent='Please fill in every box with a line under it.'; return; }
+    var files=(C.kind==='impersonation'&&f.photos&&f.photos.files)?Array.prototype.slice.call(f.photos.files,0,2):[];
+    for(var i=0;i<files.length;i++){ if(files[i].size>5*1024*1024){ msg.textContent='Each photo must be under 5 MB.'; return; } }
     busy=true; msg.textContent='Sending…';
-    turnstileToken().then(function(tok){ body.token=tok||undefined;
+    var readAll=Promise.all(files.map(function(file){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(r.result);}; r.onerror=rej; r.readAsDataURL(file); }); }));
+    readAll.then(function(photos){ if(photos.length) body.photos=photos; return turnstileToken(); }).then(function(tok){ body.token=tok||undefined;
       return fetch(C.fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:C.anon},body:JSON.stringify(body)}).then(function(r){return r.json();}); })
     .then(function(j){ if(j&&j.ok){ f.hidden=true; document.getElementById('ref').textContent=j.ref; document.getElementById('hours').textContent='We answer within '+j.hours+' hours.'; document.getElementById('done').hidden=false; }
-      else { msg.textContent= j&&j.error==='too_many' ? 'That is a lot of requests from one place today. Try again tomorrow, or email us.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : 'Something was missing or did not go through. Check the boxes and try again.'; } })
+      else { msg.textContent= j&&j.error==='too_many' ? 'That is a lot of requests from one place today. Try again tomorrow, or email us.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : j&&(j.error==='bad_photo'||j.error==='photo_failed') ? 'The photo did not go through. Try a JPEG or PNG under 5 MB, or send without it.' : 'Something was missing or did not go through. Check the boxes and try again.'; } })
     .catch(function(){ msg.textContent='That did not go through. Try again in a moment.'; })
     .then(function(){ busy=false; });
   });
@@ -696,7 +753,7 @@ input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid 
 .note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>Contact us</h1><p>A question, a bug, something about your account - write it here. No account needed. A person reads every message and answers by email, usually within two days.</p>
-<p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, or your work used without permission: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a>.</p>
+<p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, your work used without permission, an account pretending to be you, or your mark misused: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a> · <a href="/impersonation">impersonation</a> · <a href="/trademark">trademark</a>.</p>
 <form id="f" novalidate>
 <label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("safety", "Safety")}${option("other", "Something else")}</select></label>
 <label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>

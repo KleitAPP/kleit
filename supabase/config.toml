@@ -139,3 +139,8 @@ verify_jwt = true
 # price-watch is called by the database (pg_net) with the sweep secret: no token at the gateway.
 [functions.price-watch]
 verify_jwt = false
+
+# id-photo is called by a signed-in moderator (the takedown queue): the gateway checks the token,
+# the function checks the role and signs a two-minute address for one ID photo.
+[functions.id-photo]
+verify_jwt = true

@@ -5,6 +5,9 @@
  * private `evidence` bucket first - evidence is preserved, never shown - then removed from its
  * bucket; the row is marked purged by `mark_purged`. One failure is logged and skipped;
  * the row stays due and is tried again tomorrow.
+ *
+ * The same night, the ID photos of impersonation claims past thirty days (migration 108) go from
+ * the private `id-verification` bucket, and the claim forgets their paths.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -58,5 +61,22 @@ Deno.serve(async (request) => {
       outcome[item.id] = "failed";
     }
   }
-  return Response.json({ due: (due ?? []).length, outcome });
+  // The ID photos (CL69): thirty days after the claim, whatever its outcome.
+  const ids: Record<string, string> = {};
+  const { data: idDue } = await server.rpc("claim_id_purges", { p_limit: BATCH });
+  for (const claim of (idDue ?? []) as { id: string; paths: string[] }[]) {
+    try {
+      if (claim.paths.length > 0) {
+        const { error: removeError } = await server.storage.from("id-verification").remove(claim.paths);
+        if (removeError) throw new Error(`remove: ${removeError.message}`);
+      }
+      const { error: markError } = await server.rpc("mark_id_purged", { p_id: claim.id });
+      if (markError) throw new Error(`mark: ${markError.message}`);
+      ids[claim.id] = "purged";
+    } catch (problem) {
+      console.error(`[purge-files] id ${claim.id}:`, problem instanceof Error ? problem.message : String(problem));
+      ids[claim.id] = "failed";
+    }
+  }
+  return Response.json({ due: (due ?? []).length, outcome, ids });
 });

@@ -721,7 +721,14 @@ try {
   );
   // The two forms run their own scripts the same way (the contact page once shipped a nonce in
   // its tags and a policy without it - a form with no script posts nothing).
-  const formPaths = ["/contact", "/takedown", "/copyright", "/impersonation", "/trademark"];
+  const formPaths = [
+    "/contact",
+    "/takedown",
+    "/copyright",
+    "/impersonation",
+    "/trademark",
+    "/counter-notice",
+  ];
   const formPages = await Promise.all(formPaths.map((path) => fetch(`${SITE}${path}`)));
   const formTitles = await Promise.all(
     formPages.map(async (r) => (await r.text()).match(/<title>([^<]*)/)?.[1] ?? ""),
@@ -732,7 +739,7 @@ try {
         r.headers.get("content-security-policy") ?? "",
       ),
     ),
-    "stranger: the contact and the four claim pages' scripts are their own and Turnstile's",
+    "stranger: the contact, claim and counter-notice pages' scripts are their own and Turnstile's",
     formPages.map((r) => r.status).join("/"),
   );
   // Each of them is the Worker's own page, not the app shell the assets' SPA fallback serves
@@ -743,7 +750,8 @@ try {
       formTitles[1]?.startsWith("Remove an intimate image") &&
       formTitles[2]?.startsWith("Report a copyright problem") &&
       formTitles[3]?.startsWith("Report an account pretending") &&
-      formTitles[4]?.startsWith("Report a trademark problem"),
+      formTitles[4]?.startsWith("Report a trademark problem") &&
+      formTitles[5]?.startsWith("Send a counter-notice"),
     "stranger: every form page is the Worker's own, not the app shell",
     formTitles.join(" | ").slice(0, 160),
   );
@@ -1348,6 +1356,156 @@ try {
   );
   const readRemoved = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
   check(!readRemoved.data?.signedUrl, "attacker: a taken-down message photo can no longer be read");
+
+  // 7g. A copyright takedown (migration 115; spec 13.3 #4): the uploader gets a 90-day copyright
+  // strike; the counter-notice, through the public door with no account, is listed for a
+  // moderator and nobody else; restoring brings the picture back and ends the strike.
+  const { data: copyItem } = await admin
+    .from("items")
+    .insert({
+      owner_id: attacker.id,
+      kind: "own",
+      title: "attack-test copyright photo (ignore)",
+      image_bucket: "closet-photos",
+      image_id: `${attacker.id}/attack-test-copyright-ignore.jpg`,
+    })
+    .select("id")
+    .single();
+  // A reference in the takedown form's own alphabet (no 0, 1, I or O), as the door checks it.
+  const copyRef =
+    "T-ATK" +
+    Array.from(
+      { length: 5 },
+      () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)],
+    ).join("");
+  const { data: copyTd } = await admin
+    .from("takedown_requests")
+    .insert({
+      request_ref: copyRef,
+      kind: "copyright",
+      name: "attack test (ignore)",
+      email: "attack-test@example.com",
+      urls: [`${SITE}/item/${copyItem?.id}`],
+      work: "attack test (ignore)",
+      statements: true,
+      signature: "attack test (ignore)",
+    })
+    .select("id")
+    .single();
+  const copyResolved = await mod.rpc("takedown_resolve", {
+    p_id: copyTd?.id,
+    p_outcome: "removed",
+    p_note: "attack test",
+    p_item: copyItem?.id,
+  });
+  check(
+    !copyResolved.error,
+    "moderator: resolves a copyright takedown as removed",
+    copyResolved.error?.code,
+  );
+  const copyStrikes = await a.rpc("my_strikes", {});
+  const copyStrike = (copyStrikes.data ?? []).find(
+    (x) => x.kind === "copyright" && String(x.reason).includes(copyRef),
+  );
+  check(
+    !!copyStrike && new Date(copyStrike.expires_at).getTime() < Date.now() + 91 * 86400000,
+    "attacker: has a 90-day copyright strike naming the notice",
+    copyStrikes.error?.code,
+  );
+  const counterBody = {
+    kind: "counter",
+    takedown_ref: copyRef,
+    name: "attack test (ignore)",
+    email: "attack-test@example.com",
+    address: "1 Test Street, Testville, TS 00000",
+    phone: "",
+    details: "attack test counter-notice (ignore)",
+    statements: true,
+    consent: true,
+    signature: "attack test (ignore)",
+    token: "attack-test",
+  };
+  const counterShort = await call("takedown-request", null, { ...counterBody, consent: false });
+  check(
+    counterShort.status === 400,
+    "stranger: a counter-notice without the consent is refused",
+    String(counterShort.status),
+  );
+  const counter = await call("takedown-request", null, counterBody);
+  check(
+    counter.status === 200 && /^C-/.test(counter.json?.ref ?? ""),
+    "stranger: files the counter-notice with no account and gets a C- reference",
+    `${counter.status} ${JSON.stringify(counter.json)}`,
+  );
+  const counterAgain = await call("takedown-request", null, counterBody);
+  check(
+    counterAgain.status === 409,
+    "stranger: not a second one while the first is open",
+    String(counterAgain.status),
+  );
+  const counterIntimate = await call("takedown-request", null, {
+    ...counterBody,
+    takedown_ref: "T-NOSUCH01",
+  });
+  check(
+    counterIntimate.status === 404,
+    "stranger: a counter-notice on an unknown notice is refused",
+    String(counterIntimate.status),
+  );
+  const counterQueueAsAttacker = await a.rpc("counter_notice_queue", {});
+  check(
+    (counterQueueAsAttacker.data ?? []).length === 0,
+    "attacker: sees no counter-notices",
+    String((counterQueueAsAttacker.data ?? []).length),
+  );
+  const counterQueue = await mod.rpc("counter_notice_queue", {});
+  const counterRow = (counterQueue.data ?? []).find((c) => c.takedown_ref === copyRef);
+  check(
+    !!counterRow,
+    "moderator: the counter-notice is listed with its notice",
+    counterQueue.error?.code,
+  );
+  const counterByAttacker = await a.rpc("counter_notice_resolve", {
+    p_id: counterRow?.id,
+    p_outcome: "restored",
+    p_note: "",
+  });
+  check(
+    counterByAttacker.error?.code === "42501",
+    "attacker: cannot restore it",
+    counterByAttacker.error?.code ?? "allowed",
+  );
+  const restored = await mod.rpc("counter_notice_resolve", {
+    p_id: counterRow?.id,
+    p_outcome: "restored",
+    p_note: "attack test",
+  });
+  check(!restored.error, "moderator: restores the picture", restored.error?.code);
+  const { data: backItem } = await admin
+    .from("items")
+    .select("takedown_state")
+    .eq("id", copyItem?.id ?? "")
+    .maybeSingle();
+  check(
+    backItem?.takedown_state === "none",
+    "server: the picture is back",
+    backItem?.takedown_state,
+  );
+  const strikesAfterRestore = await a.rpc("my_strikes", {});
+  const endedCopy = (strikesAfterRestore.data ?? []).find((x) => x.id === copyStrike?.id);
+  check(
+    !!endedCopy && new Date(endedCopy.expires_at).getTime() <= Date.now() + 5000,
+    "attacker: the copyright strike has ended",
+  );
+  const guestClient = createClient(URL_, ANON, { auth: { persistSession: false } });
+  const counterStatus = await guestClient.rpc("counter_notice_status", {
+    p_ref: counter.json?.ref ?? "",
+  });
+  check(
+    counterStatus.data?.[0]?.state === "restored",
+    "stranger: can check the counter-notice by reference",
+    counterStatus.error?.code ?? JSON.stringify(counterStatus.data).slice(0, 80),
+  );
   const { data: ctRow } = await admin
     .from("contact_messages")
     .insert({
@@ -1824,6 +1982,12 @@ try {
   }
   await admin.from("reports").delete().in("reporter_id", [victim.id, attacker.id]);
   await admin.from("takedown_requests").delete().eq("name", "attack test (ignore)");
+  await admin
+    .from("items")
+    .delete()
+    .eq("owner_id", attacker.id)
+    .eq("title", "attack-test copyright photo (ignore)");
+  await admin.from("removed_image_fingerprints").delete().like("reason", "takedown:%:T-ATK%");
   await admin.from("contact_messages").delete().eq("name", "attack test (ignore)");
   await admin.from("admin_audit_log").delete().eq("reason", "attack test (ignore)");
   await admin.from("profiles").update({ banned_at: null }).eq("user_id", attacker.id);

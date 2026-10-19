@@ -35,10 +35,26 @@ type Row = {
   created_at: string;
 };
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
+/** A DMCA counter-notice waiting (migration 115): the picture comes back on its date unless the claimant has sued. */
+type Counter = {
+  id: string;
+  request_ref: string;
+  takedown_ref: string;
+  item_id: string | null;
+  name: string;
+  email: string;
+  address: string;
+  phone: string;
+  details: string;
+  signature: string;
+  created_at: string;
+  restore_after: string;
+};
 
 function Takedowns() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+  const [counters, setCounters] = useState<Counter[]>([]);
   const [item, setItem] = useState<Record<string, string>>({});
   const [note, setNote] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -54,6 +70,22 @@ function Takedowns() {
       .order("kind")
       .order("created_at");
     setRows((data ?? []) as Row[]);
+    const { data: cn } = await supabase.rpc("counter_notice_queue");
+    setCounters((cn ?? []) as Counter[]);
+  }
+
+  async function resolveCounter(c: Counter, outcome: "restored" | "withheld") {
+    if (busy) return;
+    setBusy(c.id);
+    const { error } = await supabase.rpc("counter_notice_resolve", {
+      p_id: c.id,
+      p_outcome: outcome,
+      p_note: note[c.id] ?? "",
+    });
+    setBusy(null);
+    const problem = whyItFailed(error);
+    setFailure({ ...failure, [c.id]: problem ?? "" });
+    if (!problem || problem === t("mod.err.done")) await refresh();
   }
   useEffect(() => {
     void myRoles().then(async (r) => {
@@ -220,6 +252,70 @@ function Takedowns() {
                 {failure[r.id] ? (
                   <p role="alert" className="mt-2 text-sm font-medium text-danger">
                     {failure[r.id]}
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <h2 className="mt-8 font-display text-xl text-ink">{t("takedowns.counters")}</h2>
+      <p className="mt-1 text-sm text-ink-soft">{t("takedowns.countersWhy")}</p>
+      {counters.length === 0 ? (
+        <p className="mt-2 text-sm text-ink-soft">{t("mod.noAppeals")}</p>
+      ) : (
+        <ul className="mt-2 flex flex-col gap-3">
+          {counters.map((c) => {
+            const due = new Date(c.restore_after).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+            return (
+              <li key={c.id} className="rounded-md border border-line bg-surface p-3 shadow-card">
+                <p className="text-sm text-ink-soft">
+                  {c.request_ref} · {t("takedowns.answers", { ref: c.takedown_ref })} ·{" "}
+                  {t("takedowns.restoreBy", { date: due })}
+                </p>
+                <p className="mt-1 text-base text-ink">
+                  {c.name} · {c.email}
+                  {c.phone ? ` · ${c.phone}` : ""}
+                </p>
+                <p className="mt-1 text-sm text-ink-soft">{c.address}</p>
+                {c.details ? <p className="mt-2 text-sm text-ink">“{c.details}”</p> : null}
+                <p className="mt-1 text-sm text-ink-soft">
+                  {t("takedowns.signedBy", { name: c.signature })}
+                </p>
+                <input
+                  type="text"
+                  value={note[c.id] ?? ""}
+                  maxLength={500}
+                  onChange={(e) => setNote({ ...note, [c.id]: e.target.value })}
+                  placeholder={t("mod.note")}
+                  aria-label={t("mod.note")}
+                  className="mt-2 min-h-11 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink"
+                />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void resolveCounter(c, "restored")}
+                    className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+                  >
+                    {t("takedowns.restore")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void resolveCounter(c, "withheld")}
+                    className="min-h-11 rounded-pill border border-line bg-surface px-4 text-sm text-ink"
+                  >
+                    {t("takedowns.withhold")}
+                  </button>
+                </div>
+                {failure[c.id] ? (
+                  <p role="alert" className="mt-2 text-sm font-medium text-danger">
+                    {failure[c.id]}
                   </p>
                 ) : null}
               </li>

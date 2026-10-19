@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(30);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('d1000000-0000-4000-8000-000000000001', 'sw-owner@test.kleit'),
@@ -118,13 +118,14 @@ select is((select takedown_state from items where id = 'd1000000-0000-4000-8000-
 --    a second such message does not file another; every message is queued for the outside check.
 select pg_temp.as_server();
 insert into conversations (id, user_a, user_b) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002');
-insert into messages (conversation_id, sender_id, body) values
-  ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000001', 'hello there'),
-  ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'any thinspo pics?'),
-  ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'more thinspo please');
+-- One statement each: a row-level AFTER trigger runs once the whole statement is in, so three
+-- rows in one insert would all be "so far" for the second one.
+insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000001', 'hello there');
+insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'any thinspo pics?');
+insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'more thinspo please');
 select is((select count(*) from reports r where r.target_type = 'conversation' and r.target_id = 'd1000000-0000-4000-8000-000000000031' and r.state = 'open' and r.priority = 'urgent' and r.target_owner_id = 'd1000000-0000-4000-8000-000000000002'), 1::bigint, 'one urgent report on the conversation, against the sender');
 select is((select jsonb_array_length(r.evidence) from reports r where r.target_type = 'conversation' and r.target_id = 'd1000000-0000-4000-8000-000000000031' and r.state = 'open'), 2, 'with the messages so far as evidence');
-select is((select count(*) from text_checks c where c.kind = 'message' and c.state = 'pending'), 3::bigint, 'and every message waits for the outside check');
+select is((select count(*) from text_checks c join messages m on m.id = c.target_id where c.kind = 'message' and m.conversation_id = 'd1000000-0000-4000-8000-000000000031'), 3::bigint, 'and every message waits for the outside check');
 
 select * from finish();
 rollback;

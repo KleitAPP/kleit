@@ -198,6 +198,8 @@ export const en = {
   "strikes.none": "No strikes. Nothing to see here - good.",
   "strikes.community": "Community strike",
   "strikes.copyright": "Copyright strike",
+  "strikes.counterNotice": "Send a counter-notice",
+  "strikes.counterWhy": "If the picture was yours or its use was allowed, a counter-notice brings it back within 14 days unless the sender sues, and ends this strike.",
   "strikes.over": "expired",
   "strikes.appeal": "Appeal",
   "strikes.appealHint": "In a sentence or two, why this was a mistake",
@@ -252,6 +254,14 @@ export const en = {
   "takedowns.claimHow":
     "Act on the account in People (a label, a rename, a suspension), then record the decision here. The sender is told by email.",
   "takedowns.acted": "Acted on it",
+  "takedowns.counters": "Counter-notices",
+  "takedowns.countersWhy":
+    "A DMCA counter-notice answers a copyright notice. Forward it to the person who sent the notice by email, and on the date shown restore the picture unless they have told you they filed a lawsuit; restoring also ends the uploader's copyright strike.",
+  "takedowns.answers": "answers {ref}",
+  "takedowns.restoreBy": "restore by {date}",
+  "takedowns.signedBy": "Signed {name}",
+  "takedowns.restore": "Restore the picture",
+  "takedowns.withhold": "Keep it down (a lawsuit was filed)",
   "takedowns.due": "{count} hours left",
   "takedowns.due.one": "1 hour left",
   "takedowns.work": "The work",

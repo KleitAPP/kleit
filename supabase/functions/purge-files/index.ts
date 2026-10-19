@@ -7,7 +7,11 @@
  * the row stays due and is tried again tomorrow.
  *
  * The same night, the ID photos of impersonation claims past thirty days (migration 108) go from
- * the private `id-verification` bucket, and the claim forgets their paths.
+ * the private `id-verification` bucket, and the claim forgets their paths; and the stored files
+ * whose time is up by the data map (migration 115: export ZIPs after seven days, the evidence
+ * copy of a taken-down picture after a year, the fonts and exports of an account that is gone)
+ * are listed by claim_file_purges from storage's own table and removed here - the API is the
+ * only thing that deletes the bytes.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -78,5 +82,17 @@ Deno.serve(async (request) => {
       ids[claim.id] = "failed";
     }
   }
-  return Response.json({ due: (due ?? []).length, outcome, ids });
+  // The data map's files (migration 115), bucket by bucket.
+  const files: Record<string, number> = {};
+  const { data: fileDue } = await server.rpc("claim_file_purges", { p_limit: 200 });
+  const byBucket = new Map<string, string[]>();
+  for (const f of (fileDue ?? []) as { bucket: string; name: string }[]) {
+    byBucket.set(f.bucket, [...(byBucket.get(f.bucket) ?? []), f.name]);
+  }
+  for (const [bucket, names] of byBucket) {
+    const { error: removeError } = await server.storage.from(bucket).remove(names);
+    if (removeError) console.error(`[purge-files] ${bucket}:`, removeError.message);
+    files[bucket] = removeError ? 0 : names.length;
+  }
+  return Response.json({ due: (due ?? []).length, outcome, ids, files });
 });

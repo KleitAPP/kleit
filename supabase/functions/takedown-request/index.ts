@@ -11,6 +11,11 @@
  * purged thirty days after the claim by purge-files (migration 108); only a moderator can ever
  * see them, through id-photo.
  *
+ * The DMCA counter-notice (spec 13.3 #4) comes through the same door as kind "counter": the
+ * notice's reference, the sender's name, address, phone and email, the two statements, and a
+ * signature; the database's file_counter_notice checks the notice is a copyright one that
+ * removed a picture (migration 115) and hands back a C- reference.
+ *
  * No Turnstile keys of our own exist yet (OW15): the test secret passes everyone until then.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -95,12 +100,17 @@ Deno.serve(async (request) => {
     signature?: string;
     photos?: unknown;
     token?: string;
+    takedown_ref?: string;
+    address?: string;
+    phone?: string;
+    consent?: boolean;
   };
   try {
     body = await request.json();
   } catch {
     return reply(400, { error: "bad_json" });
   }
+  if (body.kind === "counter") return counterNotice(request, body, url, serviceKey);
   const kind: Kind | null = (KINDS as readonly string[]).includes(String(body.kind))
     ? (body.kind as Kind)
     : null;
@@ -187,3 +197,93 @@ Deno.serve(async (request) => {
   }
   return reply(200, { ok: true, ref: request_ref, hours: kind === "intimate" ? 48 : 72 });
 });
+
+/** The counter-notice's door (migration 115): the same bot check and daily limit, then the database decides. */
+async function counterNotice(
+  request: Request,
+  body: {
+    takedown_ref?: string;
+    name?: string;
+    email?: string;
+    address?: string;
+    phone?: string;
+    details?: string;
+    statements?: boolean;
+    consent?: boolean;
+    signature?: string;
+    token?: string;
+  },
+  url: string,
+  serviceKey: string,
+): Promise<Response> {
+  const takedownRef = String(body.takedown_ref ?? "")
+    .trim()
+    .toUpperCase()
+    .slice(0, 20);
+  const name = String(body.name ?? "")
+    .trim()
+    .slice(0, 120);
+  const email = String(body.email ?? "")
+    .trim()
+    .toLowerCase();
+  const address = String(body.address ?? "")
+    .trim()
+    .slice(0, 300);
+  const phone = String(body.phone ?? "")
+    .trim()
+    .slice(0, 40);
+  const details = String(body.details ?? "")
+    .trim()
+    .slice(0, 2000);
+  const signature = String(body.signature ?? "")
+    .trim()
+    .slice(0, 120);
+  if (
+    !/^T-[A-Z2-9]{8}$/.test(takedownRef) ||
+    !name ||
+    !EMAIL.test(email) ||
+    !address ||
+    !signature ||
+    body.statements !== true ||
+    body.consent !== true
+  )
+    return reply(400, { error: "incomplete" });
+
+  const secret = turnstileSecret();
+  if (!secret) return reply(503, { error: "not_configured" });
+  const clientIp = clientAddress(request);
+  if (!(await turnstilePasses(secret, body.token, clientIp)))
+    return reply(403, { error: "bot_check" });
+
+  const admin = createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const ipHash = await hmac(serviceKey, `takedown:${clientIp}`);
+  {
+    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const { count } = await admin
+      .from("counter_notices")
+      .select("id", { count: "exact", head: true })
+      .eq("ip_hash", ipHash)
+      .gte("created_at", since);
+    if ((count ?? 0) >= 5) return reply(429, { error: "too_many" });
+  }
+  const { data, error } = await admin.rpc("file_counter_notice", {
+    p_takedown_ref: takedownRef,
+    p_name: name,
+    p_email: email,
+    p_address: address,
+    p_phone: phone,
+    p_details: details,
+    p_statements: true,
+    p_consent: true,
+    p_signature: signature,
+    p_ip_hash: ipHash,
+  });
+  if (error) {
+    if (error.code === "P0002") return reply(404, { error: "not_found" });
+    if (error.code === "P0001") return reply(409, { error: "already_open" });
+    return reply(500, { error: "failed" });
+  }
+  return reply(200, { ok: true, ref: data as string });
+}

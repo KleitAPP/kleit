@@ -696,6 +696,77 @@ export type Database = {
         }
         Relationships: []
       }
+      counter_notices: {
+        Row: {
+          address: string
+          consent: boolean
+          created_at: string
+          details: string
+          email: string
+          id: string
+          ip_hash: string | null
+          name: string
+          note: string
+          phone: string
+          request_ref: string
+          resolved_at: string | null
+          resolved_by: string | null
+          restore_after: string
+          signature: string
+          state: string
+          statements: boolean
+          takedown_id: string
+        }
+        Insert: {
+          address: string
+          consent?: boolean
+          created_at?: string
+          details?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          name: string
+          note?: string
+          phone?: string
+          request_ref: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restore_after?: string
+          signature: string
+          state?: string
+          statements?: boolean
+          takedown_id: string
+        }
+        Update: {
+          address?: string
+          consent?: boolean
+          created_at?: string
+          details?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string
+          note?: string
+          phone?: string
+          request_ref?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restore_after?: string
+          signature?: string
+          state?: string
+          statements?: boolean
+          takedown_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counter_notices_takedown_id_fkey"
+            columns: ["takedown_id"]
+            isOneToOne: false
+            referencedRelation: "takedown_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contest_entries: {
         Row: {
           contest_id: string
@@ -2067,6 +2138,7 @@ export type Database = {
           id_paths: string[]
           id_purged_at: string | null
           ip_hash: string | null
+          item_id: string | null
           kind: string
           name: string
           note: string
@@ -2087,6 +2159,7 @@ export type Database = {
           id_paths?: string[]
           id_purged_at?: string | null
           ip_hash?: string | null
+          item_id?: string | null
           kind: string
           name: string
           note?: string
@@ -2107,6 +2180,7 @@ export type Database = {
           id_paths?: string[]
           id_purged_at?: string | null
           ip_hash?: string | null
+          item_id?: string | null
           kind?: string
           name?: string
           note?: string
@@ -2540,6 +2614,37 @@ export type Database = {
       contact_resolve: {
         Args: { p_id: string; p_note?: string; p_outcome: string }
         Returns: undefined
+      }
+      counter_notice_queue: {
+        Args: never
+        Returns: {
+          address: string
+          created_at: string
+          details: string
+          email: string
+          id: string
+          item_id: string
+          name: string
+          phone: string
+          request_ref: string
+          restore_after: string
+          signature: string
+          takedown_id: string
+          takedown_ref: string
+        }[]
+      }
+      counter_notice_resolve: {
+        Args: { p_id: string; p_note?: string; p_outcome: string }
+        Returns: number
+      }
+      counter_notice_status: {
+        Args: { p_ref: string }
+        Returns: {
+          created_at: string
+          resolved_at: string
+          restore_after: string
+          state: string
+        }[]
       }
       contest_board: {
         Args: { p_contest: string }

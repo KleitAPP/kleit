@@ -217,6 +217,7 @@ export default {
     if (url.pathname.startsWith("/e/brand/")) return brandPage(request, env);
     if (url.pathname.startsWith("/e/")) return embedPage(request, env);
     if (url.pathname === "/takedown/status") return takedownStatusPage(request, env);
+    if (url.pathname === "/counter-notice") return counterNoticePage(request, env);
     if (
       url.pathname === "/takedown" ||
       url.pathname === "/copyright" ||
@@ -639,6 +640,56 @@ ${extraFields}
   return new Response(html, { headers: pageHeaders(env, { nonce }) });
 }
 
+// The DMCA counter-notice (spec 13.3 #4; the copyright policy's section 3): the person whose
+// picture a copyright notice removed answers it here, with no account, by the notice's reference
+// (it is on their strike). Posts to takedown-request as kind "counter". The picture comes back
+// 14 days on unless the claimant says they have sued; a moderator does that from the takedowns
+// screen and the sender can check by reference, like a takedown.
+function counterNoticePage(request: Request, env: Env): Response {
+  const url = new URL(request.url);
+  const nonce = newNonce();
+  const ref = (url.searchParams.get("ref") ?? "").trim().toUpperCase().slice(0, 20);
+  const config = JSON.stringify({
+    fn: `${env.SUPABASE_URL}/functions/v1/takedown-request`,
+    anon: env.SUPABASE_ANON_KEY,
+    siteKey: env.TURNSTILE_SITE_KEY || TURNSTILE_TEST_SITE_KEY,
+    kind: "counter",
+  });
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Send a counter-notice · Kleit</title>${STYLE}
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
+input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
+.check{flex-direction:row;align-items:flex-start;gap:8px;color:#1f1d1a}.check input{margin-top:3px}
+.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+<body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
+<h1>Send a counter-notice</h1>
+<p>If a picture of yours was removed on a copyright notice and you believe that was a mistake or a misidentification, answer it here (a DMCA counter-notice). No account needed. We pass your counter-notice to the person who sent the notice, and unless they tell us within 14 days that they have filed a lawsuit, the picture comes back. The full policy is at <a href="/copyright-policy">kleit.app/copyright-policy</a>.</p>
+<form id="f" novalidate>
+<label>The notice's reference (it starts with T- and is on your strike)<input name="takedown_ref" maxlength="20" required value="${esc(ref)}" placeholder="T-XXXXXXXX"></label>
+<label>Your full name<input name="name" maxlength="120" required autocomplete="name"></label>
+<label>Your email<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
+<label>Your postal address<textarea name="address" maxlength="300" required autocomplete="street-address"></textarea></label>
+<label>Your phone number<input name="phone" maxlength="40" autocomplete="tel"></label>
+<label>What was removed, and why it is yours or allowed (optional)<textarea name="details" maxlength="2000"></textarea></label>
+<label class="check"><input type="checkbox" name="statements" required> I state, under penalty of perjury, that I have a good-faith belief the material was removed or disabled as a result of mistake or misidentification.</label>
+<label class="check"><input type="checkbox" name="consent" required> I consent to the jurisdiction of the federal district court for the district where my address is (or, if outside the United States, any district in which Kleit may be found), and I will accept service of process from the person who sent the notice or their agent.</label>
+<label>Your signature (type your full name)<input name="signature" maxlength="120" required></label>
+<div id="turnstile" class="turnstile"></div>
+<p class="note">Your name, address and the statements above go to the person who sent the notice: that is what the law requires of a counter-notice. A false counter-notice can carry liability under US law.</p>
+<button class="button" type="submit">Send</button>
+<p id="msg" class="note" role="status" aria-live="polite"></p>
+</form>
+<section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note">Keep it. Unless the person who sent the notice tells us they have filed a lawsuit, the picture comes back within 14 days, and your copyright strike ends with it.</p></section>
+<footer class="wrap foot"><a href="/copyright-policy">Copyright policy</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></footer>
+</main>
+<script nonce="${nonce}">window.KLEIT_CN=${config.replace(/</g, "\\u003c")};</script>
+<script nonce="${nonce}">${COUNTER_SCRIPT}</script>
+</body></html>`;
+  return new Response(html, { headers: pageHeaders(env, { nonce }) });
+}
+
+
 async function takedownStatusPage(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const ref = (url.searchParams.get("ref") ?? "").trim().toUpperCase().slice(0, 20);
@@ -685,7 +736,7 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
 <h1>Where your request got to</h1>
 <form method="get" action="/takedown/status"><input name="ref" value="${esc(ref)}" placeholder="T-XXXXXXXX" aria-label="Your reference" maxlength="20" required><button class="button" type="submit">Check</button></form>
 ${line ? `<p>${esc(line)}</p>` : ""}
-<footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a> · <a href="/impersonation">Impersonation</a> · <a href="/trademark">Trademark</a></footer>
+<footer class="wrap foot"><a href="/takedown">Remove an intimate image</a> · <a href="/copyright">Copyright</a> · <a href="/counter-notice">Counter-notice</a> · <a href="/impersonation">Impersonation</a> · <a href="/trademark">Trademark</a></footer>
 </main></body></html>`;
   return new Response(html, { headers: pageHeaders(env) });
 }
@@ -725,6 +776,24 @@ const TAKEDOWN_SCRIPT = `(function(){
       return fetch(C.fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:C.anon},body:JSON.stringify(body)}).then(function(r){return r.json();}); })
     .then(function(j){ if(j&&j.ok){ f.hidden=true; document.getElementById('ref').textContent=j.ref; document.getElementById('hours').textContent='We answer within '+j.hours+' hours.'; document.getElementById('done').hidden=false; }
       else { msg.textContent= j&&j.error==='too_many' ? 'That is a lot of requests from one place today. Try again tomorrow, or email us.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : j&&(j.error==='bad_photo'||j.error==='photo_failed') ? 'The photo did not go through. Try a JPEG or PNG under 5 MB, or send without it.' : 'Something was missing or did not go through. Check the boxes and try again.'; } })
+    .catch(function(){ msg.textContent='That did not go through. Try again in a moment.'; })
+    .then(function(){ busy=false; });
+  });
+})();`;
+
+const COUNTER_SCRIPT = `(function(){
+  var C=window.KLEIT_CN; var f=document.getElementById('f'); var msg=document.getElementById('msg'); var busy=false;
+  ${TURNSTILE_JS}
+  f.addEventListener('submit',function(e){
+    e.preventDefault(); if(busy) return;
+    var d=new FormData(f);
+    var body={kind:'counter',takedown_ref:d.get('takedown_ref'),name:d.get('name'),email:d.get('email'),address:d.get('address'),phone:d.get('phone')||'',details:d.get('details')||'',signature:d.get('signature')||'',statements:!!d.get('statements'),consent:!!d.get('consent')};
+    if(!body.takedown_ref||!body.name||!body.email||!body.address||!body.signature||!body.statements||!body.consent){ msg.textContent='Please fill in every box with a line under it, and tick both statements.'; return; }
+    busy=true; msg.textContent='Sending…';
+    turnstileToken().then(function(tok){ body.token=tok||undefined;
+      return fetch(C.fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:C.anon},body:JSON.stringify(body)}).then(function(r){return r.json();}); })
+    .then(function(j){ if(j&&j.ok){ f.hidden=true; document.getElementById('ref').textContent=j.ref; document.getElementById('done').hidden=false; }
+      else { msg.textContent= j&&j.error==='not_found' ? 'We could not find a copyright notice with that reference that removed a picture. Check the reference on your strike.' : j&&j.error==='already_open' ? 'A counter-notice for that notice is already with us.' : j&&j.error==='too_many' ? 'That is a lot of requests from one place today. Try again tomorrow.' : j&&j.error==='bot_check' ? 'The bot check did not pass. Reload and try again.' : 'Something was missing or did not go through. Check every box and try again.'; } })
     .catch(function(){ msg.textContent='That did not go through. Try again in a moment.'; })
     .then(function(){ busy=false; });
   });

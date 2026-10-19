@@ -466,7 +466,7 @@ export const ARTICLES: Article[] = [
     group: "Safety",
     title: "Filing a copyright claim",
     body: [
-      "If your work is on Kleit without permission, use the form at /copyright - no account needed. Say what the work is, where it is on Kleit, and that you own it or act for the owner; you get a reference to check on. We remove what the claim names and tell the person who posted it, who can send a counter-notice. The full policy is at /copyright-policy.",
+      "If your work is on Kleit without permission, use the form at /copyright - no account needed. Say what the work is, where it is on Kleit, and that you own it or act for the owner; you get a reference to check on. We remove what the claim names, and the person who posted it gets a copyright strike (90 days) with the notice's reference, and can answer with a counter-notice at /counter-notice - no account needed; the picture comes back within 14 days unless you tell us you have sued, and the strike ends with it. The full policy is at /copyright-policy.",
     ],
   },
   {

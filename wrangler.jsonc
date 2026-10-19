@@ -21,7 +21,7 @@
     // Every path the Worker answers must be here, or the assets' SPA fallback serves the app shell
     // in its place (2026-10-19: /impersonation and /trademark were routed in the Worker and not
     // listed here, and the live site showed the shell where the two claim forms should have been).
-    "run_worker_first": ["/s/*", "/p/*", "/e/*", "/takedown", "/takedown/*", "/copyright", "/impersonation", "/trademark", "/contact", "/delete-account", "/sitemap.xml", "/terms", "/privacy", "/guidelines", "/copyright-policy", "/cookies", "/accessibility"]
+    "run_worker_first": ["/s/*", "/p/*", "/e/*", "/takedown", "/takedown/*", "/counter-notice", "/copyright", "/impersonation", "/trademark", "/contact", "/delete-account", "/sitemap.xml", "/terms", "/privacy", "/guidelines", "/copyright-policy", "/cookies", "/accessibility"]
   },
   // The legal drafts in docs/legal/ are bundled into the Worker as text, so /terms, /privacy and
   // the rest show the same files the app's sheet and the lawyer review read (worker/legal.ts).

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 import { appeal as sendAppeal, myStrikes, type Strike } from "@/safety/moderation";
 
 /** S98 — the strike notice: what happened, in plain words, and one appeal (M7.2; spec 13.4 #3–#4). */
@@ -47,6 +48,19 @@ function Strikes() {
                   {over ? ` · ${t("strikes.over")}` : ""}
                 </p>
                 {s.reason ? <p className="mt-1 text-base text-ink">{s.reason}</p> : null}
+                {s.kind === "copyright" && !over ? (
+                  <p className="mt-2 text-sm text-ink-soft">
+                    {t("strikes.counterWhy")}{" "}
+                    <a
+                      href={siteUrl(
+                        `/counter-notice?ref=${encodeURIComponent(/T-[A-Z2-9]{8}/.exec(s.reason)?.[0] ?? "")}`,
+                      )}
+                      className="text-ink underline underline-offset-2"
+                    >
+                      {t("strikes.counterNotice")}
+                    </a>
+                  </p>
+                ) : null}
                 {s.appeal_state ? (
                   <p className="mt-2 text-sm text-ink-soft">
                     {t(`strikes.appeal.${s.appeal_state}`)}

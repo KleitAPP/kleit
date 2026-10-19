@@ -6,6 +6,7 @@ import { EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/componen
 import { Avatar } from "@/social/Avatar";
 import { myPhotoState } from "@/social/profilePhoto";
 import { PhotoSheet } from "@/social/PhotoSheet";
+import { ShareProfile } from "@/social/ShareProfile";
 import { SaveToCollection } from "@/collections/SaveToCollection";
 import {
   createQuickDraft,
@@ -26,6 +27,7 @@ import {
   Folder,
   LayoutTemplate,
   MessageCircleQuestion,
+  Share2,
   ShieldCheck,
   Shirt,
   SlidersHorizontal,
@@ -110,6 +112,7 @@ function YourProfile() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [photoSheet, setPhotoSheet] = useState(false);
+  const [sharing, setSharing] = useState(false);
   /** "Checking your photo" after an upload the scan has not yet cleared (it shows once it has). */
   const [photoChecking, setPhotoChecking] = useState(false);
   const [tab, setTab] = useState<Tab>("sets");
@@ -264,6 +267,16 @@ function YourProfile() {
             <p className="mt-1 text-sm text-ink-soft">{t("profile.private")}</p>
           ) : null}
         </div>
+        {me ? (
+          <button
+            type="button"
+            onClick={() => setSharing(true)}
+            aria-label={t("shareProfile.title")}
+            className="flex size-12 shrink-0 items-center justify-center rounded-pill border border-line bg-surface text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            <Share2 className="size-5" aria-hidden="true" />
+          </button>
+        ) : null}
         <Link
           to="/settings"
           aria-label={t("profile.settings")}
@@ -272,6 +285,7 @@ function YourProfile() {
           <SlidersHorizontal className="size-5" aria-hidden="true" />
         </Link>
       </div>
+      {me ? <ShareProfile username={me.username} open={sharing} onOpenChange={setSharing} /> : null}
       {me?.bio?.trim() ? (
         <p className="mt-3 whitespace-pre-wrap text-base text-ink">{me.bio}</p>
       ) : null}

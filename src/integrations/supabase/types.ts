@@ -696,77 +696,6 @@ export type Database = {
         }
         Relationships: []
       }
-      counter_notices: {
-        Row: {
-          address: string
-          consent: boolean
-          created_at: string
-          details: string
-          email: string
-          id: string
-          ip_hash: string | null
-          name: string
-          note: string
-          phone: string
-          request_ref: string
-          resolved_at: string | null
-          resolved_by: string | null
-          restore_after: string
-          signature: string
-          state: string
-          statements: boolean
-          takedown_id: string
-        }
-        Insert: {
-          address: string
-          consent?: boolean
-          created_at?: string
-          details?: string
-          email: string
-          id?: string
-          ip_hash?: string | null
-          name: string
-          note?: string
-          phone?: string
-          request_ref: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          restore_after?: string
-          signature: string
-          state?: string
-          statements?: boolean
-          takedown_id: string
-        }
-        Update: {
-          address?: string
-          consent?: boolean
-          created_at?: string
-          details?: string
-          email?: string
-          id?: string
-          ip_hash?: string | null
-          name?: string
-          note?: string
-          phone?: string
-          request_ref?: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          restore_after?: string
-          signature?: string
-          state?: string
-          statements?: boolean
-          takedown_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "counter_notices_takedown_id_fkey"
-            columns: ["takedown_id"]
-            isOneToOne: false
-            referencedRelation: "takedown_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       contest_entries: {
         Row: {
           contest_id: string
@@ -901,6 +830,77 @@ export type Database = {
           user_b?: string | null
         }
         Relationships: []
+      }
+      counter_notices: {
+        Row: {
+          address: string
+          consent: boolean
+          created_at: string
+          details: string
+          email: string
+          id: string
+          ip_hash: string | null
+          name: string
+          note: string
+          phone: string
+          request_ref: string
+          resolved_at: string | null
+          resolved_by: string | null
+          restore_after: string
+          signature: string
+          state: string
+          statements: boolean
+          takedown_id: string
+        }
+        Insert: {
+          address: string
+          consent?: boolean
+          created_at?: string
+          details?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          name: string
+          note?: string
+          phone?: string
+          request_ref: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restore_after?: string
+          signature: string
+          state?: string
+          statements?: boolean
+          takedown_id: string
+        }
+        Update: {
+          address?: string
+          consent?: boolean
+          created_at?: string
+          details?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string
+          note?: string
+          phone?: string
+          request_ref?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restore_after?: string
+          signature?: string
+          state?: string
+          statements?: boolean
+          takedown_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counter_notices_takedown_id_fkey"
+            columns: ["takedown_id"]
+            isOneToOne: false
+            referencedRelation: "takedown_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       drawer_items: {
         Row: {
@@ -1115,7 +1115,7 @@ export type Database = {
           attempts: number
           created_at: string
           item_id: string
-          keep_out_of_featured: boolean
+          keep_out_of_featured: boolean | null
           labels: Json
           scan_state: Database["public"]["Enums"]["scan_state"]
           scanned_at: string | null
@@ -1125,6 +1125,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           item_id: string
+          keep_out_of_featured?: boolean | null
           labels?: Json
           scan_state?: Database["public"]["Enums"]["scan_state"]
           scanned_at?: string | null
@@ -1134,6 +1135,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           item_id?: string
+          keep_out_of_featured?: boolean | null
           labels?: Json
           scan_state?: Database["public"]["Enums"]["scan_state"]
           scanned_at?: string | null
@@ -2193,7 +2195,15 @@ export type Database = {
           urls?: string[]
           work?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "takedown_requests_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       templates: {
         Row: {
@@ -2514,6 +2524,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      claim_file_purges: {
+        Args: { p_limit?: number }
+        Returns: {
+          bucket: string
+          name: string
+        }[]
+      }
       claim_id_purges: {
         Args: { p_limit?: number }
         Returns: {
@@ -2615,6 +2632,20 @@ export type Database = {
         Args: { p_id: string; p_note?: string; p_outcome: string }
         Returns: undefined
       }
+      contest_board: {
+        Args: { p_contest: string }
+        Returns: {
+          entered_at: string
+          likes: number
+          picked_at: string
+          preview_image_id: string
+          set_id: string
+          title: string
+          user_id: string
+          username: string
+        }[]
+      }
+      count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
       counter_notice_queue: {
         Args: never
         Returns: {
@@ -2646,20 +2677,6 @@ export type Database = {
           state: string
         }[]
       }
-      contest_board: {
-        Args: { p_contest: string }
-        Returns: {
-          entered_at: string
-          likes: number
-          picked_at: string
-          preview_image_id: string
-          set_id: string
-          title: string
-          user_id: string
-          username: string
-        }[]
-      }
-      count_scan_attempt: { Args: { p_item_id: string }; Returns: undefined }
       decide_appeal: {
         Args: { p_appeal: string; p_note?: string; p_outcome: string }
         Returns: undefined
@@ -2754,6 +2771,21 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      file_counter_notice: {
+        Args: {
+          p_address: string
+          p_consent: boolean
+          p_details: string
+          p_email: string
+          p_ip_hash: string
+          p_name: string
+          p_phone: string
+          p_signature: string
+          p_statements: boolean
+          p_takedown_ref: string
+        }
+        Returns: string
       }
       file_report: {
         Args: {

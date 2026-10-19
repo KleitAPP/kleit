@@ -717,8 +717,10 @@ try {
   );
   // The two forms run their own scripts the same way (the contact page once shipped a nonce in
   // its tags and a policy without it - a form with no script posts nothing).
-  const formPages = await Promise.all(
-    ["/contact", "/takedown", "/copyright"].map((path) => fetch(`${SITE}${path}`)),
+  const formPaths = ["/contact", "/takedown", "/copyright", "/impersonation", "/trademark"];
+  const formPages = await Promise.all(formPaths.map((path) => fetch(`${SITE}${path}`)));
+  const formTitles = await Promise.all(
+    formPages.map(async (r) => (await r.text()).match(/<title>([^<]*)/)?.[1] ?? ""),
   );
   check(
     formPages.every((r) =>
@@ -726,8 +728,20 @@ try {
         r.headers.get("content-security-policy") ?? "",
       ),
     ),
-    "stranger: the contact and takedown pages' scripts are their own and Turnstile's",
+    "stranger: the contact and the four claim pages' scripts are their own and Turnstile's",
     formPages.map((r) => r.status).join("/"),
+  );
+  // Each of them is the Worker's own page, not the app shell the assets' SPA fallback serves
+  // for a path the Worker is not told to answer first (2026-10-19: the two newest claim forms
+  // were missing from wrangler's list and the live site showed the shell in their place).
+  check(
+    formTitles[0]?.startsWith("Contact us") &&
+      formTitles[1]?.startsWith("Remove an intimate image") &&
+      formTitles[2]?.startsWith("Report a copyright problem") &&
+      formTitles[3]?.startsWith("Report an account pretending") &&
+      formTitles[4]?.startsWith("Report a trademark problem"),
+    "stranger: every form page is the Worker's own, not the app shell",
+    formTitles.join(" | ").slice(0, 160),
   );
   // A layout is JSON the owner writes; a quote inside a "number" closed the style attribute it
   // was written into (the server-code review, 2026-10-12). The victim's own Creative set

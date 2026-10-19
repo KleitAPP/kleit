@@ -806,7 +806,7 @@ function deleteAccountPage(env: Env): Response {
 <p>You can delete your Kleit account yourself, from inside the app, in under a minute.</p>
 <ol><li>Open Kleit and sign in.</li><li>Go to <strong>You</strong>, then <strong>Settings</strong>, then <strong>Delete account</strong>.</li><li>Read what goes and what stays, then confirm once.</li></ol>
 <p>Your account closes straight away and is deleted for good after seven days. If you sign in during those seven days you can undo it with one tap. After that, your sets, closet, pictures, messages and profile are gone and cannot be brought back.</p>
-<p class="note">Can't sign in any more? <a href="/contact?topic=account">Write to us</a> from the email address on the account and we'll do it for you.</p>
+<p class="note">Can't sign in any more? <a href="/recover">See the ways back in</a>, or <a href="/contact?topic=recovery">write to us</a> from the email address on the account and we'll do it for you.</p>
 <p><a class="button" href="/settings/delete">Open Delete account</a></p>
 <footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
 </main></body></html>`;

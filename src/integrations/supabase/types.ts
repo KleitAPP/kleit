@@ -2979,10 +2979,7 @@ export type Database = {
         }[]
       }
       open_contest_now: { Args: never; Returns: string }
-      photo_appeal_allowed: {
-        Args: { p_item: string }
-        Returns: boolean
-      }
+      photo_appeal_allowed: { Args: { p_item: string }; Returns: boolean }
       pick_contest_entry: {
         Args: { p_contest: string; p_on: boolean; p_set: string }
         Returns: boolean

@@ -573,6 +573,7 @@ export type Database = {
       }
       comments: {
         Row: {
+          answers_id: string | null
           author_id: string
           body: string
           created_at: string
@@ -580,12 +581,12 @@ export type Database = {
           deleted_by: string | null
           edited_at: string | null
           held_at: string | null
-          answers_id: string | null
-          parent_id: string | null
           id: string
+          parent_id: string | null
           set_id: string
         }
         Insert: {
+          answers_id?: string | null
           author_id: string
           body: string
           created_at?: string
@@ -593,12 +594,12 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           held_at?: string | null
-          answers_id?: string | null
-          parent_id?: string | null
           id?: string
+          parent_id?: string | null
           set_id: string
         }
         Update: {
+          answers_id?: string | null
           author_id?: string
           body?: string
           created_at?: string
@@ -606,12 +607,25 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           held_at?: string | null
-          answers_id?: string | null
-          parent_id?: string | null
           id?: string
+          parent_id?: string | null
           set_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_answers_id_fkey"
+            columns: ["answers_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_set_id_fkey"
             columns: ["set_id"]
@@ -2409,6 +2423,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      claim_id_purges: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+          paths: string[]
+        }[]
+      }
       claim_price_checks: {
         Args: { p_limit?: number }
         Returns: {
@@ -2641,6 +2662,7 @@ export type Database = {
       }
       make_all_link_only: { Args: never; Returns: number }
       mark_cleanup: { Args: { p_id: number }; Returns: undefined }
+      mark_id_purged: { Args: { p_id: string }; Returns: undefined }
       mark_purged: { Args: { p_item: string }; Returns: undefined }
       mark_pushes: {
         Args: { p_ids: number[]; p_state: string }

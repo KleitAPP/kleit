@@ -53,6 +53,8 @@ function words(row: Due): { text: string; path: string } {
       };
     case "comment":
       return { text: `${who} commented on your set`, path: set ?? "/inbox" };
+    case "reply":
+      return { text: `${who} replied to your comment`, path: set ?? "/inbox" };
     case "like":
       return {
         text:

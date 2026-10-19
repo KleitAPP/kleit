@@ -25,7 +25,8 @@ export type NotificationKind =
   | "tag"
   | "poll_results"
   | "contest_pick"
-  | "price_drop";
+  | "price_drop"
+  | "reply";
 
 export type Notification = {
   id: string;

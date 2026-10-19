@@ -30,7 +30,13 @@ export type Comment = {
   deleted_by: string | null;
   /** Set when the word list held it (migration 062): the author sees it, nobody else yet. */
   held_at?: string | null;
+  /** A reply: the thread's first comment (migration 107). One level - replies to replies join it. */
+  parent_id?: string | null;
+  /** The comment actually answered; differs from parent_id for an answer to a reply. */
+  answers_id?: string | null;
 };
+const COMMENT_FIELDS =
+  "id, author_id, body, created_at, edited_at, deleted_at, deleted_by, held_at, parent_id, answers_id";
 
 export async function social(setId: string): Promise<Social> {
   const { data } = await supabase.rpc("set_social", { p_set: setId });
@@ -72,7 +78,7 @@ export async function react(setId: string, emoji: Reaction | null): Promise<bool
 export async function comments(setId: string): Promise<Comment[]> {
   const { data } = await supabase
     .from("comments")
-    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by, held_at")
+    .select(COMMENT_FIELDS)
     .eq("set_id", setId)
     .order("created_at");
   const rows = data ?? [];
@@ -90,13 +96,17 @@ export async function comments(setId: string): Promise<Comment[]> {
 /** Why the last comment was not posted: the server's one named refusal, or anything else. */
 export const lastCommentProblem: { code: string | null } = { code: null };
 
-export async function addComment(setId: string, body: string): Promise<Comment | null> {
+export async function addComment(
+  setId: string,
+  body: string,
+  parentId: string | null = null,
+): Promise<Comment | null> {
   const my = await me();
   if (!my) return null;
   const { data, error } = await supabase
     .from("comments")
-    .insert({ set_id: setId, author_id: my, body: body.trim() })
-    .select("id, author_id, body, created_at, edited_at, deleted_at, deleted_by, held_at")
+    .insert({ set_id: setId, author_id: my, body: body.trim(), parent_id: parentId })
+    .select(COMMENT_FIELDS)
     .single();
   lastCommentProblem.code = error ? ((error as { code?: string }).code ?? null) : null;
   if (error || !data) return null;

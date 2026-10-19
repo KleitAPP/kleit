@@ -580,6 +580,8 @@ export type Database = {
           deleted_by: string | null
           edited_at: string | null
           held_at: string | null
+          answers_id: string | null
+          parent_id: string | null
           id: string
           set_id: string
         }
@@ -591,6 +593,8 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           held_at?: string | null
+          answers_id?: string | null
+          parent_id?: string | null
           id?: string
           set_id: string
         }
@@ -602,6 +606,8 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           held_at?: string | null
+          answers_id?: string | null
+          parent_id?: string | null
           id?: string
           set_id?: string
         }

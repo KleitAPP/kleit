@@ -127,7 +127,10 @@ export async function readPushSetting(): Promise<boolean> {
  */
 export const PUSH_KINDS = [
   { id: "vote", kinds: ["vote", "poll_results"] },
-  { id: "comment", kinds: ["comment", "ask_answer", "ask_chosen", "remix", "mention", "tag"] },
+  {
+    id: "comment",
+    kinds: ["comment", "reply", "ask_answer", "ask_chosen", "remix", "mention", "tag"],
+  },
   { id: "follow", kinds: ["follow", "follow_request"] },
   { id: "message", kinds: ["message", "message_request"] },
   { id: "group_invite", kinds: ["group_invite"] },

@@ -35,6 +35,7 @@ import { featureSet } from "@/contests/contests";
 import { myRoles } from "@/safety/moderation";
 import { CreativeView } from "@/canvas/CreativeView";
 import { SaveToCollection } from "@/collections/SaveToCollection";
+import { sendOneBack } from "@/sets/sendBack";
 import { t } from "@/i18n/en";
 import { siteUrl } from "@/lib/site";
 import { ReportButton } from "@/safety/ReportButton";
@@ -83,6 +84,8 @@ function SetPage() {
   const [states, setStates] = useState<Map<string, ScanState>>(new Map());
   const [mine, setMine] = useState(false);
   const [me, setMe] = useState<string | null>(null);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [sendingBack, setSendingBack] = useState(false);
   /** Who made it (spec 11 #9: with their label), for the line under the title. */
   const [creator, setCreator] = useState<{ username: string; label: AccountLabel } | null>(null);
   const [commentsSetting, setCommentsSettingState] = useState<CommentsSetting>("everyone");
@@ -173,6 +176,25 @@ function SetPage() {
     });
   }
 
+  /** "Send one back" (spec 8.2 #4): a fresh Quick draft with this set's owner tagged, then the editor. */
+  async function sendBack() {
+    if (!ownerId || sendingBack) return;
+    setSendingBack(true);
+    const result = await sendOneBack(ownerId);
+    if (!result.ok) {
+      setSendingBack(false);
+      setNotice(t("setpage.sendBackFailed"));
+      return;
+    }
+    const go = () => void navigate({ to: "/set/$setId/edit", params: { setId: result.setId } });
+    if (!result.tagged) {
+      setNotice(t("setpage.sendBackUntagged"));
+      window.setTimeout(go, 1800);
+      return;
+    }
+    go();
+  }
+
   /** Remix (spec 7.4): a new draft of yours, credited; then straight into the editor. */
   async function remix() {
     if (!set || remixing) return;
@@ -232,6 +254,7 @@ function SetPage() {
         .eq("id", setId)
         .maybeSingle();
       setMine(!!owner && owner.owner_id === who.data.user?.id);
+      setOwnerId(owner?.owner_id ?? null);
       setMe(who.data.user?.id ?? null);
       if (owner) {
         const { data: by } = await supabase
@@ -588,9 +611,22 @@ function SetPage() {
         <div className="mt-3">
           <button
             type="button"
+            onClick={() => void sendBack()}
+            disabled={sendingBack || !ownerId}
+            className="flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+          >
+            {t("setpage.sendBack")}
+          </button>
+          <p className="mt-2 text-sm text-ink-soft">
+            {t("setpage.sendBackWhat", {
+              name: creator ? `@${creator.username}` : t("setpage.them"),
+            })}
+          </p>
+          <button
+            type="button"
             onClick={() => void useStyle()}
             disabled={styling}
-            className="flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
+            className="mt-3 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-40"
           >
             {t("setpage.useStyle")}
           </button>

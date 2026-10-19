@@ -140,7 +140,14 @@ type SharedSet = {
   description?: string;
   /** The owner's own alt text (spec 7.1 #12); null while it is still the line written for them. */
   alt_text?: string | null;
-  owner: { username: string; display_name: string; label?: string | null; photo?: string | null };
+  owner: {
+    username: string;
+    display_name: string;
+    label?: string | null;
+    photo?: string | null;
+    /** The owner's published, public, live sets (migration 106) - what signing up would show. */
+    set_count?: number | null;
+  };
   /** The song card (spec 11 #12): opens the service; nothing plays here. */
   song?: { url: string; title: string | null; artist: string | null; cover: string | null } | null;
   preview: string | null;
@@ -1235,7 +1242,8 @@ ${STYLE}</head>
 <header class="wrap top"><a class="mark" href="/welcome" aria-label="Kleit">Kleit</a></header>
 <main class="wrap">
   <h1>${esc(title)}</h1>
-  <p class="by">${ownerPhoto(set.owner.photo, functions)}by ${esc(who)}${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}${edited(set) ? " · Edited" : ""}</p>
+  <p class="by">${ownerPhoto(set.owner.photo, functions)}by <a class="who" href="#creator">${esc(who)}</a>${labelWords(set.owner.label)}${set.published_at ? ` · ${new Date(set.published_at).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}${edited(set) ? " · Edited" : ""}</p>
+  ${creatorCard(set, code, functions)}
   ${set.remixed_from ? `<p class="by">${esc(set.remixed_from)}</p>` : ""}
   ${set.caption ? `<p class="caption">${esc(set.caption)}</p>` : ""}
   ${set.description?.trim() ? `<p class="caption">${esc(set.description.trim())}</p>` : ""}
@@ -1256,6 +1264,24 @@ ${STYLE}</head>
   <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/contact">Report</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 </body></html>`;
+}
+
+/**
+ * Spec 8.2 #3: tapping the creator's name shows a preview - name, photo, how many sets - and
+ * "Sign up to see all their sets". No script on this page, so the tap is a link to `#creator`
+ * and the card shows itself with `:target`; a second tap (the name again, or Close) goes back
+ * to `#` and hides it. The count is the server's (migration 106).
+ */
+function creatorCard(set: SharedSet, code: string, functions: string): string {
+  const who = set.owner.display_name?.trim() || `@${set.owner.username}`;
+  const n = set.owner.set_count ?? null;
+  const count = n === null ? "" : `<p class="by">${n} ${n === 1 ? "set" : "sets"} on Kleit</p>`;
+  return `<section id="creator" class="creator card" aria-label="About ${esc(who)}">
+    <p class="creator-name">${ownerPhoto(set.owner.photo, functions)}<strong>${esc(who)}</strong>${set.owner.display_name?.trim() ? ` <span class="by">@${esc(set.owner.username)}</span>` : ""}${labelWords(set.owner.label)}</p>
+    ${count}
+    <a class="button" href="/welcome?next=${encodeURIComponent(`/s/${code}`)}">Sign up to see all their sets</a>
+    <a class="close" href="#">Close</a>
+  </section>`;
 }
 
 /** Spec 7.1 #6: "Edited" once a published set's layout, title, description or pieces changed (the server stamps it - 104). */
@@ -1397,6 +1423,7 @@ h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-siz
 .dot{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:14px;background:#161513;color:#FAF9F7;font:600 13px/28px system-ui,sans-serif;text-align:center;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.35);outline:2px solid #FAF9F7}
 .dot:focus-visible{outline:3px solid #C0442B}
 .piece:target{outline:3px solid #C0442B;outline-offset:2px}
+.who{color:inherit;text-decoration:underline}.creator{display:none;margin-top:8px}.creator:target{display:block}.creator-name{margin:0 0 4px;font-size:17px}.creator .avatar{width:40px;height:40px}.creator .close{display:inline-block;margin-left:12px;color:#5f5a52;font-size:14px}
 .buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#c0442b;color:#fff;text-decoration:none;font-weight:600;font-size:15px}
 .card{margin-top:20px;padding:16px;border:1px solid #e6e0d6;border-radius:12px;background:#fff}
 .sources{margin-top:20px}.sources ul{padding-left:18px}

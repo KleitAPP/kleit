@@ -1267,6 +1267,13 @@ export const en = {
   "setpage.tagApprove": "Yes, show me on this set",
   "setpage.tagRemoveMe": "Remove me from this set",
   "setpage.remix": "Remix",
+  "setpage.sendBack": "Send one back",
+  "setpage.sendBackWhat":
+    "Make a set of your own with {name} tagged, so they see it when you send.",
+  "setpage.them": "them",
+  "setpage.sendBackUntagged":
+    "Opening your draft. They can't be tagged just now, but you can still send them the link.",
+  "setpage.sendBackFailed": "Couldn't start a set just now. Try again in a moment.",
   "setpage.useStyle": "Use this set's style",
   "setpage.useStyleWhat":
     "The same look - background, words and decorations - with your own pieces.",

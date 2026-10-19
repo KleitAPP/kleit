@@ -339,6 +339,18 @@ try {
     shared.replace(/\s+/g, " ").slice(0, 200),
   );
   check(elapsed < 2500, "signed out: the page arrives in under 2.5 s", `${elapsed} ms`);
+  // Spec 8.2 #3 (CL63): the creator's name opens a preview with a set count and a sign-up line.
+  await gp.click("a.who");
+  const creator = await gp.locator("#creator").isVisible();
+  const creatorText = creator ? await gp.innerText("#creator") : "";
+  check(
+    creator &&
+      /\d+ sets? on Kleit/.test(creatorText) &&
+      /Sign up to see all their sets/.test(creatorText),
+    "signed out: tapping the creator shows name, set count and the sign-up line",
+    creatorText.replace(/\s+/g, " ").slice(0, 120),
+  );
+  await gp.click("#creator a.close");
   await a11y(gp, "the share page (signed out)");
   // CL30: the chat picture. Drawn after publish by the server; give it a moment, then read the
   // tag and fetch the file it points at.

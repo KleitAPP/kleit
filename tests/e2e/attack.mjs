@@ -1914,6 +1914,119 @@ try {
     `${contestId ? "" : "no contest / "}${pickedByHand.error?.code ?? "picked"} / ${plainEntry.error?.code ?? "entered"}`,
   );
   await a.from("contest_entries").delete().eq("contest_id", contestId).eq("user_id", attacker.id);
+
+  // 7h. Review time limits (spec 13.4 #2; migration 118): two hours of decisions close the queue
+  // to that moderator until fifteen minutes have passed since the last one - the database
+  // refuses the decision, the screen's question says when it opens again, and nobody else is
+  // in a sitting. The two hours are written as rows (the server's record of a sitting).
+  const sittingRows = Array.from({ length: 24 }, (_, i) => ({
+    moderator_id: second.id,
+    target_type: "profile",
+    target_id: attacker.id,
+    action: "dismiss",
+    note: "attack sitting (ignore)",
+    created_at: new Date(Date.now() - (i + 1) * 5 * 60_000).toISOString(),
+  }));
+  const seeded = await admin.from("moderation_actions").insert(sittingRows);
+  // The attacker's published set from the challenge check above, reported by the victim.
+  const tiredRef = await victim.client.rpc("file_report", {
+    p_type: "set",
+    p_id: entrySet?.id,
+    p_reason: "spam",
+    p_note: "attack sitting (ignore)",
+  });
+  const { data: tiredReport } = await admin
+    .from("reports")
+    .select("id")
+    .eq("request_ref", tiredRef.data ?? "")
+    .maybeSingle();
+  const sitting = await second.client.rpc("review_sitting", {});
+  const tired = await second.client.rpc("moderate", {
+    p_report: tiredReport?.id,
+    p_action: "dismiss",
+    p_note: "attack sitting (ignore)",
+  });
+  check(
+    !seeded.error &&
+      !!tiredReport?.id &&
+      tired.error?.code === "P0009" &&
+      (sitting.data ?? [])[0]?.break_until != null &&
+      (sitting.data ?? [])[0]?.decisions >= 24,
+    "moderator: two hours in, the next decision is refused and the screen knows the break",
+    `${seeded.error?.code ?? "seeded"} / ${tired.error?.code ?? "decided"} / ${JSON.stringify((sitting.data ?? [])[0] ?? null)}`,
+  );
+  const { data: tiredRow } = await admin
+    .from("reports")
+    .select("state")
+    .eq("id", tiredReport?.id ?? "00000000-0000-4000-8000-000000000000")
+    .maybeSingle();
+  check(tiredRow?.state === "open", "moderator: the refused report is untouched", tiredRow?.state);
+  const strangerSitting = await a.rpc("review_sitting", {});
+  check(
+    (strangerSitting.data ?? []).length === 0,
+    "attacker: has no sitting to ask about",
+    strangerSitting.error?.code,
+  );
+  // The sitting over (its rows gone), the same decision goes through.
+  await admin.from("moderation_actions").delete().eq("note", "attack sitting (ignore)");
+  const rested = await second.client.rpc("moderate", {
+    p_report: tiredReport?.id,
+    p_action: "dismiss",
+    p_note: "attack sitting (ignore)",
+  });
+  check(!rested.error, "moderator: after the break, the decision goes through", rested.error?.code);
+
+  // 7i. A decoration of ours, pulled (spec 13.3 #6; migration 118): admins only; the list is
+  // anyone's to read; the share page's read names it; put back, it is gone from both. A made-up
+  // id, so no real drawer loses a picture on the test site.
+  const pulledId = "attack-test-asset-ignore";
+  const pullAsAttacker = await a.rpc("pull_library_asset", {
+    p_asset: pulledId,
+    p_hashes: ["0123456789abcdef"],
+    p_reason: "attack test",
+  });
+  const pullAsModerator = await moderator.client.rpc("pull_library_asset", {
+    p_asset: pulledId,
+    p_hashes: ["0123456789abcdef"],
+    p_reason: "attack test",
+  });
+  check(
+    pullAsAttacker.error?.code === "42501" && pullAsModerator.error?.code === "42501",
+    "attacker and moderator: cannot pull a decoration (admins only)",
+    `${pullAsAttacker.error?.code} / ${pullAsModerator.error?.code}`,
+  );
+  await admin.from("user_roles").upsert({ user_id: second.id, role: "admin" });
+  const pulled = await second.client.rpc("pull_library_asset", {
+    p_asset: pulledId,
+    p_hashes: ["0123456789abcdef"],
+    p_reason: "attack test (ignore)",
+  });
+  const pulledList = await anon.rpc("pulled_library_assets", {});
+  const sharedWithPulled = await anon.rpc("shared_set", { p_code: pub?.share_code });
+  const { data: pulledPrint } = await admin
+    .from("removed_image_fingerprints")
+    .select("image_hash")
+    .eq("reason", `library:${pulledId}`);
+  check(
+    !pulled.error &&
+      (pulledList.data ?? []).includes(pulledId) &&
+      (sharedWithPulled.data?.pulled ?? []).includes(pulledId) &&
+      (pulledPrint ?? []).length === 1,
+    "admin: pulls it - listed for anyone, named by the share page's read, fingerprinted",
+    `${pulled.error?.code ?? "pulled"} / list ${(pulledList.data ?? []).length} / print ${(pulledPrint ?? []).length}`,
+  );
+  const putBack = await second.client.rpc("restore_library_asset", { p_asset: pulledId });
+  const listAfter = await anon.rpc("pulled_library_assets", {});
+  const { data: printAfter } = await admin
+    .from("removed_image_fingerprints")
+    .select("image_hash")
+    .eq("reason", `library:${pulledId}`);
+  check(
+    !putBack.error && !(listAfter.data ?? []).includes(pulledId) && (printAfter ?? []).length === 0,
+    "admin: puts it back - off the list, fingerprints forgotten",
+    putBack.error?.code,
+  );
+  await admin.from("user_roles").delete().eq("user_id", second.id).eq("role", "admin");
 } catch (error) {
   check(false, `the run stopped: ${error instanceof Error ? error.message : String(error)}`);
 } finally {
@@ -2000,6 +2113,12 @@ try {
   await admin.from("appeals").delete().in("user_id", [attacker.id, victim.id]);
   await admin.from("strikes").delete().eq("user_id", attacker.id);
   await admin.from("moderation_actions").delete().in("moderator_id", [moderator.id, second.id]);
+  // 7i's decoration, if a run stopped between the pull and the put-back.
+  await admin.from("pulled_library_assets").delete().eq("asset_id", "attack-test-asset-ignore");
+  await admin
+    .from("removed_image_fingerprints")
+    .delete()
+    .eq("reason", "library:attack-test-asset-ignore");
   // The urgent alerts the run's reports sent to every moderator - the owner's real account among
   // them - go with the reports, whoever received them.
   const { data: runReports } = await admin

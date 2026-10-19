@@ -4,6 +4,8 @@ import type { ItemSummary } from "@/items/items";
 
 import type { Doc, Layer, OrderMove, TextStyle } from "@/canvas/doc";
 
+import { TEXT_BACKS, textBackOf } from "../../supabase/functions/_shared/text-back";
+
 /** A panel button: 48 dp, label always visible (never an icon alone). */
 export function PanelButton({
   label,
@@ -365,6 +367,18 @@ export function TextPanel({
           onPress={() => onChange({ ...style, align: "right" })}
         />
         {onAdvanced ? <PanelButton label={t("text.advanced")} onPress={onAdvanced} /> : null}
+      </div>
+      {/* Spec 21 #6: the set's background is anyone's guess, so the words can carry their own
+          backing - a scrim (the default for new words), a solid strip, or a blur. */}
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("text.back")}>
+        {TEXT_BACKS.map((back) => (
+          <PanelButton
+            key={back}
+            label={t(`text.back.${back}`)}
+            pressed={textBackOf(style.back) === back}
+            onPress={() => onChange({ ...style, back })}
+          />
+        ))}
       </div>
       <div className="flex flex-wrap gap-2" role="group" aria-label={t("text.colour")}>
         {TEXT_COLOURS.map((c) => (

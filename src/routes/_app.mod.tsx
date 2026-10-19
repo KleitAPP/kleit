@@ -12,12 +12,14 @@ import {
   myRoles,
   openAppeals,
   queue as loadQueue,
+  reviewSitting,
   scanDecide,
   scanReviewQueue,
   type Action,
   type OpenAppeal,
   type QueueItem,
   type ScanReview,
+  type Sitting,
 } from "@/safety/moderation";
 import { previewUrl } from "@/search/search";
 
@@ -29,7 +31,9 @@ import { previewUrl } from "@/search/search";
  * sent to a person wait in their own list (spec 13.1 #3; migration 113), and an appeal on a
  * blocked photo sits with the strike appeals - decided by a different person than the one who
  * blocked or struck. A picture the world may not see opens through the mod-image function,
- * which logs the view (spec 13.4 #9).
+ * which logs the view (spec 13.4 #9). A sitting ends at two hours (13.4 #2, migration 118): the
+ * database refuses the next decision until fifteen minutes have passed, and this screen says so
+ * before anyone taps.
  */
 export const Route = createFileRoute("/_app/mod")({
   head: () => ({
@@ -55,16 +59,40 @@ function ModQueue() {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [appealFailure, setAppealFailure] = useState<Record<string, string>>({});
+  const [sitting, setSitting] = useState<Sitting | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   async function refresh() {
-    const [q, a, sc] = await Promise.all([loadQueue(), openAppeals(), scanReviewQueue()]);
+    const [q, a, sc, st] = await Promise.all([
+      loadQueue(),
+      openAppeals(),
+      scanReviewQueue(),
+      reviewSitting(),
+    ]);
     setItems(q);
     setAppeals(a);
     setScans(sc);
+    setSitting(st);
+    setNow(Date.now());
   }
+
+  // The break card and the "since" line move with the clock, once a minute.
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const breakUntil = sitting?.break_until ? new Date(sitting.break_until).getTime() : null;
+  const resting = breakUntil !== null && breakUntil > now;
+  const sittingMinutes = sitting
+    ? Math.round((now - new Date(sitting.started_at).getTime()) / 60_000)
+    : 0;
 
   async function decideScan() {
     if (!deciding || busy) return;
+    if (resting) {
+      setFailure(t("mod.err.break"));
+      return;
+    }
     setBusy(true);
     const problem = await scanDecide(deciding.scan.item_id, deciding.outcome, note);
     setBusy(false);
@@ -77,6 +105,10 @@ function ModQueue() {
   }
 
   async function decide(a: OpenAppeal, outcome: "upheld" | "overturned") {
+    if (resting) {
+      setAppealFailure({ ...appealFailure, [a.id]: t("mod.err.break") });
+      return;
+    }
     const problem = await decideAppeal(a.id, outcome, "");
     setAppealFailure({ ...appealFailure, [a.id]: problem ?? "" });
     if (!problem) await refresh();
@@ -97,6 +129,10 @@ function ModQueue() {
 
   async function act() {
     if (!acting || busy) return;
+    if (resting) {
+      setFailure(t("mod.err.break"));
+      return;
+    }
     setBusy(true);
     const problem = await moderate(acting.item.id, acting.action, note);
     setBusy(false);
@@ -121,6 +157,25 @@ function ModQueue() {
     <div className="mx-auto w-full max-w-xl px-4 pt-8 pb-8">
       <h1 className="font-display text-2xl text-ink">{t("mod.title")}</h1>
       <p className="mt-1 text-sm text-ink-soft">{t("mod.why")}</p>
+      {resting && sitting ? (
+        <section
+          role="status"
+          aria-live="polite"
+          className="mt-4 rounded-md border border-line bg-surface-2 p-4"
+        >
+          <h2 className="font-display text-lg text-ink">{t("mod.break.title")}</h2>
+          <p className="mt-1 text-sm text-ink">
+            {t("mod.break.body", {
+              since: clock(sitting.started_at),
+              until: clock(sitting.break_until ?? sitting.latest_at),
+            })}
+          </p>
+        </section>
+      ) : sitting && sittingMinutes >= 90 ? (
+        <p className="mt-3 text-sm text-ink-soft">
+          {t("mod.break.soon", { since: clock(sitting.started_at), minutes: sittingMinutes })}
+        </p>
+      ) : null}
       {/* The five other screens, as real rows - they were a line of small underlined words
           that read as text on a phone (2026-10-09). */}
       <h2 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink-soft">
@@ -338,8 +393,14 @@ const TOOLS: readonly { to: string; label: MessageKey; hint: MessageKey }[] = [
   { to: "/mod/switches", label: "mod.switches", hint: "mod.toolsSwitches" },
   { to: "/mod/contests", label: "mod.contests", hint: "mod.toolsContests" },
   { to: "/mod/invites", label: "mod.invites", hint: "mod.toolsInvites" },
+  { to: "/mod/library", label: "mod.library", hint: "mod.toolsLibrary" },
   { to: "/mod/log", label: "mod.log", hint: "mod.toolsLog" },
 ];
+
+/** "3:42 PM" - the clock time of a sitting's start or its break's end. */
+function clock(at: string): string {
+  return new Date(at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
 
 function when(at: string): string {
   return new Date(at).toLocaleString("en-US", {

@@ -13,6 +13,14 @@ import {
 
 import { guidesFor, snap, type Doc, type Layer as DocLayer } from "@/canvas/doc";
 
+import {
+  backingBox,
+  backingCss,
+  backingTone,
+  boxBlur,
+  textBackOf,
+} from "../../supabase/functions/_shared/text-back";
+
 /** The stage's own marks - guides and the selection - are editor UI, fixed like the set's own colours. */
 export const GUIDE = "#d9552b";
 export const CROP_SCRIM = "rgba(0,0,0,0.45)";
@@ -84,6 +92,11 @@ export function CanvasStage({
   onMeasure: (id: string, h: number) => void;
 }) {
   const nodes = useRef<Record<string, Konva.Image | null>>({});
+  /** The words themselves, inside a text layer's group: measured for the layer's height. */
+  const textNodes = useRef<Record<string, Konva.Text | null>>({});
+  /** The blurred snapshot behind a blur-backed text layer, by layer id (spec 21 #6). */
+  const blurNodes = useRef<Record<string, Konva.Group | null>>({});
+  const [blurs, setBlurs] = useState<Record<string, Backdrop>>({});
   const trRef = useRef<Konva.Transformer>(null);
   const cropRef = useRef<Konva.Rect>(null);
   const cropTrRef = useRef<Konva.Transformer>(null);
@@ -115,12 +128,78 @@ export function CanvasStage({
   useEffect(() => {
     for (const id of doc.order) {
       const layer = doc.layers[id];
-      const node = nodes.current[id] as unknown as Konva.Text | null;
-      if (!layer || layer.kind !== "text" || !node || typeof node.height !== "function") continue;
+      const node = textNodes.current[id];
+      if (!layer || layer.kind !== "text" || !node) continue;
       const h = Math.round(node.height());
       if (h > 0 && Math.abs(h - layer.h) > 1) onMeasure(id, h);
     }
   }, [doc, families, onMeasure]);
+
+  // A blur-backed text layer shows what is beneath it, blurred (spec 21 #6). Konva has no
+  // backdrop filter, so after each draw the stage is photographed under each such layer - with
+  // the layer itself and everything above it hidden for the instant - and the crop is blurred
+  // and placed back under the words, clipped to the backing's rounded box.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const wanted = doc.order.filter((id) => {
+      const l = doc.layers[id];
+      return l && l.kind === "text" && l.text && !l.hidden && textBackOf(l.text.back) === "blur";
+    });
+    if (wanted.length === 0) {
+      setBlurs((b) => (Object.keys(b).length ? {} : b));
+      return;
+    }
+    const ui = stage.findOne<Konva.Layer>(".ui");
+    const next: Record<string, Backdrop> = {};
+    for (const id of wanted) {
+      const layer = doc.layers[id]!;
+      const box = backingBox(layer.text!.size);
+      const bounds = rotatedBounds(layer, box.padX, box.padY);
+      // Everything from this layer up is hidden while the picture is taken.
+      const above = doc.order.slice(doc.order.indexOf(id));
+      const hidden: Konva.Node[] = [];
+      for (const other of above) {
+        for (const node of [nodes.current[other], blurNodes.current[other]]) {
+          if (node && node.visible()) {
+            node.visible(false);
+            hidden.push(node);
+          }
+        }
+      }
+      if (ui && ui.visible()) {
+        ui.visible(false);
+        hidden.push(ui);
+      }
+      let canvas: HTMLCanvasElement | null = null;
+      try {
+        canvas = stage.toCanvas({
+          x: bounds.x * scale,
+          y: bounds.y * scale,
+          width: Math.max(1, bounds.w * scale),
+          height: Math.max(1, bounds.h * scale),
+          pixelRatio: 1 / scale,
+        });
+      } catch {
+        canvas = null;
+      }
+      for (const node of hidden) node.visible(true);
+      if (!canvas) continue;
+      try {
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (context) {
+          const data = context.getImageData(0, 0, canvas.width, canvas.height);
+          boxBlur(data.data, canvas.width, canvas.height, box.blur);
+          context.putImageData(data, 0, 0);
+        }
+      } catch {
+        /* a tainted canvas (a picture from elsewhere) cannot be read; the tint alone stays */
+        continue;
+      }
+      next[id] = { canvas, ...bounds };
+    }
+    setBlurs(next);
+  }, [doc, images, families, scale, stageRef]);
 
   // The selection handles follow the selected piece (a Transformer may live on another layer).
   useEffect(() => {
@@ -335,33 +414,94 @@ export function CanvasStage({
     };
     if (layer.kind === "text" && layer.text) {
       const family = families[layer.text.font] ?? "sans-serif";
+      const back = textBackOf(layer.text.back);
+      const tone = backingTone(layer.text.colour);
+      const fill = backingCss(back, tone);
+      const box = backingBox(layer.text.size);
+      // The blurred backdrop sits under the group, axis-aligned, clipped to the rotated box;
+      // the ghost (a drag in progress) carries the tint alone and the real one catches up.
+      const backdrop = !ghost && back === "blur" ? blurs[layer.id] : undefined;
+      const shown = ghost || drag?.id !== layer.id;
       return (
-        <KText
-          key={ghost ? `ghost-${layer.id}` : layer.id}
-          ref={
-            ghost ? undefined : (n) => void (nodes.current[layer.id] = n as unknown as Konva.Image)
-          }
-          text={layer.text.text}
-          fontFamily={family}
-          fontSize={layer.text.size}
-          fill={layer.text.colour}
-          align={layer.text.align}
-          lineHeight={1.2}
-          x={x + layer.w / 2}
-          y={y + layer.h / 2}
-          offsetX={layer.w / 2}
-          offsetY={layer.h / 2}
-          width={layer.w}
-          rotation={layer.rotation}
-          scaleX={layer.flipX ? -1 : 1}
-          scaleY={layer.flipY ? -1 : 1}
-          opacity={layer.opacity}
-          visible={ghost || drag?.id !== layer.id}
-          listening={!ghost && !layer.locked}
-          perfectDrawEnabled={false}
-          onPointerDown={(e) => pointerDown(layer.id, e)}
-          onTransformEnd={() => transformEnd(layer.id)}
-        />
+        <Group key={ghost ? `ghost-${layer.id}` : layer.id}>
+          {backdrop ? (
+            <Group
+              ref={ghost ? undefined : (g) => void (blurNodes.current[layer.id] = g)}
+              visible={shown}
+              listening={false}
+              clipFunc={(ctx) => {
+                ctx.save();
+                ctx.translate(x + layer.w / 2, y + layer.h / 2);
+                ctx.rotate((layer.rotation * Math.PI) / 180);
+                ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1);
+                roundedRect(
+                  ctx,
+                  -layer.w / 2 - box.padX,
+                  -layer.h / 2 - box.padY,
+                  layer.w + 2 * box.padX,
+                  layer.h + 2 * box.padY,
+                  box.radius,
+                );
+                ctx.restore();
+              }}
+            >
+              <KImage
+                image={backdrop.canvas}
+                x={backdrop.x}
+                y={backdrop.y}
+                width={backdrop.w}
+                height={backdrop.h}
+                opacity={layer.opacity}
+                listening={false}
+                perfectDrawEnabled={false}
+              />
+            </Group>
+          ) : null}
+          <Group
+            ref={
+              ghost
+                ? undefined
+                : (g) => void (nodes.current[layer.id] = g as unknown as Konva.Image | null)
+            }
+            x={x + layer.w / 2}
+            y={y + layer.h / 2}
+            offsetX={layer.w / 2}
+            offsetY={layer.h / 2}
+            rotation={layer.rotation}
+            scaleX={layer.flipX ? -1 : 1}
+            scaleY={layer.flipY ? -1 : 1}
+            opacity={layer.opacity}
+            visible={shown}
+            listening={!ghost && !layer.locked}
+            onPointerDown={(e) => pointerDown(layer.id, e)}
+            onTransformEnd={() => transformEnd(layer.id)}
+          >
+            {fill ? (
+              <Rect
+                x={-box.padX}
+                y={-box.padY}
+                width={layer.w + 2 * box.padX}
+                height={layer.h + 2 * box.padY}
+                cornerRadius={box.radius}
+                fill={fill}
+                perfectDrawEnabled={false}
+              />
+            ) : null}
+            <KText
+              ref={ghost ? undefined : (n) => void (textNodes.current[layer.id] = n)}
+              text={layer.text.text}
+              fontFamily={family}
+              fontSize={layer.text.size}
+              fill={layer.text.colour}
+              align={layer.text.align}
+              lineHeight={1.2}
+              x={0}
+              y={0}
+              width={layer.w}
+              perfectDrawEnabled={false}
+            />
+          </Group>
+        </Group>
       );
     }
     if (layer.kind === "slot") {
@@ -544,4 +684,46 @@ export function CanvasStage({
       </Layer>
     </Stage>
   );
+}
+
+/** A blurred photograph of the stage under a text layer: canvas pixels, axis-aligned. */
+type Backdrop = { canvas: HTMLCanvasElement; x: number; y: number; w: number; h: number };
+
+/** The axis-aligned box around a layer's backing once rotated (and padded), in canvas pixels. */
+function rotatedBounds(
+  layer: DocLayer,
+  padX: number,
+  padY: number,
+): { x: number; y: number; w: number; h: number } {
+  const cx = layer.x + layer.w / 2;
+  const cy = layer.y + layer.h / 2;
+  const hw = layer.w / 2 + padX;
+  const hh = layer.h / 2 + padY;
+  const a = (layer.rotation * Math.PI) / 180;
+  const c = Math.abs(Math.cos(a));
+  const s = Math.abs(Math.sin(a));
+  const w = 2 * (hw * c + hh * s);
+  const h = 2 * (hw * s + hh * c);
+  return { x: Math.floor(cx - w / 2), y: Math.floor(cy - h / 2), w: Math.ceil(w), h: Math.ceil(h) };
+}
+
+function roundedRect(
+  ctx: {
+    moveTo: (x: number, y: number) => void;
+    arcTo: (x1: number, y1: number, x2: number, y2: number, r: number) => void;
+    closePath: () => void;
+  },
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
 }

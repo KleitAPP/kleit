@@ -99,15 +99,10 @@ Deno.serve(async (request) => {
   // No row, or a template that does not read as a web address: straight to the store, as before.
   let location = destination.toString();
   let recordedNetwork = network;
-  // The store's host, then each parent domain down to two labels (shop.zara.com → zara.com).
-  const labels = destination.hostname.toLowerCase().split(".");
-  const candidates = labels.map((_, i) => labels.slice(i).join(".")).filter((d) => d.split(".").length >= 2);
-  let row: { network: string; link_template: string } | undefined;
-  for (const domain of candidates) {
-    const { data: affiliate } = await server.rpc("affiliate_for", { p_domain: domain });
-    row = (affiliate ?? [])[0] as { network: string; link_template: string } | undefined;
-    if (row) break;
-  }
+  // One question: the function (118) matches the host or any parent domain it is under
+  // (shop.zara.com finds zara.com), longest listed domain first.
+  const { data: affiliate } = await server.rpc("affiliate_for", { p_domain: destination.hostname });
+  const row = (affiliate ?? [])[0] as { network: string; link_template: string } | undefined;
   if (row) {
     const rewritten = row.link_template
       .replaceAll("{url}", encodeURIComponent(destination.toString()))

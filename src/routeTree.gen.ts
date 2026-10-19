@@ -29,6 +29,7 @@ import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppYouRouteImport } from './routes/_app.you'
 import { Route as DevCanvasSpeedRouteImport } from './routes/dev.canvas-speed'
+import { Route as DevCanvasTextRouteImport } from './routes/dev.canvas-text'
 import { Route as DevComponentsRouteImport } from './routes/dev.components'
 import { Route as DevScreensRouteImport } from './routes/dev.screens'
 import { Route as HelpSlugRouteImport } from './routes/help.$slug'
@@ -49,6 +50,7 @@ import { Route as AppItemItemIdRouteImport } from './routes/_app.item.$itemId'
 import { Route as AppModContactRouteImport } from './routes/_app.mod_.contact'
 import { Route as AppModContestsRouteImport } from './routes/_app.mod_.contests'
 import { Route as AppModInvitesRouteImport } from './routes/_app.mod_.invites'
+import { Route as AppModLibraryRouteImport } from './routes/_app.mod_.library'
 import { Route as AppModLogRouteImport } from './routes/_app.mod_.log'
 import { Route as AppModSwitchesRouteImport } from './routes/_app.mod_.switches'
 import { Route as AppModTakedownsRouteImport } from './routes/_app.mod_.takedowns'
@@ -187,6 +189,11 @@ const DevCanvasSpeedRoute = DevCanvasSpeedRouteImport.update({
   path: '/canvas-speed',
   getParentRoute: () => DevRoute,
 } as any)
+const DevCanvasTextRoute = DevCanvasTextRouteImport.update({
+  id: '/canvas-text',
+  path: '/canvas-text',
+  getParentRoute: () => DevRoute,
+} as any)
 const DevComponentsRoute = DevComponentsRouteImport.update({
   id: '/components',
   path: '/components',
@@ -286,6 +293,11 @@ const AppModContestsRoute = AppModContestsRouteImport.update({
 const AppModInvitesRoute = AppModInvitesRouteImport.update({
   id: '/mod_/invites',
   path: '/mod/invites',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppModLibraryRoute = AppModLibraryRouteImport.update({
+  id: '/mod_/library',
+  path: '/mod/library',
   getParentRoute: () => AppRoute,
 } as any)
 const AppModLogRoute = AppModLogRouteImport.update({
@@ -501,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
+  '/dev/canvas-text': typeof DevCanvasTextRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/help/$slug': typeof HelpSlugRoute
@@ -521,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/mod/contact': typeof AppModContactRoute
   '/mod/contests': typeof AppModContestsRoute
   '/mod/invites': typeof AppModInvitesRoute
+  '/mod/library': typeof AppModLibraryRoute
   '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
@@ -579,6 +593,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
+  '/dev/canvas-text': typeof DevCanvasTextRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/help/$slug': typeof HelpSlugRoute
@@ -600,6 +615,7 @@ export interface FileRoutesByTo {
   '/mod/contact': typeof AppModContactRoute
   '/mod/contests': typeof AppModContestsRoute
   '/mod/invites': typeof AppModInvitesRoute
+  '/mod/library': typeof AppModLibraryRoute
   '/mod/log': typeof AppModLogRoute
   '/mod/switches': typeof AppModSwitchesRoute
   '/mod/takedowns': typeof AppModTakedownsRoute
@@ -660,6 +676,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/you': typeof AppYouRoute
   '/dev/canvas-speed': typeof DevCanvasSpeedRoute
+  '/dev/canvas-text': typeof DevCanvasTextRoute
   '/dev/components': typeof DevComponentsRoute
   '/dev/screens': typeof DevScreensRoute
   '/help/$slug': typeof HelpSlugRoute
@@ -681,6 +698,7 @@ export interface FileRoutesById {
   '/_app/mod_/contact': typeof AppModContactRoute
   '/_app/mod_/contests': typeof AppModContestsRoute
   '/_app/mod_/invites': typeof AppModInvitesRoute
+  '/_app/mod_/library': typeof AppModLibraryRoute
   '/_app/mod_/log': typeof AppModLogRoute
   '/_app/mod_/switches': typeof AppModSwitchesRoute
   '/_app/mod_/takedowns': typeof AppModTakedownsRoute
@@ -742,6 +760,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/you'
     | '/dev/canvas-speed'
+    | '/dev/canvas-text'
     | '/dev/components'
     | '/dev/screens'
     | '/help/$slug'
@@ -762,6 +781,7 @@ export interface FileRouteTypes {
     | '/mod/contact'
     | '/mod/contests'
     | '/mod/invites'
+    | '/mod/library'
     | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
@@ -820,6 +840,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/you'
     | '/dev/canvas-speed'
+    | '/dev/canvas-text'
     | '/dev/components'
     | '/dev/screens'
     | '/help/$slug'
@@ -841,6 +862,7 @@ export interface FileRouteTypes {
     | '/mod/contact'
     | '/mod/contests'
     | '/mod/invites'
+    | '/mod/library'
     | '/mod/log'
     | '/mod/switches'
     | '/mod/takedowns'
@@ -900,6 +922,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/you'
     | '/dev/canvas-speed'
+    | '/dev/canvas-text'
     | '/dev/components'
     | '/dev/screens'
     | '/help/$slug'
@@ -921,6 +944,7 @@ export interface FileRouteTypes {
     | '/_app/mod_/contact'
     | '/_app/mod_/contests'
     | '/_app/mod_/invites'
+    | '/_app/mod_/library'
     | '/_app/mod_/log'
     | '/_app/mod_/switches'
     | '/_app/mod_/takedowns'
@@ -1120,6 +1144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevCanvasSpeedRouteImport
       parentRoute: typeof DevRoute
     }
+    '/dev/canvas-text': {
+      id: '/dev/canvas-text'
+      path: '/canvas-text'
+      fullPath: '/dev/canvas-text'
+      preLoaderRoute: typeof DevCanvasTextRouteImport
+      parentRoute: typeof DevRoute
+    }
     '/dev/components': {
       id: '/dev/components'
       path: '/components'
@@ -1258,6 +1289,13 @@ declare module '@tanstack/react-router' {
       path: '/mod/invites'
       fullPath: '/mod/invites'
       preLoaderRoute: typeof AppModInvitesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mod_/library': {
+      id: '/_app/mod_/library'
+      path: '/mod/library'
+      fullPath: '/mod/library'
+      preLoaderRoute: typeof AppModLibraryRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/mod_/log': {
@@ -1552,6 +1590,7 @@ interface AppRouteChildren {
   AppModContactRoute: typeof AppModContactRoute
   AppModContestsRoute: typeof AppModContestsRoute
   AppModInvitesRoute: typeof AppModInvitesRoute
+  AppModLibraryRoute: typeof AppModLibraryRoute
   AppModLogRoute: typeof AppModLogRoute
   AppModSwitchesRoute: typeof AppModSwitchesRoute
   AppModTakedownsRoute: typeof AppModTakedownsRoute
@@ -1615,6 +1654,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppModContactRoute: AppModContactRoute,
   AppModContestsRoute: AppModContestsRoute,
   AppModInvitesRoute: AppModInvitesRoute,
+  AppModLibraryRoute: AppModLibraryRoute,
   AppModLogRoute: AppModLogRoute,
   AppModSwitchesRoute: AppModSwitchesRoute,
   AppModTakedownsRoute: AppModTakedownsRoute,
@@ -1659,12 +1699,14 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface DevRouteChildren {
   DevCanvasSpeedRoute: typeof DevCanvasSpeedRoute
+  DevCanvasTextRoute: typeof DevCanvasTextRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DevScreensRoute: typeof DevScreensRoute
 }
 
 const DevRouteChildren: DevRouteChildren = {
   DevCanvasSpeedRoute: DevCanvasSpeedRoute,
+  DevCanvasTextRoute: DevCanvasTextRoute,
   DevComponentsRoute: DevComponentsRoute,
   DevScreensRoute: DevScreensRoute,
 }

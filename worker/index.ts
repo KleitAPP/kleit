@@ -22,6 +22,12 @@
 
 // The library index: catalogue id → [file, title], written by scripts/build-library.mjs.
 import LIBRARY from "../src/library/files.json";
+import {
+  backingBox,
+  backingCss,
+  backingTone,
+  textBackOf,
+} from "../supabase/functions/_shared/text-back";
 import { LEGAL_FOOTER, LEGAL_PAGES, LEGAL_STYLE, legalBody } from "./legal";
 
 interface Env {
@@ -91,6 +97,8 @@ type TextLayer = Position & {
     size: number;
     colour: string;
     align: "left" | "center" | "right";
+    /** What sits behind the words (spec 21 #6; text-back.ts). */
+    back?: unknown;
   };
 };
 
@@ -152,8 +160,19 @@ type SharedSet = {
   /** The song card (spec 11 #12): opens the service; nothing plays here. */
   song?: { url: string; title: string | null; artist: string | null; cover: string | null } | null;
   preview: string | null;
+  /** Catalogue ids of decorations pulled since the files shipped (migration 118): never drawn. */
+  pulled?: unknown;
   pieces: Piece[];
 };
+
+/** The pulled decoration ids a set's read carries, as a set of strings and nothing else. */
+function pulledIds(set: SharedSet): Set<string> {
+  return new Set(
+    Array.isArray(set.pulled)
+      ? set.pulled.filter((id): id is string => typeof id === "string")
+      : [],
+  );
+}
 
 /**
  * The headers every page here is sent with. The Content Security Policy is the backstop for
@@ -468,8 +487,9 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
     .filter((id) => byRow.has(id) || texts[id] || decor[id]);
   for (const p of set.pieces) if (p.row && !order.includes(p.row)) order.push(p.row);
   const fontsUsed = new Set<string>();
+  const pulled = pulledIds(set);
   const bgEntry =
-    typeof set.layout.backgroundAsset === "string"
+    typeof set.layout.backgroundAsset === "string" && !pulled.has(set.layout.backgroundAsset)
       ? LIB.backgrounds[set.layout.backgroundAsset]
       : null;
   const bgPicture = bgEntry
@@ -482,7 +502,8 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
         // A decoration from the library (M4.4): the same picture the app drew, from this site's
         // own /library/ folder, with the museum's title as its alt text.
         if (d.hidden) return "";
-        const entry = typeof d.asset === "string" ? LIB.assets[d.asset] : undefined;
+        const entry =
+          typeof d.asset === "string" && !pulled.has(d.asset) ? LIB.assets[d.asset] : undefined;
         if (!entry) return "";
         if (entry[0].endsWith(".svg")) {
           // A structural piece is one colour: the SVG as a mask, filled with the colour the
@@ -506,14 +527,24 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
         const top = (num(text.y, 0) / h) * 100;
         const width = (num(text.w, 0, 0) / w) * 100;
         const box = `position:absolute;left:${left}%;top:${top}%;width:${width}%;transform:rotate(${num(text.rotation, 0, -3600, 3600)}deg) scale(${text.flipX ? -1 : 1},${text.flipY ? -1 : 1});opacity:${num(text.opacity, 1, 0, 1)}`;
+        const colour = HEX_COLOUR.test(text.text.colour ?? "") ? text.text.colour : "#161513";
+        const sizePx = num(text.text.size, 48, 1, 10000);
+        const size = (sizePx / w) * 100;
+        // What sits behind the words (spec 21 #6): the same box, tone and numbers as the canvas,
+        // in the canvas's own unit (cqw) so it scales with the page.
+        const back = textBackOf(text.text.back);
+        const fill = backingCss(back, backingTone(colour));
+        const pad = backingBox(sizePx);
+        const cq = (px: number) => `${((px / w) * 100).toFixed(3)}cqw`;
+        const backing = fill
+          ? `<div aria-hidden="true" style="position:absolute;left:-${cq(pad.padX)};right:-${cq(pad.padX)};top:-${cq(pad.padY)};bottom:-${cq(pad.padY)};border-radius:${cq(pad.radius)};background:${fill}${back === "blur" ? `;-webkit-backdrop-filter:blur(${cq(pad.blur)});backdrop-filter:blur(${cq(pad.blur)})` : ""}"></div>`
+          : "";
         if (isPrivate) {
-          return `<div style="${box}"><img src="${functions}/text-image?set=${set.id}&layer=${encodeURIComponent(id)}" alt="${esc(words)}" style="width:100%;display:block"></div>`;
+          return `<div style="${box}">${backing}<img src="${functions}/text-image?set=${set.id}&layer=${encodeURIComponent(id)}" alt="${esc(words)}" style="position:relative;width:100%;display:block"></div>`;
         }
         const align =
           text.text.align === "left" || text.text.align === "right" ? text.text.align : "center";
-        const colour = HEX_COLOUR.test(text.text.colour ?? "") ? text.text.colour : "#161513";
-        const size = (num(text.text.size, 48, 1, 10000) / w) * 100;
-        return `<div style="${box};font-family:${curated ? `kleit-${curated},` : ""}sans-serif;font-size:${size}cqw;line-height:1.2;color:${colour};text-align:${align};white-space:pre-wrap">${esc(words)}</div>`;
+        return `<div style="${box}">${backing}<div style="position:relative;font-family:${curated ? `kleit-${curated},` : ""}sans-serif;font-size:${size}cqw;line-height:1.2;color:${colour};text-align:${align};white-space:pre-wrap">${esc(words)}</div></div>`;
       }
       const p = byRow.get(id)!;
       const pos = p.position;
@@ -689,7 +720,6 @@ input,textarea{font:inherit;font-size:1rem;padding:10px;border:1px solid #d9d2c6
 </body></html>`;
   return new Response(html, { headers: pageHeaders(env, { nonce }) });
 }
-
 
 async function takedownStatusPage(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
@@ -1481,10 +1511,12 @@ function decorationNames(set: SharedSet): string[] {
   const layout = set.layout;
   if (!layout || layout.version !== 2 || !layout.decor || !Array.isArray(layout.order)) return [];
   const names: string[] = [];
+  const pulled = pulledIds(set);
   for (const id of layout.order) {
     const d = layout.decor[id];
     if (!d || d.hidden) continue;
-    const entry = typeof d.asset === "string" ? LIB.assets[d.asset] : undefined;
+    const entry =
+      typeof d.asset === "string" && !pulled.has(d.asset) ? LIB.assets[d.asset] : undefined;
     if (entry) names.push(entry[1]);
   }
   return names;

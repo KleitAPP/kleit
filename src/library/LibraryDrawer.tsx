@@ -24,7 +24,7 @@ import {
  * A tile's picture. A structural SVG is one colour (currentColor) so it is shown as a mask in
  * the theme's ink - that is the drawer's tile, UI, not the user's canvas (artwork pack A18).
  */
-function Thumb({
+export function Thumb({
   asset,
   alt,
   small = false,

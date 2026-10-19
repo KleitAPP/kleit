@@ -199,7 +199,8 @@ export const en = {
   "strikes.community": "Community strike",
   "strikes.copyright": "Copyright strike",
   "strikes.counterNotice": "Send a counter-notice",
-  "strikes.counterWhy": "If the picture was yours or its use was allowed, a counter-notice brings it back within 14 days unless the sender sues, and ends this strike.",
+  "strikes.counterWhy":
+    "If the picture was yours or its use was allowed, a counter-notice brings it back within 14 days unless the sender sues, and ends this strike.",
   "strikes.over": "expired",
   "strikes.appeal": "Appeal",
   "strikes.appealHint": "In a sentence or two, why this was a mistake",
@@ -225,14 +226,24 @@ export const en = {
   "mod.err.role": "Your account doesn't have the moderator role on this site.",
   "mod.err.reason": "Write a short note first (at least three letters).",
   "mod.err.other": "That didn't go through. Check your connection and try again.",
-  "mod.err.second": "An appeal is decided by a different person than the one who struck or blocked. Leave this one for another moderator.",
-  "mod.err.pg13": "That set can't be featured: a piece on it is swimwear or underwear, which stays out of Featured.",
+  "mod.err.second":
+    "An appeal is decided by a different person than the one who struck or blocked. Leave this one for another moderator.",
+  "mod.err.pg13":
+    "That set can't be featured: a piece on it is swimwear or underwear, which stays out of Featured.",
   "mod.err.listed":
     "That picture was removed before - a takedown or a report put it on the never-again list - so an appeal can't bring it back.",
-  "mod.err.notYet": "Not before {date}: the person who sent the notice has until then to say they've sued.",
+  "mod.err.notYet":
+    "Not before {date}: the person who sent the notice has until then to say they've sued.",
   "mod.err.purged": "The picture's file is already gone; there's nothing to restore.",
   "mod.err.otherGround":
     "That picture was also removed on another ground (a report, or another notice), so this counter-notice can't restore it.",
+  "mod.err.break":
+    "You've been reviewing for two hours. The queue opens again fifteen minutes after your last decision - take a break.",
+  "mod.break.title": "Time for a break",
+  "mod.break.body":
+    "You've been reviewing since {since} - two hours. The queue opens again at {until}. Fifteen minutes away from it, by design.",
+  "mod.break.soon":
+    "Reviewing since {since} ({minutes} min). At two hours the queue asks for a fifteen-minute break.",
   "mod.appealBecause": "Blocked because: {labels}",
   "mod.appealReason.removed-before": "Blocked because: it matches a picture removed before",
   "mod.done": "Done.",
@@ -248,6 +259,31 @@ export const en = {
   "mod.invites": "Invites",
   "mod.toolsInvites": "Beta invite codes: mint, hand out, switch off",
   "mod.takedowns": "Takedown requests",
+  "mod.library": "Pull a decoration",
+  "mod.toolsLibrary": "Take one of our own decorations out of every drawer (admins)",
+  "library.pull.title": "Pull a decoration",
+  "library.pull.why":
+    "For a decoration of ours that has to come down - a claim, a licence mistake, a picture that shows a person. It leaves every drawer within minutes (the files follow at the next library build); sets that placed it get a new chat picture on their next save; its fingerprint goes on the never-again list. Logged.",
+  "library.pull.search": "Find it by its title",
+  "library.pull.placeholder": "Two letters or more",
+  "library.pull.none": "Nothing by that title.",
+  "library.pull.pull": "Pull it",
+  "library.pull.pulledTitle": "Pulled",
+  "library.pull.pulledNone": "Nothing has been pulled.",
+  "library.pull.gone": "no longer shipped",
+  "library.pull.putBack": "Put it back",
+  "library.pull.confirm": "Pull “{title}”?",
+  "library.pull.confirmWhy": "Say why, for the log. The reason is never shown to members.",
+  "library.pull.reason": "Why it's coming down",
+  "library.pull.done":
+    "“{title}” is pulled. {count} sets had placed it; they get a new chat picture on their next save.",
+  "library.pull.done.one":
+    "“{title}” is pulled. One set had placed it; it gets a new chat picture on its next save.",
+  "library.pull.restored":
+    "Put back. It's in the drawers again and its fingerprints are forgotten.",
+  "library.pull.err.admins": "Only an admin can pull a decoration.",
+  "library.pull.err.reason": "Write a short reason first.",
+  "library.pull.err.other": "That didn't go through. Check your connection and try again.",
   "takedowns.title": "Takedown requests",
   "takedowns.why":
     "Intimate images first - 48 hours by law; copyright, impersonation and trademark 72. For a picture, paste its id from the link; it goes with its fingerprint and every identical copy.",
@@ -268,7 +304,8 @@ export const en = {
   "takedowns.answers": "answers {ref}",
   "takedowns.restoreBy": "restore by {date}",
   "takedowns.signedBy": "Signed {name}",
-  "takedowns.claimant": "Sent the notice: {name} ({email}) - forward the counter-notice to them by email",
+  "takedowns.claimant":
+    "Sent the notice: {name} ({email}) - forward the counter-notice to them by email",
   "takedowns.uploader": "The picture's uploader: @{name}",
   "takedowns.otherGrounds":
     "This picture was also removed on another ground (a report, or another notice): a restore will be refused.",
@@ -1147,6 +1184,11 @@ export const en = {
   "text.alignRight": "Right",
   "text.colour": "Colour",
   "text.advanced": "Advanced",
+  "text.back": "Behind the words",
+  "text.back.none": "Nothing",
+  "text.back.scrim": "Scrim",
+  "text.back.strip": "Strip",
+  "text.back.blur": "Blur",
   "text.hex": "Any colour (hex)",
   "text.default": "Your words here",
   "text.myFonts": "My fonts",
@@ -1520,7 +1562,8 @@ export const en = {
   "item.appealLabel": "Why the photo is fine",
   "item.appealSend": "Send the appeal",
   "item.appealSent": "Appeal sent.",
-  "item.appealOpen": "Your appeal is in. A different person looks within seven days, and you'll be told.",
+  "item.appealOpen":
+    "Your appeal is in. A different person looks within seven days, and you'll be told.",
   "item.appealUpheld": "Your appeal was looked at by a second person, and the photo stays blocked.",
   "item.appealOverturned": "Your appeal was accepted.",
   "item.appealFailed": "That didn't send. Have another go in a moment.",
@@ -1540,7 +1583,8 @@ export const en = {
   "offline.sending.one": "Back online - sending 1 edit.",
   "offline.museum": "Museum pictures need a connection; drawn ones work offline.",
   "offline.needsNetwork": "Needs a connection. It'll be here when you're back online.",
-  "offline.sendLater": "You're offline: it can't be sent until you're back online. Your draft is safe.",
+  "offline.sendLater":
+    "You're offline: it can't be sent until you're back online. Your draft is safe.",
   "settings.export": "Download my data",
   "settings.exportWhy": "A ZIP of everything we hold about you",
   "exportData.title": "Download my data",

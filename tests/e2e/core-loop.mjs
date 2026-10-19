@@ -1001,6 +1001,74 @@ try {
       JSON.stringify(result),
     );
   }
+
+  // 19. The text tool's backing (spec 21 #6): a Creative set with a piece and words behind a
+  //     blur, published; the share page draws the same box (the Worker) and the chat picture is
+  //     drawn (set-preview walks the same numbers from text-back.ts).
+  await page.goto(`${SITE}/`);
+  await page.getByRole("button", { name: "Create" }).click();
+  await page.getByRole("button", { name: /Creative set/ }).click();
+  await page.waitForURL(/\/set\/[0-9a-f-]+\/canvas$/, { timeout: 20_000 });
+  const creativeId = page.url().match(/\/set\/([0-9a-f-]+)\/canvas/)?.[1] ?? "";
+  await page.getByRole("button", { name: "Add a piece", exact: true }).click();
+  await page.getByRole("tab", { name: "Closet" }).click();
+  await page.getByRole("dialog").locator("li button").first().click();
+  // The new piece is selected; Escape clears the selection and brings the add buttons back.
+  await page
+    .getByRole("button", { name: "Add text", exact: true })
+    .waitFor({ state: "hidden" })
+    .catch(() => {});
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Add text", exact: true }).click();
+  // The new words start behind a scrim; the panel offers the other presets.
+  const scrim = page.getByRole("button", { name: "Scrim", exact: true });
+  await scrim.waitFor();
+  check(
+    (await scrim.getAttribute("aria-pressed")) === "true",
+    "text backing: new words start behind a scrim",
+  );
+  await page.getByRole("button", { name: "Blur", exact: true }).click();
+  await page.getByLabel("Caption or question").fill("core loop words");
+  await wait(1500); // the debounced autosave
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.waitForURL(/\/send$/);
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  const creativeLink = page.getByText(/\/s\/[A-Za-z0-9]{8,32}/);
+  await creativeLink.waitFor();
+  const creativeCode = (await creativeLink.innerText()).match(/\/s\/([A-Za-z0-9]{8,32})/)[1];
+  const { data: creativeRow } = await admin
+    .from("sets")
+    .select("layout")
+    .eq("id", creativeId)
+    .maybeSingle();
+  const savedTexts = Object.values(creativeRow?.layout?.texts ?? {});
+  check(
+    savedTexts.length === 1 && savedTexts[0]?.text?.back === "blur",
+    "text backing: the choice is saved on the layer",
+    JSON.stringify(savedTexts.map((l) => l?.text?.back)),
+  );
+  await gp.goto(`${SITE}/s/${creativeCode}`);
+  const creativeHtml = await gp.content();
+  check(
+    /backdrop-filter:blur\([0-9.]+cqw\)/.test(creativeHtml) &&
+      /border-radius:[0-9.]+cqw;background:rgba\(/.test(creativeHtml) &&
+      creativeHtml.includes("Your words here"),
+    "text backing: the share page draws the blur box behind the words",
+  );
+  let creativePicture = null;
+  for (let tries = 0; tries < 10 && !creativePicture; tries++) {
+    await gp.goto(`${SITE}/s/${creativeCode}`);
+    creativePicture = await gp
+      .getAttribute('meta[property="og:image"]', "content")
+      .catch(() => null);
+    if (!creativePicture) await wait(2000);
+  }
+  const creativeJpeg = creativePicture ? await fetchPatiently(creativePicture) : null;
+  check(
+    !!creativeJpeg && creativeJpeg.status === 200,
+    "text backing: the chat picture is drawn with the words on it",
+    creativePicture ? `${creativeJpeg?.status} ${creativePicture.slice(-30)}` : "no og:image tag",
+  );
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

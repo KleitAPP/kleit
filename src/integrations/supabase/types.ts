@@ -1682,6 +1682,27 @@ export type Database = {
           },
         ]
       }
+      pulled_library_assets: {
+        Row: {
+          asset_id: string
+          pulled_at: string
+          pulled_by: string | null
+          reason: string
+        }
+        Insert: {
+          asset_id: string
+          pulled_at?: string
+          pulled_by?: string | null
+          reason: string
+        }
+        Update: {
+          asset_id?: string
+          pulled_at?: string
+          pulled_by?: string | null
+          reason?: string
+        }
+        Relationships: []
+      }
       push_queue: {
         Row: {
           attempts: number
@@ -2999,6 +3020,11 @@ export type Database = {
           share_code: string
         }[]
       }
+      pull_library_asset: {
+        Args: { p_asset: string; p_hashes: string[]; p_reason: string }
+        Returns: number
+      }
+      pulled_library_assets: { Args: never; Returns: string[] }
       queue_contest_theme: {
         Args: { p_theme: string; p_title: string }
         Returns: string
@@ -3032,6 +3058,16 @@ export type Database = {
       request_account_deletion: { Args: never; Returns: string }
       reset_share_code: { Args: { p_set_id: string }; Returns: string }
       restore_closet_item: { Args: { p_item_id: string }; Returns: undefined }
+      restore_library_asset: { Args: { p_asset: string }; Returns: undefined }
+      review_sitting: {
+        Args: never
+        Returns: {
+          break_until: string | null
+          decisions: number
+          latest_at: string
+          started_at: string
+        }[]
+      }
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }
         Returns: number

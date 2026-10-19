@@ -213,6 +213,7 @@ function TemplateMaker() {
       size: 96,
       colour: DEFAULT_TEXT_COLOUR,
       align: "center",
+      back: "scrim",
     });
     if (added.ok) {
       apply(added.doc);

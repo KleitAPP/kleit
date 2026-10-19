@@ -9,6 +9,8 @@
  * shape), never screen pixels, so a set looks the same on every phone and in the export.
  */
 
+import type { TextBack } from "../../supabase/functions/_shared/text-back";
+
 export type CanvasShape = "square" | "portrait" | "story" | "free";
 
 export type CanvasSize = { w: number; h: number; shape: CanvasShape };
@@ -29,13 +31,19 @@ export const SNAP_DISTANCE = 8;
 
 export type Crop = { x: number; y: number; w: number; h: number }; // fractions of the source, 0..1
 
-/** A text layer's words and their look (spec 6.2 #1; S62). `font` is a catalogue id, or `private:<path>`. */
+/**
+ * A text layer's words and their look (spec 6.2 #1; S62). `font` is a catalogue id, or
+ * `private:<path>`. `back` is what sits behind the words (spec 21 #6): a scrim for a new layer,
+ * a solid strip or a blur as presets; absent on layers saved before it existed, which reads as
+ * none (L14: nothing placed changes later).
+ */
 export type TextStyle = {
   text: string;
   font: string;
   size: number;
   colour: string;
   align: "left" | "center" | "right";
+  back?: TextBack;
 };
 
 export type Layer = {

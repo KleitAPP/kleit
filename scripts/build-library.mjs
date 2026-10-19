@@ -90,6 +90,10 @@ const files = (dir) =>
 const assets = {};
 const backgrounds = {};
 const seen = new Set(); // files claimed by a row
+// Assets pulled for good (spec 13.3 #6): an admin's pull on the live site lists the id in the
+// database within minutes (migration 118) and the drawer skips it; this file is the permanent
+// half - the id stays out of the catalogue, and the check fails while its files are still here.
+const PULLED = new Set(JSON.parse(readFileSync(join(REC, "pulled.json"), "utf8")));
 
 /** An SVG's viewBox → {w, h}. */
 function svgSize(path) {
@@ -101,6 +105,13 @@ function svgSize(path) {
 function claim(dir, id, row, into, make, ext = "webp") {
   const file = `${dir}/${id}.${ext}`;
   const exists = existsSync(join(PUB, file));
+  if (PULLED.has(id)) {
+    if (exists) problems.push(`pulled asset still shipped - delete the file: ${file}`);
+    const thumb = ext === "svg" ? file : `thumbs/${id}.webp`;
+    if (ext !== "svg" && existsSync(join(PUB, thumb)))
+      problems.push(`pulled asset still shipped - delete the thumbnail: ${thumb}`);
+    return;
+  }
   if (!exists) {
     if (ships(row)) problems.push(`row says ship but no file: ${file}`);
     return;

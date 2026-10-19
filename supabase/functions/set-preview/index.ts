@@ -25,6 +25,14 @@ import decodeWebp from "npm:@jsquash/webp@1.5.0/decode.js";
 import { initWasm, Resvg } from "npm:@resvg/resvg-wasm@2.6.2";
 
 import { drawText, fontBytes, SITE_URL, type TextStyle } from "../_shared/text-draw.ts";
+import {
+  backingBox,
+  backingRgba,
+  backingTone,
+  boxBlur,
+  textBackOf,
+  type TextBack,
+} from "../_shared/text-back.ts";
 // Catalogue id → [file, title] for the decoration library (written by scripts/build-library.mjs).
 import LIBRARY from "../_shared/library-files.json" with { type: "json" };
 
@@ -113,6 +121,8 @@ type Shared = {
     decor?: Record<string, Position & { kind: "asset"; asset: string; colour?: string }>;
     backgroundAsset?: string | null;
   } | null;
+  /** Catalogue ids of decorations pulled since the files shipped (migration 118): never drawn. */
+  pulled?: unknown;
   pieces: Piece[];
 };
 
@@ -127,6 +137,61 @@ function colour(hex: string | undefined): number {
   const m = /^#([0-9a-f]{6})$/i.exec(hex ?? "");
   const n = m ? parseInt(m[1]!, 16) : 0xf4efe6;
   return Image.rgbToColor((n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff);
+}
+
+/**
+ * What sits behind a text layer's words (spec 21 #6; text-back.ts): a scrim, a solid strip or
+ * a blur of the picture so far, in the words' tone, padded and rounded like the canvas draws
+ * it, rotated with the words. Drawn onto `picture` before the words go on; `w` and `h` are the
+ * words' drawn, unrotated size and `cx`/`cy` their centre.
+ */
+function drawBacking(
+  picture: Image,
+  back: TextBack,
+  style: { colour: string; size: number; back?: unknown },
+  w: number,
+  h: number,
+  cx: number,
+  cy: number,
+  rotation: number,
+  opacity: number,
+  k: number,
+): void {
+  const tone = backingTone(style.colour);
+  const rgba = backingRgba(back, tone);
+  if (!rgba) return;
+  const box = backingBox(style.size * k);
+  const bw = Math.max(1, Math.round(w + 2 * box.padX));
+  const bh = Math.max(1, Math.round(h + 2 * box.padY));
+  const radius = Math.max(0, Math.min(Math.round(box.radius), Math.floor(Math.min(bw, bh) / 2)));
+  const shape = (color: number) => {
+    const img = new Image(bw, bh).fill(color);
+    if (radius > 0) img.roundCorners(radius);
+    if (rotation) img.rotate(rotation, true);
+    return img;
+  };
+  if (back === "blur") {
+    // The picture under the box, blurred, cut to the box's shape, put back.
+    const mask = shape(0xffffffff);
+    const x0 = Math.round(cx - mask.width / 2);
+    const y0 = Math.round(cy - mask.height / 2);
+    const sx = Math.max(0, x0);
+    const sy = Math.max(0, y0);
+    const ex = Math.min(picture.width, x0 + mask.width);
+    const ey = Math.min(picture.height, y0 + mask.height);
+    if (ex > sx && ey > sy) {
+      const region = picture.clone().crop(sx, sy, ex - sx, ey - sy);
+      const cut = mask.clone().crop(sx - x0, sy - y0, ex - sx, ey - sy);
+      boxBlur(region.bitmap, region.width, region.height, box.blur);
+      for (let i = 3; i < region.bitmap.length; i += 4)
+        region.bitmap[i] = Math.round((cut.bitmap[i]! / 255) * region.bitmap[i]! * opacity);
+      picture.composite(region, sx, sy);
+    }
+  }
+  const tint = shape(
+    Image.rgbaToColor(rgba[0], rgba[1], rgba[2], Math.round(rgba[3] * 255 * opacity)),
+  );
+  picture.composite(tint, Math.round(cx - tint.width / 2), Math.round(cy - tint.height / 2));
 }
 
 function still(decoded: Image | GIF): Image {
@@ -228,8 +293,13 @@ Deno.serve(async (request) => {
   const picture = new Image(SIDE, SIDE).fill(colour(set.layout?.background));
   // A library background picture over the colour, covering the canvas the way the page does.
   // A Creative set's own background picture, or the one its template carries (M4.5).
+  const pulled = new Set(
+    Array.isArray(set.pulled)
+      ? set.pulled.filter((id): id is string => typeof id === "string")
+      : [],
+  );
   const bgId = creative ? set.layout?.backgroundAsset : tpl?.backgroundAsset;
-  const bgEntry = bgId ? LIB.backgrounds[bgId] : null;
+  const bgEntry = bgId && !pulled.has(bgId) ? LIB.backgrounds[bgId] : null;
   if (bgEntry) {
     const bg = await libraryImage(bgEntry[0]);
     if (bg) {
@@ -264,7 +334,7 @@ Deno.serve(async (request) => {
     for (const id of order) {
       const d = decor[id];
       if (d) {
-        if (!d.hidden && LIB.assets[d.asset])
+        if (!d.hidden && !pulled.has(d.asset) && LIB.assets[d.asset])
           places.push({
             piece: null,
             decor: LIB.assets[d.asset]![0],
@@ -315,7 +385,7 @@ Deno.serve(async (request) => {
     for (const id of tpl?.order ?? []) {
       const d = decor[id];
       const text = texts[id];
-      if (d && !d.hidden && LIB.assets[d.asset])
+      if (d && !d.hidden && !pulled.has(d.asset) && LIB.assets[d.asset])
         places.push({
           piece: null,
           decor: LIB.assets[d.asset]![0],
@@ -360,6 +430,20 @@ Deno.serve(async (request) => {
       if (pos?.opacity !== undefined && pos.opacity < 1) art.opacity(pos.opacity);
       const cx = offX + Math.round(box.x * drawnW + drawnBoxW / 2);
       const cy = offY + Math.round(box.y * drawnH + art.height / 2);
+      const back = textBackOf(text.text.back);
+      if (back !== "none")
+        drawBacking(
+          picture,
+          back,
+          text.text,
+          art.width,
+          art.height,
+          cx,
+          cy,
+          pos?.rotation ?? 0,
+          pos?.opacity ?? 1,
+          scale,
+        );
       if (pos?.rotation) art.rotate(pos.rotation, true);
       picture.composite(art, cx - Math.round(art.width / 2), cy - Math.round(art.height / 2));
       continue;

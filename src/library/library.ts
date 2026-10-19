@@ -7,6 +7,7 @@
  * once, on first use, because nobody needs 190 KB of titles to open the app.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import { isNativeApp, siteUrl } from "@/lib/site";
 
 export type LibraryAsset = {
@@ -44,9 +45,45 @@ export type Catalogue = {
 
 let loading: Promise<Catalogue> | null = null;
 
+/**
+ * The catalogue, less anything pulled (spec 13.3 #6; migration 118): an asset of ours that had
+ * to be taken down is listed on the server within minutes and leaves the files at the next
+ * deploy, so the drawer asks for the list once and drops those entries. No answer (offline, a
+ * slow start) leaves the shipped catalogue as it is - the drawer must work with no signal.
+ */
 export function loadCatalogue(): Promise<Catalogue> {
-  loading ??= import("./catalogue.json").then((m) => m.default as unknown as Catalogue);
+  loading ??= Promise.all([
+    import("./catalogue.json").then((m) => m.default as unknown as Catalogue),
+    pulledAssets(),
+  ]).then(([catalogue, pulled]) => withoutPulled(catalogue, pulled));
   return loading;
+}
+
+async function pulledAssets(): Promise<string[]> {
+  try {
+    const { data } = await supabase.rpc("pulled_library_assets");
+    return Array.isArray(data) ? data.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** The catalogue without the pulled ids - a copy when any apply, the same object when none do. */
+export function withoutPulled(catalogue: Catalogue, pulled: readonly string[]): Catalogue {
+  const gone = pulled.filter((id) => id in catalogue.assets || id in catalogue.backgrounds);
+  if (gone.length === 0) return catalogue;
+  const assets = { ...catalogue.assets };
+  const backgrounds = { ...catalogue.backgrounds };
+  for (const id of gone) {
+    delete assets[id];
+    delete backgrounds[id];
+  }
+  const packs = catalogue.packs.map((p) => ({
+    ...p,
+    backgrounds: p.backgrounds.filter((id) => !gone.includes(id)),
+    count: Object.values(assets).filter((a) => a.packs.includes(p.id)).length,
+  }));
+  return { packs, assets, backgrounds };
 }
 
 /**

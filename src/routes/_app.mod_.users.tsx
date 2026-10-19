@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Chip, EmptyState, PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
-import { myRoles } from "@/safety/moderation";
+import { myRoles, whyItFailed } from "@/safety/moderation";
 import { ACCOUNT_LABELS, asAccountLabel, labelText, type AccountLabel } from "@/social/labels";
 
 /**
@@ -84,6 +84,8 @@ function UserLookup() {
       p_label: next,
     });
     setBusy(false);
+    // Never silence (2026-10-09): a refusal is said in words, here under the form.
+    setProblem(whyItFailed(error));
     if (!error) await look();
   }
 
@@ -96,6 +98,7 @@ function UserLookup() {
       p_reason: reason,
     });
     setBusy(false);
+    setProblem(whyItFailed(error));
     if (!error) await look();
   }
 

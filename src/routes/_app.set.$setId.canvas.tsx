@@ -434,6 +434,7 @@ function CanvasScreen() {
       size: 96,
       colour: DEFAULT_TEXT_COLOUR,
       align: "center",
+      back: "scrim",
     });
     if (!added.ok) return;
     apply(added.doc);

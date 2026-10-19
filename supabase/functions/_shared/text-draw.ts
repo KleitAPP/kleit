@@ -14,6 +14,8 @@ export type TextStyle = {
   size: number;
   colour: string;
   align: "left" | "center" | "right";
+  /** What sits behind the words (text-back.ts); drawn by the caller, not here. */
+  back?: unknown;
 };
 
 export const SITE_URL =

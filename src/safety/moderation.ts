@@ -78,7 +78,25 @@ export function whyItFailed(error: { message?: string } | null): string | null {
     return t("mod.err.notYet", { date: /not before (\d{4}-\d{2}-\d{2})/i.exec(m)?.[1] ?? "" });
   if (/already purged/i.test(m)) return t("mod.err.purged");
   if (/another ground/i.test(m)) return t("mod.err.otherGround");
+  if (/take a break/i.test(m)) return t("mod.err.break");
   return t("mod.err.other");
+}
+
+/**
+ * The moderator's sitting (spec 13.4 #2, migration 118): decisions no more than fifteen minutes
+ * apart; at two hours the queue closes to them until fifteen minutes after the last one. Null
+ * when they are not in one.
+ */
+export type Sitting = {
+  started_at: string;
+  latest_at: string;
+  decisions: number;
+  break_until: string | null;
+};
+export async function reviewSitting(): Promise<Sitting | null> {
+  const { data } = await supabase.rpc("review_sitting");
+  const rows = (data ?? []) as Sitting[];
+  return rows[0] ?? null;
 }
 
 export async function scanReviewQueue(): Promise<ScanReview[]> {

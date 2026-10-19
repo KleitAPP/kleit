@@ -120,107 +120,7 @@ export function SocialBar({
   }
 
   const off = commentsSetting === "off" && !mine;
-
-  function CommentCard({ c, answered = null }: { c: Comment; answered?: string | null }) {
-    const name = c.author?.display_name?.trim() || c.author?.username || "…";
-    const canEdit =
-      c.author_id === me &&
-      !c.deleted_at &&
-      Date.now() - new Date(c.created_at).getTime() < EDIT_WINDOW_MS;
-    return (
-      <div className="rounded-md border border-line bg-surface p-3">
-        <p className="flex items-center gap-2 text-sm text-ink-soft">
-          <Avatar itemId={c.author?.avatar_item_id} size={24} />
-          <span className="min-w-0 truncate">
-            @{c.author?.username ?? "…"}
-            {c.edited_at && !c.deleted_at ? ` · ${t("social.edited")}` : ""}
-            {c.held_at && !c.deleted_at ? ` · ${t("social.held")}` : ""}
-          </span>
-          <AccountLabelChip label={c.author?.label} />
-        </p>
-        {answered ? (
-          <p className="text-sm text-ink-soft">{t("social.answering", { name: answered })}</p>
-        ) : null}
-        {c.deleted_at ? (
-          <p className="text-base text-ink-soft">
-            <em>
-              {c.deleted_by === c.author_id
-                ? t("social.removedByAuthor")
-                : t("social.removedByOwner")}
-            </em>
-          </p>
-        ) : editing?.id === c.id ? (
-          <div className="mt-1 flex gap-2">
-            <input
-              type="text"
-              value={editing.body}
-              maxLength={500}
-              onChange={(e) => setEditing({ id: c.id, body: e.target.value })}
-              aria-label={t("social.edit")}
-              className="min-h-11 flex-1 rounded-md border border-line bg-surface px-3 text-base text-ink"
-            />
-            <button
-              type="button"
-              onClick={() => void saveEdit()}
-              className="min-h-11 rounded-pill bg-brand px-4 text-sm text-brand-ink"
-            >
-              {t("social.save")}
-            </button>
-          </div>
-        ) : (
-          <p className="whitespace-pre-wrap break-words text-base text-ink" aria-label={name}>
-            {withMentions(c.body)}
-          </p>
-        )}
-        {!c.deleted_at ? (
-          <div className="mt-2 flex gap-3 text-sm">
-            {!off && !c.held_at ? (
-              <button
-                type="button"
-                onClick={() => setReplyTo(c)}
-                className="underline underline-offset-2 text-ink"
-              >
-                {t("social.reply")}
-              </button>
-            ) : null}
-            {canEdit ? (
-              <button
-                type="button"
-                onClick={() => setEditing({ id: c.id, body: c.body })}
-                className="underline underline-offset-2 text-ink"
-              >
-                {t("social.edit")}
-              </button>
-            ) : null}
-            {c.author_id === me ? (
-              <button
-                type="button"
-                onClick={() => void remove(c)}
-                className="underline underline-offset-2 text-ink"
-              >
-                {t("social.takeBack")}
-              </button>
-            ) : mine ? (
-              <button
-                type="button"
-                onClick={() => void remove(c)}
-                className="underline underline-offset-2 text-ink"
-              >
-                {t("social.remove")}
-              </button>
-            ) : null}
-            {c.author_id !== me ? (
-              <ReportButton
-                type="comment"
-                id={c.id}
-                className="underline underline-offset-2 text-ink"
-              />
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+  const cardProps = { me, mine, off, editing, setEditing, saveEdit, remove, setReplyTo };
 
   return (
     <section className="mt-6" aria-label={t("social.comments")}>
@@ -276,7 +176,7 @@ export function SocialBar({
               .filter((c) => !c.parent_id)
               .map((root) => (
                 <li key={root.id}>
-                  <CommentCard c={root} />
+                  <CommentCard c={root} {...cardProps} />
                   {list.some((r) => r.parent_id === root.id) ? (
                     <ul className="ml-6 mt-2 flex flex-col gap-2 border-l-2 border-line pl-3">
                       {list
@@ -285,6 +185,7 @@ export function SocialBar({
                           <li key={r.id}>
                             <CommentCard
                               c={r}
+                              {...cardProps}
                               answered={
                                 r.answers_id && r.answers_id !== root.id
                                   ? (list.find((x) => x.id === r.answers_id)?.author?.username ??
@@ -347,6 +248,134 @@ export function SocialBar({
         ) : null}
       </Sheet>
     </section>
+  );
+}
+
+/**
+ * One comment or reply. A component of its own (not a function inside SocialBar) so the inline
+ * edit field keeps focus between keystrokes: a component made afresh on every render would be
+ * unmounted and remounted each time its parent's state moved.
+ */
+function CommentCard({
+  c,
+  answered = null,
+  me,
+  mine,
+  off,
+  editing,
+  setEditing,
+  saveEdit,
+  remove,
+  setReplyTo,
+}: {
+  c: Comment;
+  answered?: string | null;
+  me: string;
+  mine: boolean;
+  off: boolean;
+  editing: { id: string; body: string } | null;
+  setEditing: (next: { id: string; body: string } | null) => void;
+  saveEdit: () => Promise<void>;
+  remove: (c: Comment) => Promise<void>;
+  setReplyTo: (c: Comment) => void;
+}) {
+  const name = c.author?.display_name?.trim() || c.author?.username || "…";
+  const canEdit =
+    c.author_id === me &&
+    !c.deleted_at &&
+    Date.now() - new Date(c.created_at).getTime() < EDIT_WINDOW_MS;
+  return (
+    <div className="rounded-md border border-line bg-surface p-3">
+      <p className="flex items-center gap-2 text-sm text-ink-soft">
+        <Avatar itemId={c.author?.avatar_item_id} size={24} />
+        <span className="min-w-0 truncate">
+          @{c.author?.username ?? "…"}
+          {c.edited_at && !c.deleted_at ? ` · ${t("social.edited")}` : ""}
+          {c.held_at && !c.deleted_at ? ` · ${t("social.held")}` : ""}
+        </span>
+        <AccountLabelChip label={c.author?.label} />
+      </p>
+      {answered ? (
+        <p className="text-sm text-ink-soft">{t("social.answering", { name: answered })}</p>
+      ) : null}
+      {c.deleted_at ? (
+        <p className="text-base text-ink-soft">
+          <em>
+            {c.deleted_by === c.author_id
+              ? t("social.removedByAuthor")
+              : t("social.removedByOwner")}
+          </em>
+        </p>
+      ) : editing?.id === c.id ? (
+        <div className="mt-1 flex gap-2">
+          <input
+            type="text"
+            value={editing.body}
+            maxLength={500}
+            onChange={(e) => setEditing({ id: c.id, body: e.target.value })}
+            aria-label={t("social.edit")}
+            className="min-h-11 flex-1 rounded-md border border-line bg-surface px-3 text-base text-ink"
+          />
+          <button
+            type="button"
+            onClick={() => void saveEdit()}
+            className="min-h-11 rounded-pill bg-brand px-4 text-sm text-brand-ink"
+          >
+            {t("social.save")}
+          </button>
+        </div>
+      ) : (
+        <p className="whitespace-pre-wrap break-words text-base text-ink" aria-label={name}>
+          {withMentions(c.body)}
+        </p>
+      )}
+      {!c.deleted_at ? (
+        <div className="mt-2 flex gap-3 text-sm">
+          {!off && !c.held_at ? (
+            <button
+              type="button"
+              onClick={() => setReplyTo(c)}
+              className="underline underline-offset-2 text-ink"
+            >
+              {t("social.reply")}
+            </button>
+          ) : null}
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setEditing({ id: c.id, body: c.body })}
+              className="underline underline-offset-2 text-ink"
+            >
+              {t("social.edit")}
+            </button>
+          ) : null}
+          {c.author_id === me ? (
+            <button
+              type="button"
+              onClick={() => void remove(c)}
+              className="underline underline-offset-2 text-ink"
+            >
+              {t("social.takeBack")}
+            </button>
+          ) : mine ? (
+            <button
+              type="button"
+              onClick={() => void remove(c)}
+              className="underline underline-offset-2 text-ink"
+            >
+              {t("social.remove")}
+            </button>
+          ) : null}
+          {c.author_id !== me ? (
+            <ReportButton
+              type="comment"
+              id={c.id}
+              className="underline underline-offset-2 text-ink"
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

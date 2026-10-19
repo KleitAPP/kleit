@@ -10,6 +10,7 @@ import { finishCutout, type Cutout } from "@/photos/cutout";
 import { prepareCanvas, type PrepareProblem } from "@/photos/prepare";
 import { PrimaryButton } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { useOnline } from "@/offline/net";
 import { nativeMask } from "@/native/cutout";
 import { usePermissionPrimer } from "@/native/primers";
 
@@ -70,8 +71,14 @@ const PROBLEM_WORDS: Record<AddProblem, string> = {
 
 function AddPhoto() {
   const navigate = useNavigate();
+  const online = useOnline();
   const picker = useRef<HTMLInputElement>(null);
   const photos = usePermissionPrimer("photos", () => picker.current?.click());
+  // The camera, straight (spec 20.2 #2): a second file input with `capture`, which the phone's
+  // WebView answers with the camera rather than the picker (Android needs CAMERA in the manifest
+  // for that; iOS's picker offered the camera already). Its own primer, once.
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const camera = usePermissionPrimer("camera", () => cameraInput.current?.click());
   const [stage, setStage] = useState<Stage>({ at: "choosing" });
   // Kept across the editor so "keep background" can still add the original file.
   const chosen = useRef<File | null>(null);
@@ -138,6 +145,26 @@ function AddPhoto() {
     }
   }
 
+  /** A picked or taken photo (or several): the preview, the colour guess, or the batch. */
+  function picked(files: File[]) {
+    const file = files[0];
+    if (!file) return;
+    if (files.length > 1) {
+      void addMany(files);
+      return;
+    }
+    chosen.current = file;
+    const preview = URL.createObjectURL(file);
+    setStage({ at: "chosen", file, preview, colour: null });
+    // The colour it looks, suggested (spec 4.4 #4); the person can change it before Add.
+    void colourOfBlob(file).then((colour) => {
+      // A chip the person tapped while the guess was on its way stays theirs.
+      setStage((now) =>
+        now.at === "chosen" && now.file === file && now.colour === null ? { ...now, colour } : now,
+      );
+    });
+  }
+
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-8">
       <h1 className="font-display text-2xl text-ink">{t("photo.title")}</h1>
@@ -146,6 +173,20 @@ function AddPhoto() {
       <p className="mt-3 text-base text-ink-soft">{t("photo.privacy")}</p>
 
       {photos.sheet}
+      {camera.sheet}
+      <input
+        ref={cameraInput}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        aria-label={t("a11y.cameraFile")}
+        className="sr-only"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) picked([file]);
+          e.target.value = "";
+        }}
+      />
       <input
         ref={picker}
         type="file"
@@ -154,25 +195,8 @@ function AddPhoto() {
         aria-label={t("a11y.photoFile")}
         className="sr-only"
         onChange={(e) => {
-          const files = Array.from(e.target.files ?? []);
-          const file = files[0];
-          if (!file) return;
-          if (files.length > 1) {
-            void addMany(files);
-            return;
-          }
-          chosen.current = file;
-          const preview = URL.createObjectURL(file);
-          setStage({ at: "chosen", file, preview, colour: null });
-          // The colour it looks, suggested (spec 4.4 #4); the person can change it before Add.
-          void colourOfBlob(file).then((colour) => {
-            // A chip the person tapped while the guess was on its way stays theirs.
-            setStage((now) =>
-              now.at === "chosen" && now.file === file && now.colour === null
-                ? { ...now, colour }
-                : now,
-            );
-          });
+          picked(Array.from(e.target.files ?? []));
+          e.target.value = "";
         }}
       />
 
@@ -255,7 +279,15 @@ function AddPhoto() {
       <div className="mt-8">
         {stage.at === "chosen" ? (
           <>
-            <PrimaryButton onClick={() => void add(stage.file, stage.colour ?? undefined)}>
+            {!online ? (
+              <p role="status" className="mb-2 text-sm text-ink-soft">
+                {t("offline.needsNetwork")}
+              </p>
+            ) : null}
+            <PrimaryButton
+              onClick={() => void add(stage.file, stage.colour ?? undefined)}
+              disabled={!online}
+            >
               {t("photo.add")}
             </PrimaryButton>
             <button
@@ -273,7 +305,16 @@ function AddPhoto() {
             {t("photo.seeCloset")}
           </PrimaryButton>
         ) : stage.at === "editing" ? null : (
-          <PrimaryButton onClick={photos.ask}>{t("photo.choose")}</PrimaryButton>
+          <>
+            <PrimaryButton onClick={photos.ask}>{t("photo.choose")}</PrimaryButton>
+            <button
+              type="button"
+              onClick={camera.ask}
+              className="mt-3 min-h-12 w-full rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+            >
+              {t("photo.take")}
+            </button>
+          </>
         )}
       </div>
 

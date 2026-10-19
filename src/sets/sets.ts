@@ -532,9 +532,10 @@ export function autoTitle(placements: Placement[]): string {
  * capped at the column's 300 characters. Editable under Advanced on the send screen; this is only
  * the starting point, never overwritten once the person has written their own.
  */
-export function autoAltText(placements: Placement[]): string {
+export function autoAltText(placements: Placement[], decorations: string[] = []): string {
   const sorted = [...placements].sort((a, b) => a.slot - b.slot);
-  if (sorted.length === 0) return "";
+  if (sorted.length === 0 && decorations.length === 0) return "";
+  if (sorted.length === 0) return decorationWords(decorations, "A set with ").slice(0, 300);
   const parts = sorted.map(({ item }) => {
     const colour = item.color_name ? `${item.color_name} ` : "";
     const name = item.title?.trim() || (item.kind === "own" ? "piece" : "piece");
@@ -561,6 +562,16 @@ export function autoAltText(placements: Placement[]): string {
       kept.length > 0
         ? head + kept.join(", ") + ` and ${parts.length - kept.length} more.`
         : head.replace(/: $/, ".");
+  }
+  // The decorations by their own names (spec 21 #4: every asset's name feeds the alt text), as
+  // far as the 300 characters allow - a count when the names would not fit.
+  if (decorations.length > 0) {
+    const withNames = text.replace(/\.$/, ", ") + decorationWords(decorations, "with ");
+    text =
+      withNames.length <= 300
+        ? withNames
+        : text.replace(/\.$/, ", ") +
+          `with ${decorations.length} ${decorations.length === 1 ? "decoration" : "decorations"}.`;
   }
   return text.slice(0, 300);
 }
@@ -613,4 +624,34 @@ export async function setsOf(userId: string): Promise<ProfileSet[]> {
     preview_image_id: s.preview_image_id ?? null,
     visibility: s.visibility,
   }));
+}
+
+/** "with 2 decorations: Ballet bow, Opera glasses." */
+function decorationWords(names: string[], lead: string): string {
+  const n = names.length;
+  return `${lead}${n} ${n === 1 ? "decoration" : "decorations"}: ${names.join(", ")}.`;
+}
+
+/**
+ * The visible decorations of a Creative set's layout, named from the catalogue, in canvas order -
+ * what feeds the alt text and what a screen reader hears on the canvas (spec 21 #4).
+ */
+export function decorationNames(
+  layout: unknown,
+  titles: Record<string, { title: string }>,
+): string[] {
+  const l = layout as {
+    version?: number;
+    order?: unknown;
+    decor?: Record<string, { asset?: unknown; hidden?: unknown }>;
+  } | null;
+  if (!l || l.version !== 2 || !l.decor || !Array.isArray(l.order)) return [];
+  const names: string[] = [];
+  for (const id of l.order) {
+    const d = typeof id === "string" ? l.decor[id] : undefined;
+    if (!d || d.hidden === true || typeof d.asset !== "string") continue;
+    const title = titles[d.asset]?.title;
+    if (title) names.push(title);
+  }
+  return names;
 }

@@ -614,10 +614,10 @@ function takedownFormPage(request: Request, env: Env): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>${title} · Kleit</title>${STYLE}
-<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
-input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:0.875rem;color:#5f5a52}
+input,textarea{font:inherit;font-size:1rem;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
 .check{flex-direction:row;align-items:flex-start;gap:8px;color:#1f1d1a}.check input{margin-top:3px}
-.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+.note{font-size:0.875rem;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:1.375rem;font-weight:700}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>${title}</h1><p>${intro}</p>
 <form id="f" novalidate>
@@ -658,10 +658,10 @@ function counterNoticePage(request: Request, env: Env): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Send a counter-notice · Kleit</title>${STYLE}
-<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
-input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:0.875rem;color:#5f5a52}
+input,textarea{font:inherit;font-size:1rem;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:90px}
 .check{flex-direction:row;align-items:flex-start;gap:8px;color:#1f1d1a}.check input{margin-top:3px}
-.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+.note{font-size:0.875rem;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:1.375rem;font-weight:700}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>Send a counter-notice</h1>
 <p>If a picture of yours was removed on a copyright notice and you believe that was a mistake or a misidentification, answer it here (a DMCA counter-notice). No account needed. We pass your counter-notice to the person who sent the notice, and unless they tell us within 14 days that they have filed a lawsuit, the picture comes back. The full policy is at <a href="/copyright-policy">kleit.app/copyright-policy</a>.</p>
@@ -731,7 +731,7 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Takedown status · Kleit</title>${STYLE}
-<style>form{display:flex;gap:8px;margin-top:12px}input{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;flex:1;min-width:0}</style></head>
+<style>form{display:flex;gap:8px;margin-top:12px}input{font:inherit;font-size:1rem;padding:10px;border:1px solid #d9d2c6;border-radius:8px;flex:1;min-width:0}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>Where your request got to</h1>
 <form method="get" action="/takedown/status"><input name="ref" value="${esc(ref)}" placeholder="T-XXXXXXXX" aria-label="Your reference" maxlength="20" required><button class="button" type="submit">Check</button></form>
@@ -819,9 +819,9 @@ function contactPage(request: Request, env: Env): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Contact us · Kleit</title>${STYLE}
-<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f5a52}
-input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:120px}
-.note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
+<style>form{display:flex;flex-direction:column;gap:12px;margin-top:12px}label{display:flex;flex-direction:column;gap:4px;font-size:0.875rem;color:#5f5a52}
+input,textarea,select{font:inherit;font-size:1rem;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:120px}
+.note{font-size:0.875rem;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:1.375rem;font-weight:700}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>Contact us</h1><p>A question, a bug, an idea, something about your account - write it here. No account needed. A person reads every message and answers by email within two business days; anything about safety or the law, the same day.</p>
 <p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, your work used without permission, an account pretending to be you, or your mark misused: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a> · <a href="/impersonation">impersonation</a> · <a href="/trademark">trademark</a>.</p>
@@ -890,7 +890,7 @@ function deleteAccountPage(env: Env): Response {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Delete your account · Kleit</title>${STYLE}
-<style>ol{padding-left:20px;line-height:1.6}.note{font-size:14px;color:#5f5a52}</style></head>
+<style>ol{padding-left:20px;line-height:1.6}.note{font-size:0.875rem;color:#5f5a52}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
 <h1>Delete your account</h1>
 <p>You can delete your Kleit account yourself, from inside the app, in under a minute.</p>
@@ -1036,10 +1036,10 @@ ${STYLE}${EMBED_STYLE}</head>
 const EMBED_STYLE = `<style>
 html,body.embed{margin:0;padding:0;background:transparent}
 .embed-wrap{max-width:none;margin:0;padding:0}
-.embed-head{margin:0 0 8px;font-size:14px;color:#5f5a52;line-height:1.4}
+.embed-head{margin:0 0 8px;font-size:0.875rem;color:#5f5a52;line-height:1.4}
 .embed-mark{font-weight:700;color:#1f1d1a;text-decoration:none}
 .embed-title{color:#1f1d1a;font-weight:600}
-.embed-foot{margin:8px 0 0;font-size:14px}
+.embed-foot{margin:8px 0 0;font-size:0.875rem}
 .embed-foot a{color:#c0442b;font-weight:600}
 .embed .disclosure{margin-top:6px}
 </style>`;
@@ -1187,17 +1187,17 @@ const BRAND_STYLE = `<style>
 .brand .slot.selected{border-color:#c0442b;border-style:solid}
 .brand .slot.filled{border-style:solid;border-color:#e6e0d6}
 .brand .slot img{display:block;width:100%;height:100%;object-fit:contain;border-radius:8px}
-.brand .slot-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand .slot-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.125rem}
 .brand .keep-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 0}
 .brand .keep{margin:0;min-height:44px;display:inline-flex;align-items:center;box-sizing:border-box}
 .brand .keep[aria-disabled="true"]{background:#e6e0d6;color:#5f5a52;cursor:default}
-.brand .keep-hint{font-size:14px;color:#5f5a52}
-.brand .notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:15px}
+.brand .keep-hint{font-size:0.875rem;color:#5f5a52}
+.brand .notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:0.9375rem}
 .brand .brand-pieces{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-top:12px}
 .brand .pick{display:block;width:100%;padding:0;border:1px solid #e6e0d6;border-radius:8px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:#1f1d1a;overflow:hidden}
 .brand .pick:focus-visible,.brand .slot:focus-visible,.brand .keep:focus-visible{outline:3px solid #c0442b;outline-offset:2px}
 .brand .pick img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
-.brand .pick-name{display:block;padding:8px 8px 0;font-size:14px}
+.brand .pick-name{display:block;padding:8px 8px 0;font-size:0.875rem}
 .brand .pick .tag{display:block;padding:2px 8px 8px;margin:0}
 </style>`;
 
@@ -1465,7 +1465,28 @@ function autoAlt(set: SharedSet): string {
         ? head + kept.join(", ") + ` and ${parts.length - kept.length} more.`
         : head.replace(/: $/, ".");
   }
+  // The visible decorations by their own names (spec 21 #4), in canvas order, as far as the
+  // 300 characters allow - the same words the app writes (src/sets/sets.ts autoAltText).
+  const decorations = decorationNames(set);
+  if (decorations.length > 0) {
+    const words = `with ${decorations.length} ${decorations.length === 1 ? "decoration" : "decorations"}`;
+    const withNames = text.replace(/\.$/, ", ") + `${words}: ${decorations.join(", ")}.`;
+    text = withNames.length <= 300 ? withNames : text.replace(/\.$/, ", ") + `${words}.`;
+  }
   return text.slice(0, 300);
+}
+
+function decorationNames(set: SharedSet): string[] {
+  const layout = set.layout;
+  if (!layout || layout.version !== 2 || !layout.decor || !Array.isArray(layout.order)) return [];
+  const names: string[] = [];
+  for (const id of layout.order) {
+    const d = layout.decor[id];
+    if (!d || d.hidden) continue;
+    const entry = typeof d.asset === "string" ? LIB.assets[d.asset] : undefined;
+    if (entry) names.push(entry[1]);
+  }
+  return names;
 }
 
 // One small stylesheet, inline: the share page is under 1 MB and needs nothing from the app.
@@ -1477,14 +1498,14 @@ const POLL_STYLE = `<style>
 .mini{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px;align-content:start}
 .mini img,.mini .noimg{width:100%;aspect-ratio:1;object-fit:contain;background:rgba(255,255,255,.6);border-radius:4px;display:block}
 .option .meta{padding:10px 10px 10px 0}
-.vote{margin-top:8px;padding:10px 16px;border:0;border-radius:999px;background:#c0442b;color:#fff;font-weight:600;font-size:15px;cursor:pointer;min-height:44px}
+.vote{margin-top:8px;padding:10px 16px;border:0;border-radius:999px;background:#c0442b;color:#fff;font-weight:600;font-size:0.9375rem;cursor:pointer;min-height:44px}
 .vote[disabled]{opacity:.6}
 .option.mine .piece-name::after{content:" ✓"}
 .bar{height:8px;border-radius:999px;background:#eee7dc;overflow:hidden;margin-top:8px}
 .fill{height:100%;width:0;background:#c0442b;border-radius:999px;transition:width .4s}
-.pct{margin:4px 0 0;font-size:14px;color:#5f5a52}
-.quiet{color:#5f5a52;font-size:13px;margin-top:10px}.quiet a{color:#5f5a52}
-.notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:15px}
+.pct{margin:4px 0 0;font-size:0.875rem;color:#5f5a52}
+.quiet{color:#5f5a52;font-size:0.8125rem;margin-top:10px}.quiet a{color:#5f5a52}
+.notice{margin:10px 0 0;padding:10px 12px;border:1px solid #e6e0d6;border-radius:8px;background:#fff;font-size:0.9375rem}
 .turnstile{min-height:0}
 </style>`;
 
@@ -1554,25 +1575,25 @@ const STYLE = `<style>
 :root{color-scheme:light}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#faf8f4;color:#1f1d1a;line-height:1.4}
 .wrap{max-width:640px;margin:0 auto;padding:16px}
-.top{padding-bottom:0}.mark{font-weight:700;text-decoration:none;color:#1f1d1a;font-size:20px}
-h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-size:15px;margin:0}
-.by,.from,.disclosure,.foot{color:#5f5a52;font-size:14px}.caption{font-size:17px;margin:8px 0 12px}
+.top{padding-bottom:0}.mark{font-weight:700;text-decoration:none;color:#1f1d1a;font-size:1.25rem}
+h1{font-size:1.625rem;margin:12px 0 4px}h2{font-size:1.125rem;margin:0 0 6px}h3{font-size:0.9375rem;margin:0}
+.by,.from,.disclosure,.foot{color:#5f5a52;font-size:0.875rem}.caption{font-size:1.0625rem;margin:8px 0 12px}
 .canvas{border-radius:12px;padding:12px;margin-top:12px}
 .avatar{width:24px;height:24px;border-radius:999px;object-fit:cover;vertical-align:middle;background:#eee7dc}
 .song{display:flex;align-items:center;gap:12px;margin:8px 0 0;padding:10px;border:1px solid #e4ddd1;border-radius:12px;background:#fff;color:#1f1d1a;text-decoration:none}
 .song-cover{width:48px;height:48px;border-radius:6px;background:#eee7dc;object-fit:cover;flex:none}
-.song-words{min-width:0;display:flex;flex-direction:column}.song-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist{color:#5f5a52;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-words{min-width:0;display:flex;flex-direction:column}.song-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist{color:#5f5a52;font-size:0.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .creative{position:relative;width:100%;border-radius:12px;overflow:hidden;margin-top:12px}
 .pieces{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .piece{background:rgba(255,255,255,.7);border-radius:8px;overflow:hidden}
 .piece img,.noimg{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
-.meta{padding:8px}.piece-name{font-size:15px;margin:0}.tag{margin:4px 0 0;font-weight:600;font-size:14px}
-.piece-name .n{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:#161513;color:#FAF9F7;font-size:12px;text-align:center;vertical-align:middle}
+.meta{padding:8px}.piece-name{font-size:0.9375rem;margin:0}.tag{margin:4px 0 0;font-weight:600;font-size:0.875rem}
+.piece-name .n{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:#161513;color:#FAF9F7;font-size:0.75rem;text-align:center;vertical-align:middle}
 .dot{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;display:flex;align-items:center;justify-content:center;text-decoration:none}.dot span{display:block;width:28px;height:28px;border-radius:14px;background:#161513;color:#FAF9F7;font:600 13px/28px system-ui,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.35);outline:2px solid #FAF9F7}
 .dot:focus-visible{outline:3px solid #C0442B}
 .piece:target{outline:3px solid #C0442B;outline-offset:2px}
-.who{color:inherit;text-decoration:underline}.creator{display:none;margin-top:8px}.creator:target{display:block}.creator-name{margin:0 0 4px;font-size:17px}.creator .avatar{width:40px;height:40px}.creator .close{display:inline-block;margin-left:12px;color:#5f5a52;font-size:14px}
-.buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#c0442b;color:#fff;text-decoration:none;font-weight:600;font-size:15px}
+.who{color:inherit;text-decoration:underline}.creator{display:none;margin-top:8px}.creator:target{display:block}.creator-name{margin:0 0 4px;font-size:1.0625rem}.creator .avatar{width:40px;height:40px}.creator .close{display:inline-block;margin-left:12px;color:#5f5a52;font-size:0.875rem}
+.buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#c0442b;color:#fff;text-decoration:none;font-weight:600;font-size:0.9375rem}
 .card{margin-top:20px;padding:16px;border:1px solid #e6e0d6;border-radius:12px;background:#fff}
 .sources{margin-top:20px}.sources ul{padding-left:18px}
 .foot a{color:#5f5a52}

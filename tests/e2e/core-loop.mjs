@@ -256,8 +256,9 @@ try {
   await page.goto(`${SITE}/add/photo`);
   await page.getByRole("button", { name: "Choose a photo" }).waitFor();
   await a11y(page, "Add a photo");
+  // Two file inputs since the camera button (spec 20.2 #2): the picker is the one without `capture`.
   await page
-    .locator('input[type="file"]')
+    .locator('input[type="file"]:not([capture])')
     .setInputFiles({ name: "piece.png", mimeType: "image/png", buffer: makePng() });
   // The colour, named on the phone before the photo leaves (spec 4.4 #4): the bigger block is
   // orange, and the chip for it is pressed.
@@ -953,6 +954,28 @@ try {
     "help: the one-way-in screen has its article",
   );
   await a11y(page, "Help article");
+
+  // 18. Text at 200% (spec 21 #8): every size is in rem, so doubling the root size makes cards
+  //     taller, never a page wider than the phone. Checked on a dense screen and a plain one.
+  for (const path of ["/you", "/help"]) {
+    await page.goto(`${SITE}${path}`);
+    await page.locator("h1").first().waitFor();
+    const result = await page.evaluate(() => {
+      const root = document.documentElement;
+      const before = root.style.fontSize;
+      root.style.fontSize = "200%";
+      const wide = root.scrollWidth > root.clientWidth + 1;
+      const h1 = document.querySelector("h1");
+      const size = h1 ? parseFloat(getComputedStyle(h1).fontSize) : 0;
+      root.style.fontSize = before;
+      return { wide, size };
+    });
+    check(
+      !result.wide && result.size >= 40,
+      `text at 200%: ${path} grows taller, not wider (no horizontal scroll)`,
+      JSON.stringify(result),
+    );
+  }
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

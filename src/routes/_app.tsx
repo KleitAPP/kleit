@@ -16,6 +16,7 @@ import { rememberNext, takeNext } from "@/auth/next";
 import { destinationFor, pollIdFor, setIdFor, watchIncoming } from "@/native/incoming";
 import { startPush } from "@/native/push";
 import { OfflineBanner } from "@/offline/OfflineBanner";
+import { useOnline } from "@/offline/net";
 import { watchOutbox } from "@/offline/outbox";
 import { useQuery } from "@tanstack/react-query";
 
@@ -45,6 +46,7 @@ function AppShell() {
   const { pathname } = useLocation();
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [creating, setCreating] = useState(false);
+  const online = useOnline();
   // When a draft could not be made: the cap's own words, or the plain line (migration 102).
   const [createNote, setCreateNote] = useState<string | null>(null);
 
@@ -205,21 +207,31 @@ function AppShell() {
               });
             }}
           />
+          {/* Spec 20.3 #3: offline, what needs the network is greyed with a reason, never hidden.
+              A clip reads a store page and a photo is scanned on the server; both wait. */}
           <CreateChoice
             title={t("create.clip")}
-            why={t("create.clipWhy")}
-            onChoose={() => {
-              setCreating(false);
-              void navigate({ to: "/add/link" });
-            }}
+            why={online ? t("create.clipWhy") : t("offline.needsNetwork")}
+            {...(online
+              ? {
+                  onChoose: () => {
+                    setCreating(false);
+                    void navigate({ to: "/add/link" });
+                  },
+                }
+              : {})}
           />
           <CreateChoice
             title={t("create.photo")}
-            why={t("create.photoWhy")}
-            onChoose={() => {
-              setCreating(false);
-              void navigate({ to: "/add/photo" });
-            }}
+            why={online ? t("create.photoWhy") : t("offline.needsNetwork")}
+            {...(online
+              ? {
+                  onChoose: () => {
+                    setCreating(false);
+                    void navigate({ to: "/add/photo" });
+                  },
+                }
+              : {})}
           />
           <CreateChoice
             title={t("create.ask")}

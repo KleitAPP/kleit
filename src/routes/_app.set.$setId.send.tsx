@@ -10,8 +10,11 @@ import {
   loadSet,
   type Placement,
   type SetSummary,
+  decorationNames,
 } from "@/sets/sets";
 import { t } from "@/i18n/en";
+import { useOnline } from "@/offline/net";
+import { loadCatalogue } from "@/library/library";
 import { parseTags } from "@/search/search";
 import { siteUrl } from "@/lib/site";
 import { noteSetSent } from "@/native/review";
@@ -53,6 +56,8 @@ function SendSet() {
   const { setId } = Route.useParams();
   const [set, setSet] = useState<SetSummary | null>(null);
   const [placements, setPlacements] = useState<Placement[]>([]);
+  const [decorations, setDecorations] = useState<string[]>([]);
+  const online = useOnline();
   const [missing, setMissing] = useState(false);
   const [title, setTitle] = useState("");
   const [changing, setChanging] = useState(false);
@@ -133,6 +138,10 @@ function SendSet() {
       }
       setSet(loaded.set);
       setPlacements(loaded.placements);
+      // A Creative set's decorations, by name, for the alt text (spec 21 #4).
+      const decor = decorationNames(loaded.set.layout, (await loadCatalogue()).assets);
+      if (cancelled) return;
+      setDecorations(decor);
       setTitle(loaded.set.title || autoTitle(loaded.placements));
       setTagText((loaded.set.tags ?? []).join(", "));
       // G5: alt text is written for you from the pieces and only ever a starting point. The row
@@ -140,7 +149,7 @@ function SendSet() {
       // share page writes it fresh each time), and the person's own words once they change it;
       // an empty field goes back to the written one, never to nothing (6.6 #1).
       setSavedAlt(loaded.set.alt_text ?? null);
-      setAltText(loaded.set.alt_text ?? autoAltText(loaded.placements));
+      setAltText(loaded.set.alt_text ?? autoAltText(loaded.placements, decor));
       setDescription(loaded.set.description ?? "");
     })();
     return () => {
@@ -207,13 +216,13 @@ function SendSet() {
   /** The person's own alt text, or null while the field still says what was written for them. */
   function ownAltText(): string | null {
     const typed = altText.trim().slice(0, 300);
-    return typed && typed !== autoAltText(placements) ? typed : null;
+    return typed && typed !== autoAltText(placements, decorations) ? typed : null;
   }
 
   async function saveAltText() {
     if (!set) return;
     const next = ownAltText();
-    if (!altText.trim()) setAltText(autoAltText(placements));
+    if (!altText.trim()) setAltText(autoAltText(placements, decorations));
     if (next === savedAlt) return;
     const { error } = await supabase.from("sets").update({ alt_text: next }).eq("id", set.id);
     if (!error) setSavedAlt(next);
@@ -452,7 +461,16 @@ function SendSet() {
 
       {set.status !== "published" ? (
         <div className="mt-6">
-          <PrimaryButton onClick={() => void publish()} disabled={busy || placements.length === 0}>
+          {/* Spec 20.3 #3: offline, the button stays and says why it waits; the draft is safe. */}
+          {!online ? (
+            <p role="status" className="mb-2 text-sm text-ink-soft">
+              {t("offline.sendLater")}
+            </p>
+          ) : null}
+          <PrimaryButton
+            onClick={() => void publish()}
+            disabled={busy || placements.length === 0 || !online}
+          >
             {busy ? t("loading") : t("send.publish")}
           </PrimaryButton>
           <Link

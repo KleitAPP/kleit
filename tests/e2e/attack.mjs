@@ -1445,7 +1445,7 @@ try {
   );
   const counterIntimate = await call("takedown-request", null, {
     ...counterBody,
-    takedown_ref: "T-NOSUCH01",
+    takedown_ref: "T-NOSUCHAB",
   });
   check(
     counterIntimate.status === 404,

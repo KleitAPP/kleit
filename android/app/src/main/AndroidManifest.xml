@@ -64,4 +64,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The camera, for "Take a photo" (spec 20.2 #2): the WebView's file chooser with `capture`
+         opens the camera only when this is declared; Capacitor asks at the moment of use. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

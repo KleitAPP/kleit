@@ -97,10 +97,10 @@ export function legalBody(path: string): { title: string; html: string } | null 
 
 /** The styles these pages add to the Worker's shared STYLE: readable text, a table that fits a phone. */
 export const LEGAL_STYLE = `<style>
-.legal p{margin:10px 0;font-size:16px}.legal p.item{margin:6px 0 6px 18px}
-.legal h2{font-size:20px;margin:26px 0 6px}.legal h3{font-size:16px;margin:18px 0 4px}
+.legal p{margin:10px 0;font-size:1rem}.legal p.item{margin:6px 0 6px 18px}
+.legal h2{font-size:1.25rem;margin:26px 0 6px}.legal h3{font-size:1rem;margin:18px 0 4px}
 .legal a{color:#1f1d1a}.legal strong{font-weight:600}
-.legal table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+.legal table{border-collapse:collapse;width:100%;margin:12px 0;font-size:0.875rem;display:block;overflow-x:auto}
 .legal th,.legal td{border:1px solid #e4ddd1;padding:6px 8px;text-align:left;vertical-align:top;min-width:120px}
 .legal th{background:#f3eee6}
 </style>`;

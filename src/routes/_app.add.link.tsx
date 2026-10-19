@@ -11,6 +11,7 @@ import {
   type SaveProblem,
 } from "@/items/clipLink";
 import { t } from "@/i18n/en";
+import { useOnline } from "@/offline/net";
 import { onSharedAddress, takeSharedAddress } from "@/native/incoming";
 
 /**
@@ -79,6 +80,7 @@ function AddLink() {
   const [fromPhone] = useState(() => takeSharedAddress());
   const [stage, setStage] = useState<Stage>({ at: "paste" });
   const [url, setUrl] = useState(fromPhone ?? shared ?? "");
+  const online = useOnline();
 
   // The details, editable (name and price - spec 4.1 #9), and the picture picked.
   const [title, setTitle] = useState("");
@@ -208,9 +210,14 @@ function AddLink() {
             </p>
           ) : null}
           <div className="mt-6">
+            {!online ? (
+              <p role="status" className="mb-2 text-sm text-ink-soft">
+                {t("offline.needsNetwork")}
+              </p>
+            ) : null}
             <PrimaryButton
               onClick={() => void read()}
-              disabled={stage.at === "reading" || !url.trim()}
+              disabled={stage.at === "reading" || !url.trim() || !online}
             >
               {stage.at === "reading" ? t("loading") : t("clip.read")}
             </PrimaryButton>

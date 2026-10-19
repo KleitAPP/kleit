@@ -40,7 +40,9 @@ import {
   SelectedPanel,
   TEXT_COLOURS,
   TextPanel,
+  layerName,
 } from "@/canvas/panels";
+import { CanvasMirror, useAnnouncer } from "@/canvas/mirror";
 import { FONTS } from "@/fonts/catalogue";
 import { loadFont } from "@/fonts/load";
 import { myFonts, type MyFont } from "@/fonts/myFonts";
@@ -93,6 +95,9 @@ function CanvasScreen() {
     void myFonts().then(setMine);
   }, []);
   const [selected, setSelected] = useState<string | null>(null);
+  // The screen reader's half of the canvas (spec 21 #2): the hidden layer list and one live region.
+  const announcer = useAnnouncer();
+  const stageWrap = useRef<HTMLDivElement | null>(null);
   const [cropping, setCropping] = useState(false);
   const [picking, setPicking] = useState(false);
   const [library, setLibrary] = useState<"assets" | "backgrounds" | null>(null);
@@ -231,6 +236,16 @@ function CanvasScreen() {
   const apply = useCallback((next: Doc) => {
     setHistory((h) => (h ? commit(h, next) : h));
   }, []);
+
+  /** Decoration titles by catalogue id, for the layer names the sheet, the mirror and the announcements share. */
+  function decorNamesOf(d: Doc): Record<string, string> {
+    const names: Record<string, string> = {};
+    if (catalogue)
+      for (const l of Object.values(d.layers))
+        if (l.kind === "asset" && l.asset && catalogue.assets[l.asset])
+          names[l.asset] = catalogue.assets[l.asset]!.title;
+    return names;
+  }
 
   const sel = selected && doc ? doc.layers[selected] : null;
 
@@ -427,6 +442,13 @@ function CanvasScreen() {
 
   function remove(id: string) {
     if (!doc) return;
+    const gone = doc.layers[id];
+    if (gone)
+      announcer.say(
+        t("mirror.removed", {
+          name: layerName(gone, items, doc.order.indexOf(id), decorNamesOf(doc)),
+        }),
+      );
     apply(removeLayer(doc, id));
     if (selected === id) setSelected(null);
   }
@@ -497,6 +519,7 @@ function CanvasScreen() {
         void duplicate(clipboardRef.current);
       } else if (!mod && e.key.toLowerCase() === "l" && sel) {
         e.preventDefault();
+        announcer.say(t(sel.locked ? "mirror.unlocked" : "mirror.locked"));
         change(sel.id, { locked: !sel.locked });
       } else if (e.key === "?" && !mod) {
         e.preventDefault();
@@ -509,9 +532,11 @@ function CanvasScreen() {
         const step = e.shiftKey ? 1 : 10;
         const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
         const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
+        announcer.move(dx, dy);
         apply(updateLayer(doc, sel.id, { x: sel.x + dx, y: sel.y + dy }));
       } else if ((e.key === "]" || e.key === "[") && sel && doc) {
         e.preventDefault();
+        announcer.say(t(e.key === "]" ? "mirror.forward" : "mirror.back"));
         apply(reorder(doc, sel.id, e.key === "]" ? "forward" : "back"));
       } else if (e.key === "Escape") {
         setSelected(null);
@@ -540,11 +565,7 @@ function CanvasScreen() {
 
   const index = sel ? doc.order.indexOf(sel.id) : -1;
   const imgFor = sel ? images[imageKey(sel)] : null;
-  const decorNames: Record<string, string> = {};
-  if (catalogue)
-    for (const l of Object.values(doc.layers))
-      if (l.kind === "asset" && l.asset && catalogue.assets[l.asset])
-        decorNames[l.asset] = catalogue.assets[l.asset]!.title;
+  const decorNames = decorNamesOf(doc);
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 pt-3 pb-8">
@@ -608,6 +629,7 @@ function CanvasScreen() {
       ) : null}
 
       <div
+        ref={stageWrap}
         className="mt-3 overflow-hidden rounded-md border border-line bg-surface-2 touch-none"
         style={{ width: doc.canvas.w * scale, height: doc.canvas.h * scale }}
         aria-label={t("builder.canvas")}
@@ -620,6 +642,15 @@ function CanvasScreen() {
           scale={scale}
           stageRef={stageRef}
           onSelect={(id) => {
+            if (id && id !== selected) {
+              const l = doc.layers[id];
+              if (l)
+                announcer.say(
+                  t("mirror.selected", {
+                    name: layerName(l, items, doc.order.indexOf(id), decorNames),
+                  }),
+                );
+            }
             setSelected(id);
             if (id !== selected) setCropping(false);
           }}
@@ -634,6 +665,18 @@ function CanvasScreen() {
           }}
         />
       </div>
+      <CanvasMirror
+        doc={doc}
+        items={items}
+        decorNames={decorNames}
+        selected={selected}
+        onSelect={(id) => {
+          setSelected(id);
+          if (id !== selected) setCropping(false);
+        }}
+        stage={stageWrap}
+      />
+      {announcer.region}
       {doc.order.length === 0 ? (
         <p className="mt-2 text-sm text-ink-soft">{t("canvas.empty")}</p>
       ) : null}
@@ -721,7 +764,10 @@ function CanvasScreen() {
             canMoveDown={index > 0}
             canvasWidth={doc.canvas.w}
             onSizeTo={sizeTo}
-            onNudge={(dx, dy) => change(sel.id, { x: sel.x + dx, y: sel.y + dy })}
+            onNudge={(dx, dy) => {
+              announcer.move(dx, dy);
+              change(sel.id, { x: sel.x + dx, y: sel.y + dy });
+            }}
             onSize={(k) => {
               const w = Math.max(24, Math.round(sel.w * k));
               const h = Math.max(24, Math.round(sel.h * k));
@@ -732,9 +778,18 @@ function CanvasScreen() {
                 y: Math.round(sel.y + (sel.h - h) / 2),
               });
             }}
-            onRotate={(deg) => change(sel.id, { rotation: (sel.rotation + deg + 360) % 360 })}
-            onFlip={(axis) => apply(flip(doc, sel.id, axis))}
-            onOrder={(move) => apply(reorder(doc, sel.id, move))}
+            onRotate={(deg) => {
+              announcer.say(t("mirror.rotated", { deg: (sel.rotation + deg + 360) % 360 }));
+              change(sel.id, { rotation: (sel.rotation + deg + 360) % 360 });
+            }}
+            onFlip={(axis) => {
+              announcer.say(t("mirror.flipped"));
+              apply(flip(doc, sel.id, axis));
+            }}
+            onOrder={(move) => {
+              announcer.say(t(move === "forward" ? "mirror.forward" : "mirror.back"));
+              apply(reorder(doc, sel.id, move));
+            }}
             onDuplicate={() => void duplicate()}
             onOpacity={(value) => change(sel.id, { opacity: value })}
             onFit={() =>
@@ -749,7 +804,10 @@ function CanvasScreen() {
               )
             }
             onCrop={() => setCropping((c) => !c)}
-            onLock={() => change(sel.id, { locked: !sel.locked })}
+            onLock={() => {
+              announcer.say(t(sel.locked ? "mirror.unlocked" : "mirror.locked"));
+              change(sel.id, { locked: !sel.locked });
+            }}
             onHide={() => {
               change(sel.id, { hidden: true });
               setSelected(null);

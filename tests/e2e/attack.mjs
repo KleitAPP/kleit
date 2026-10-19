@@ -941,9 +941,18 @@ try {
     ),
     (c) => c.charCodeAt(0),
   );
-  await admin.storage
+  // Storage's 429s (WA22) hit uploads too: without this the read below was blamed for an object
+  // that was never written ("Object not found", 2026-10-19).
+  let photoUp = await admin.storage
     .from("closet-photos")
     .upload(photoPath, jpegBytes, { contentType: "image/jpeg", upsert: true });
+  for (let n = 0; photoUp.error && n < 5; n++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    photoUp = await admin.storage
+      .from("closet-photos")
+      .upload(photoPath, jpegBytes, { contentType: "image/jpeg", upsert: true });
+  }
+  check(!photoUp.error, "setup: the message photo's file is in the bucket", photoUp.error?.message);
   const { data: photoItem } = await admin
     .from("items")
     .insert({

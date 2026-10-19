@@ -8,6 +8,8 @@ const config: CapacitorConfig = {
   // Reverse of kleit.app, the domain registered before M8.1b. It is fixed forever once a
   // store build exists, so it is set now rather than after.
   appId: "app.kleit",
+  // "Kleit app" in Where you're signed in (src/auth/devices.ts reads it off the user agent).
+  appendUserAgent: "Kleit/1",
   appName: "Kleit",
   webDir: ".output/public",
   android: {

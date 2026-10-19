@@ -180,6 +180,10 @@ Deno.serve(async (request) => {
     id_paths,
     ip_hash: ipHash,
   });
-  if (error) return reply(500, { error: "failed" });
+  if (error) {
+    // No row, no photos: a file nothing points at would never come due for the purge.
+    if (id_paths.length) await admin.storage.from("id-verification").remove(id_paths);
+    return reply(500, { error: "failed" });
+  }
   return reply(200, { ok: true, ref: request_ref, hours: kind === "intimate" ? 48 : 72 });
 });

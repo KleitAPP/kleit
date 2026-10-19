@@ -10,9 +10,11 @@ import { looksLikeAnEmail } from "@/auth/codes";
  * a DIFFERENT Kleit account is refused by the server, not merged.
  *
  * Changing the email: Supabase emails the NEW address a code (or a link, while the email
- * template is Supabase's own - CL21) and, with secure email change on, the OLD address too, so
- * the person who had the account hears about it (3.6 #4; the "Wasn't you? Lock my account" line
- * in that email is CL43). The address changes only once the new one has answered.
+ * template is Supabase's own - CL21) and, with secure email change on (the default), the OLD
+ * address too - and the address moves only once BOTH have answered, which is what keeps a
+ * stolen session from walking off with the account (3.6 #4; the "Wasn't you? Lock my account"
+ * line in that email is CL43). The screen asks for the two codes one after the other; a link in
+ * either email counts as that side's answer.
  */
 export type Method = {
   provider: "email" | "google" | "apple" | string;

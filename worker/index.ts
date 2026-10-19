@@ -531,7 +531,7 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
       const cy = ((num(pos.y, 0) + num(pos.h, 0, 0) / 2) / h) * 100;
       const name = p.title?.trim() || (p.kind === "own" ? "their own piece" : "a piece");
       const tag = p.kind === "own" ? "their own piece" : price(p) || "";
-      return `<a class="dot" href="#piece-${i + 1}" style="left:${cx.toFixed(2)}%;top:${cy.toFixed(2)}%" aria-label="Piece ${i + 1}: ${esc(name)}${tag ? `, ${esc(tag)}` : ""} - details below" title="${esc(name)}${tag ? ` · ${esc(tag)}` : ""}">${i + 1}</a>`;
+      return `<a class="dot" href="#piece-${i + 1}" style="left:${cx.toFixed(2)}%;top:${cy.toFixed(2)}%" aria-label="Piece ${i + 1}: ${esc(name)}${tag ? `, ${esc(tag)}` : ""} - details below" title="${esc(name)}${tag ? ` · ${esc(tag)}` : ""}"><span aria-hidden="true">${i + 1}</span></a>`;
     })
     .join("");
   const faces = [...fontsUsed]
@@ -666,7 +666,7 @@ async function takedownStatusPage(request: Request, env: Env): Promise<Response>
       else if (row.state === "removed")
         line =
           row.kind === "impersonation" || row.kind === "trademark"
-            ? "Done: we acted on the claim. The email we sent says what changed."
+            ? "Done: we acted on the claim. If you asked for a reply, it comes by email."
             : "Done: the picture and any identical copies were removed.";
       else
         line =
@@ -1477,7 +1477,7 @@ h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-siz
 .piece img,.noimg{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
 .meta{padding:8px}.piece-name{font-size:15px;margin:0}.tag{margin:4px 0 0;font-weight:600;font-size:14px}
 .piece-name .n{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:#161513;color:#FAF9F7;font-size:12px;text-align:center;vertical-align:middle}
-.dot{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:14px;background:#161513;color:#FAF9F7;font:600 13px/28px system-ui,sans-serif;text-align:center;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.35);outline:2px solid #FAF9F7}
+.dot{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;display:flex;align-items:center;justify-content:center;text-decoration:none}.dot span{display:block;width:28px;height:28px;border-radius:14px;background:#161513;color:#FAF9F7;font:600 13px/28px system-ui,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.35);outline:2px solid #FAF9F7}
 .dot:focus-visible{outline:3px solid #C0442B}
 .piece:target{outline:3px solid #C0442B;outline-offset:2px}
 .who{color:inherit;text-decoration:underline}.creator{display:none;margin-top:8px}.creator:target{display:block}.creator-name{margin:0 0 4px;font-size:17px}.creator .avatar{width:40px;height:40px}.creator .close{display:inline-block;margin-left:12px;color:#5f5a52;font-size:14px}

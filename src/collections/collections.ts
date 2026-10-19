@@ -85,7 +85,12 @@ export async function loadCollection(collectionId: string): Promise<{
           .is("deleted_at", null)
       : Promise.resolve({ data: [] }),
     itemIds.length
-      ? supabase.from("items").select(ITEM_FIELDS).in("id", itemIds)
+      ? supabase
+          .from("items")
+          .select(ITEM_FIELDS)
+          .in("id", itemIds)
+          .is("deleted_at", null)
+          .eq("takedown_state", "none")
       : Promise.resolve({ data: [] }),
   ]);
   const setById = new Map(((sets ?? []) as unknown as SetSummary[]).map((s) => [s.id, s]));

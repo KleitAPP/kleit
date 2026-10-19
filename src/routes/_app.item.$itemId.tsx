@@ -254,8 +254,6 @@ function ItemPage() {
           ) : null}
           <button
             type="button"
-            aria-label={t("collections.saveTo")}
-            title={t("collections.saveTo")}
             onClick={() => setSaving(true)}
             className="flex min-h-11 items-center gap-1 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
           >

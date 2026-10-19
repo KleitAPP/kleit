@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
@@ -45,7 +45,13 @@ export function SocialBar({
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
   const [refused, setRefused] = useState<false | "cant" | "contact">(false);
   /** The comment being answered (spec 12.1 #1 "reply"); the reply joins its thread. */
-  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [replyTo, setReplyToState] = useState<Comment | null>(null);
+  const writeRef = useRef<HTMLInputElement>(null);
+  /** Reply puts the words box under the thumb at once; a screen reader hears where it went. */
+  function setReplyTo(c: Comment | null) {
+    setReplyToState(c);
+    if (c) window.setTimeout(() => writeRef.current?.focus(), 0);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -173,7 +179,9 @@ export function SocialBar({
               <li className="text-sm text-ink-soft">{t("social.none")}</li>
             ) : null}
             {list
-              .filter((c) => !c.parent_id)
+              // A reply whose first comment this viewer cannot see (held, or its author blocked)
+              // still shows, at the top level, rather than vanishing with its thread.
+              .filter((c) => !c.parent_id || !list.some((x) => x.id === c.parent_id))
               .map((root) => (
                 <li key={root.id}>
                   <CommentCard c={root} {...cardProps} />
@@ -224,6 +232,7 @@ export function SocialBar({
             }}
           >
             <input
+              ref={writeRef}
               type="text"
               value={draft}
               maxLength={500}

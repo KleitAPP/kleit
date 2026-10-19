@@ -414,6 +414,8 @@ export const en = {
     "We send a code to the new address, and a note to the old one so you'd know if it wasn't you.",
   "account.sendCode": "Send code",
   "account.codeSent": "Code sent to {email}",
+  "account.codeSentOld":
+    "One more: we also sent a code to your current address, {email}. It proves the change is yours.",
   "account.codeOrLink":
     "Type the six digits here. If the email has a link instead, tapping it works too.",
   "account.theCode": "The code",
@@ -941,7 +943,7 @@ export const en = {
   "collections.saveTo": "Save to a folder",
   "collections.saveToWhat": "Tap a folder to put this set in or take it out.",
   "collections.saveToWhatPiece": "Tap a folder to put this piece in or take it out.",
-  "collections.folder": "Folder",
+  "collections.folder": "Save to a folder",
   "collections.order": "Order",
   "collections.newest": "Newest",
   "collections.az": "A–Z",

@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(13);
+select plan(14);
 
 insert into auth.users (id, email) values
   ('b8b8b8b8-0000-4000-8000-000000000001', 'rp-owner@test.kleit'),
@@ -68,6 +68,11 @@ select pg_temp.act_as('b8b8b8b8-0000-4000-8000-000000000003');
 select throws_ok($$insert into comments (set_id, author_id, body, parent_id) values ('b8000000-0000-4000-8000-000000000001', 'b8b8b8b8-0000-4000-8000-000000000003', 'too late', 'b8000000-0000-4000-8000-000000000011')$$, 'P0001', null, 'no reply under a comment that was taken back');
 select pg_temp.act_as('b8b8b8b8-0000-4000-8000-000000000004');
 select throws_ok($$insert into comments (set_id, author_id, body, parent_id) values ('b8000000-0000-4000-8000-000000000001', 'b8b8b8b8-0000-4000-8000-000000000004', 'hey', 'b8000000-0000-4000-8000-000000000013')$$, '42501', null, 'a person the parent''s author blocked cannot reply to them');
+-- 5. (109) No reply under a comment the word list is holding.
+select pg_temp.as_server();
+insert into comments (id, set_id, author_id, body, held_at) values ('b8000000-0000-4000-8000-000000000031', 'b8000000-0000-4000-8000-000000000001', 'b8b8b8b8-0000-4000-8000-000000000002', 'held words', now());
+select pg_temp.act_as('b8b8b8b8-0000-4000-8000-000000000003');
+select throws_ok($$insert into comments (set_id, author_id, body, parent_id) values ('b8000000-0000-4000-8000-000000000001', 'b8b8b8b8-0000-4000-8000-000000000003', 'under a held one', 'b8000000-0000-4000-8000-000000000031')$$, 'P0001', null, 'no reply under a comment that is held for a look (109)');
 
 select * from finish();
 rollback;

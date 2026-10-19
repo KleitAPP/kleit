@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 
 /**
  * "Share my profile" (spec 3.5 #7, #9; CL67): your profile link, a QR code of it for a phone held
@@ -20,7 +21,7 @@ export function ShareProfile({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const link = `${window.location.origin}/u/${username}`;
+  const link = siteUrl(`/u/${username}`);
   const [qr, setQr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 

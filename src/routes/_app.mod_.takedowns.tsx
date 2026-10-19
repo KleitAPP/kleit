@@ -65,21 +65,31 @@ function Takedowns() {
 
   /** Opens one ID photo in a new tab: the function signs a two-minute address for a moderator. */
   async function openPhoto(path: string) {
+    // The tab is opened inside the tap (Safari refuses one opened after an await) and pointed
+    // at the signed address once it arrives.
+    const tab = window.open("", "_blank", "noopener");
     const { data, error } = await supabase.functions.invoke<{ url?: string }>(
       `id-photo?path=${encodeURIComponent(path)}`,
       { method: "GET" },
     );
     if (error || !data?.url) {
+      tab?.close();
       setFailure({ ...failure, photo: t("takedowns.photoFailed") });
       return;
     }
-    window.open(data.url, "_blank", "noopener");
+    if (tab) tab.location.href = data.url;
+    else window.open(data.url, "_blank", "noopener");
   }
 
   async function resolve(r: Row, outcome: "removed" | "rejected") {
     if (busy) return;
     setBusy(r.id);
-    const guess = item[r.id]?.trim() || r.urls.map((u) => UUID.exec(u)?.[0]).find(Boolean) || "";
+    // A picture goes only for the two picture claims; an impersonation or trademark claim is
+    // acted on in People and only recorded here, whatever its links name.
+    const pictureClaim = r.kind === "intimate" || r.kind === "copyright";
+    const guess = pictureClaim
+      ? item[r.id]?.trim() || r.urls.map((u) => UUID.exec(u)?.[0]).find(Boolean) || ""
+      : "";
     const { error } = await supabase.rpc("takedown_resolve", {
       p_id: r.id,
       p_outcome: outcome,
@@ -168,14 +178,16 @@ function Takedowns() {
                 {r.kind === "impersonation" || r.kind === "trademark" ? (
                   <p className="mt-1 text-sm text-ink-soft">{t("takedowns.claimHow")}</p>
                 ) : null}
-                <input
-                  type="text"
-                  value={item[r.id] ?? ""}
-                  onChange={(e) => setItem({ ...item, [r.id]: e.target.value })}
-                  placeholder={t("takedowns.itemId")}
-                  aria-label={t("takedowns.itemId")}
-                  className="mt-2 min-h-11 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink"
-                />
+                {r.kind === "intimate" || r.kind === "copyright" ? (
+                  <input
+                    type="text"
+                    value={item[r.id] ?? ""}
+                    onChange={(e) => setItem({ ...item, [r.id]: e.target.value })}
+                    placeholder={t("takedowns.itemId")}
+                    aria-label={t("takedowns.itemId")}
+                    className="mt-2 min-h-11 w-full rounded-md border border-line bg-surface px-3 text-sm text-ink"
+                  />
+                ) : null}
                 <input
                   type="text"
                   value={note[r.id] ?? ""}

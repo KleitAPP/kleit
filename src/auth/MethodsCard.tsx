@@ -31,6 +31,8 @@ export function MethodsCard({
   const [changing, setChanging] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
+  /** Secure email change: the new address answers first, then the old one. */
+  const [stage, setStage] = useState<"new" | "old">("new");
   const [code, setCode] = useState("");
   const [emailNote, setEmailNote] = useState<string | null>(null);
 
@@ -39,6 +41,19 @@ export function MethodsCard({
     void signInMethods().then((list) => {
       if (!cancelled) setMethods(list ?? []);
     });
+    // Google sends a refusal back in the address, not to linkIdentity(): read it once and say it.
+    const back = new URLSearchParams(
+      window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.search,
+    );
+    const why = (back.get("error_description") ?? back.get("error_code") ?? "").toLowerCase();
+    if (why) {
+      setNote(
+        why.includes("already") || why.includes("identity_already_exists")
+          ? t("account.linkTaken")
+          : t("account.linkFailed"),
+      );
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     return () => {
       cancelled = true;
     };
@@ -97,16 +112,26 @@ export function MethodsCard({
     if (!sentTo || code.length !== 6) return;
     setBusy(true);
     setEmailNote(null);
-    const result = await confirmEmailChange(sentTo, code);
+    // Stage "new": the code the new address got. Stage "old": the one the old address got -
+    // Supabase's secure email change wants both before the address moves.
+    const result = await confirmEmailChange(stage === "new" ? sentTo : (email ?? ""), code);
     setBusy(false);
     if (result.ok) {
-      const changed = result.email ?? sentTo;
-      onEmailChanged(changed);
+      const now = (result.email ?? "").toLowerCase();
+      if (now !== sentTo) {
+        // Half way: the server still shows the old address until the old inbox answers too.
+        setStage("old");
+        setCode("");
+        setEmailNote(null);
+        return;
+      }
+      onEmailChanged(now);
       setChanging(false);
       setSentTo(null);
+      setStage("new");
       setCode("");
       setNewEmail("");
-      setEmailNote(t("account.emailChanged", { email: changed }));
+      setEmailNote(t("account.emailChanged", { email: now }));
       return;
     }
     setEmailNote(
@@ -192,7 +217,11 @@ export function MethodsCard({
                   void confirm();
                 }}
               >
-                <p className="text-base text-ink">{t("account.codeSent", { email: sentTo })}</p>
+                <p className="text-base text-ink">
+                  {stage === "new"
+                    ? t("account.codeSent", { email: sentTo })
+                    : t("account.codeSentOld", { email: email ?? "" })}
+                </p>
                 <p className="text-sm text-ink-soft">{t("account.codeOrLink")}</p>
                 <label className="block text-sm text-ink-soft">
                   {t("account.theCode")}
@@ -218,6 +247,7 @@ export function MethodsCard({
                     type="button"
                     onClick={() => {
                       setSentTo(null);
+                      setStage("new");
                       setCode("");
                     }}
                     className="min-h-12 rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink"

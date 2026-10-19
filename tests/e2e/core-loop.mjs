@@ -967,8 +967,18 @@ try {
       const wide = root.scrollWidth > root.clientWidth + 1;
       const h1 = document.querySelector("h1");
       const size = h1 ? parseFloat(getComputedStyle(h1).fontSize) : 0;
+      // What sticks out, when something does: the first few elements past the right edge.
+      const culprits = wide
+        ? Array.from(document.querySelectorAll("body *"))
+            .filter((el) => el.getBoundingClientRect().right > root.clientWidth + 1)
+            .slice(0, 4)
+            .map(
+              (el) =>
+                `${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 3).join(".")}:${(el.textContent ?? "").trim().slice(0, 20)}`,
+            )
+        : [];
       root.style.fontSize = before;
-      return { wide, size };
+      return { wide, size, culprits };
     });
     check(
       !result.wide && result.size >= 40,

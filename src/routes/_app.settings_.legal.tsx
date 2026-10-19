@@ -9,8 +9,8 @@ import { siteUrl } from "@/lib/site";
 /**
  * S22 — Help and legal (design pack §2.1; spec 13.5, 17.2).
  *
- * The same four documents the sign-up checkbox links to, read from the same files, so there is
- * one copy of each and it cannot drift. They open in a sheet here for the same reason they do at
+ * The same documents the sign-up checkbox links to (and kleit.app/terms, /privacy, … show), read
+ * from the same files, so there is one copy of each and it cannot drift. They open in a sheet here for the same reason they do at
  * sign-up: you should not lose your place to read them.
  *
  * The note about them being drafts is on the screen, not buried, because they say so themselves
@@ -28,6 +28,8 @@ const DOCS: { key: LegalDoc; title: string }[] = [
   { key: "privacy", title: t("legal.privacy") },
   { key: "guidelines", title: t("legal.guidelines") },
   { key: "copyright", title: t("legal.copyright") },
+  { key: "cookies", title: t("legal.cookies") },
+  { key: "accessibility", title: t("legal.accessibility") },
 ];
 
 function HelpAndLegal() {
@@ -70,6 +72,15 @@ function HelpAndLegal() {
           </li>
         ))}
       </ul>
+
+      {/* Spec 14.1 #5: the "Your Privacy Choices" link, to the section of the policy on the public
+          page (the sheet above shows the same text; the page can open at the section). */}
+      <a
+        href={siteUrl("/privacy#your-choices-and-rights")}
+        className="mt-4 flex min-h-12 items-center rounded-md border border-line bg-surface px-4 text-base text-ink"
+      >
+        {t("legal.privacyChoices")}
+      </a>
 
       <Link
         to="/settings/library"

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import { t } from "@/i18n/en";
 
 import appCss from "../styles.css?url";
+import { CANVAS_DARK, CANVAS_LIGHT } from "@/theme/colours";
 import { LaunchGate } from "../screens/LaunchGate";
 import { endBreakOnRealSignIn } from "../auth/session";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -81,14 +82,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Kleit" },
       { name: "description", content: "Kleit" },
       { name: "robots", content: "noindex, nofollow" },
+      // The browser chrome's colour (spec 19 #11): the canvas colour of each theme, read from the
+      // theme file (src/theme/colours.ts), so the bar above the app matches the screen below it.
+      // HeadContent keeps one meta per name, so the light twin is written by the shell itself.
+      { name: "theme-color", media: "(prefers-color-scheme: dark)", content: CANVAS_DARK },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      // Every icon is generated from the mark by scripts/build-icons.mjs (spec 19 #11): the SVG
+      // follows light and dark, the .ico is for browsers that do not read SVG icons.
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "16x16 32x32 48x48" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -102,6 +111,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content={CANVAS_LIGHT} />
       </head>
       <body>
         {children}

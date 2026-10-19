@@ -5,6 +5,7 @@ import { rememberInvite } from "@/auth/beta";
 import { rememberNext, safeNext } from "@/auth/next";
 import { KleitMark } from "@/brand/KleitMark";
 import { t } from "@/i18n/en";
+import { siteUrl } from "@/lib/site";
 
 /**
  * S4 - Welcome (design pack section 2.1, flow 4.1 step 1).
@@ -54,6 +55,21 @@ function Welcome() {
         >
           {t("welcome.signIn")}
         </Link>
+        {/* Spec 18.1 #1: a Help link in the same place on every page - here, under the two buttons,
+            with the documents the stores and a visitor expect to find without an account. */}
+        <p className="mt-4 text-center text-sm text-ink-soft">
+          <Link to="/help" className="underline underline-offset-2">
+            {t("help.link")}
+          </Link>{" "}
+          ·{" "}
+          <a href={siteUrl("/terms")} className="underline underline-offset-2">
+            {t("legal.terms")}
+          </a>{" "}
+          ·{" "}
+          <a href={siteUrl("/privacy")} className="underline underline-offset-2">
+            {t("legal.privacy")}
+          </a>
+        </p>
       </div>
     </main>
   );

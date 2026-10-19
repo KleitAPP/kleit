@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<style>:root{color:#161513}@media (prefers-color-scheme:dark){:root{color:#F2F0EB}}</style>
+<g transform="translate(5.31 3) scale(0.12857)"><g fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">
+    <path d="M2.6 31.2 14.4 29.6V129.6c0 7.2-11.8 7.2-11.8 0Z"/>
+    <path d="M3.5 63 11 53.5C40 45.5 71 43 100 50L19 74Z"/>
+    <g transform="rotate(24 19 68.5)"><path d="M3.5 63 11 53.5C40 45.5 71 43 100 50L19 74Z" transform="matrix(1 0 0 -1 0 137)"/></g>
+    <path d="M8.5 34C9 20 14 7 26 7c11.5 0 18.5 6.5 18.5 14 0 7.5-6 11.5-13 10.5" fill="none" stroke-width="14.2" stroke-linecap="round"/>
+  </g>
+</g>
+</svg>

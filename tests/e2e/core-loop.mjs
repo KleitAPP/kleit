@@ -913,6 +913,46 @@ try {
     recoverWords.slice(0, 120),
   );
   await a11y(page, "Can't sign in");
+
+  // 17. The help centre (spec 18.1 #1, 18.2): grouped like the FAQ, a filter box that narrows the
+  //     list, an article for a screen with one way in, and the legal documents one tap away.
+  await page.goto(`${SITE}/help`);
+  await page.getByRole("heading", { name: "Decoration" }).waitFor();
+  const helpGroups = await page.locator("h2").allInnerTexts();
+  check(
+    [
+      "Getting started",
+      "Sets",
+      "Closet and clipping",
+      "Decoration",
+      "Sharing and polls",
+      "Shopping",
+      "Safety",
+      "Account",
+      "Brands",
+    ].every((g) => helpGroups.includes(g)),
+    "help: the FAQ's groups are the screen's",
+    helpGroups.join(", "),
+  );
+  await page.getByRole("searchbox", { name: "Search help" }).fill("version history");
+  await wait(300);
+  const narrowed = await page
+    .getByRole("link")
+    .filter({ hasText: /Version history/ })
+    .count();
+  const hidden = await page.getByRole("link", { name: "What is Kleit?" }).count();
+  check(
+    narrowed === 1 && hidden === 0,
+    "help: the filter box narrows the list to the match",
+    `${narrowed}/${hidden}`,
+  );
+  await page.getByRole("link", { name: "Version history" }).click();
+  await page.getByRole("heading", { name: "Version history" }).waitFor();
+  check(
+    /last 20 saves/.test(await page.innerText("article")),
+    "help: the one-way-in screen has its article",
+  );
+  await a11y(page, "Help article");
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

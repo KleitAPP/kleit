@@ -103,6 +103,10 @@ function Join() {
         <p className="mt-4 text-sm text-ink-soft">
           {t("join.usOnly")}{" "}
           <LegalLink onOpen={() => setOpenDoc("privacy")}>{t("join.privacy")}</LegalLink>
+          {" · "}
+          <Link to="/help" className="text-ink underline">
+            {t("help.link")}
+          </Link>
         </p>
 
         {/* The bot check still runs on Cloudflare's test key. That is a note for us, not for the

@@ -31,8 +31,13 @@ function Settings() {
           why={t("settings.notificationsWhy")}
         />
         <Row to="/settings/devices" title={t("settings.devices")} why={t("settings.devicesWhy")} />
+        <Row to="/help" title={t("help.centre")} />
         <Row to="/settings/legal" title={t("settings.help")} />
-        <Later title={t("settings.signInMethods")} />
+        <Row
+          to="/settings/account"
+          title={t("settings.signInMethods")}
+          why={t("settings.signInMethodsWhy")}
+        />
         <Row to="/settings/blocked" title={t("settings.blocked")} why={t("settings.blockedWhy")} />
         <Row to="/settings/reports" title={t("settings.reports")} why={t("settings.reportsWhy")} />
         <Row to="/settings/strikes" title={t("settings.strikes")} why={t("settings.strikesWhy")} />
@@ -70,29 +75,6 @@ function Row({ to, title, why }: { to: string; title: string; why?: string }) {
         <span className="text-base text-ink">{title}</span>
         {why ? <span className="text-sm text-ink-soft">{why}</span> : null}
       </Link>
-    </li>
-  );
-}
-
-/**
- * A row that exists so the shape of Settings never changes under people, and says it is not built.
- *
- * Testing found these read as working rows: same size, same borders, and Delete account in danger
- * red looked like the most tappable thing on the screen while doing nothing at all. So they are
- * now plainly unfinished - dimmed, with the label on the right saying so, and no red anywhere,
- * because a colour that means "careful, this is destructive" should not sit on a row that cannot
- * destroy anything. aria-disabled says the same thing to a screen reader.
- */
-function Later({ title }: { title: string }) {
-  return (
-    <li
-      aria-disabled="true"
-      className="flex min-h-12 items-center justify-between gap-3 border-b border-line px-4 py-3 opacity-60 last:border-b-0"
-    >
-      <span className="text-base text-ink-soft">{title}</span>
-      <span className="shrink-0 rounded-pill border border-line px-2 py-1 text-sm text-ink-soft">
-        {t("settings.later")}
-      </span>
     </li>
   );
 }

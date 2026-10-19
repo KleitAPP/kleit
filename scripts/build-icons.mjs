@@ -9,7 +9,11 @@
  * mark or the colours change, and commit what changes.
  *
  * What it makes:
- *   web     public/apple-touch-icon.png (180), public/icon-512.png; extension/icons/icon-*.png
+ *   web     public/favicon.ico (16/32/48, the small mark), public/favicon.svg (the small mark,
+ *           light and dark), public/apple-touch-icon.png (180), public/icon-192.png,
+ *           public/icon-512.png, public/icon-512-maskable.png and public/manifest.webmanifest
+ *           (spec 19 #11); extension/icons/icon-*.png
+ *           `node scripts/build-icons.mjs --web` writes the web files only.
  *   iOS     Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png (1024, opaque - Apple's rule)
  *           Assets.xcassets/Splash.imageset/splash-2732x2732*.png
  *   Android mipmap-<density>/ic_launcher_foreground.png (the adaptive layer; the mark inside the safe
@@ -52,6 +56,13 @@ const inner = (colour) =>
     .replaceAll("kleit-mark-pin", "pin");
 const MARK_W = 104;
 const MARK_H = 140;
+// The small variant (pin filled in, strokes fattened) for 24 px and below: the favicon.
+const MARK_SMALL = readFileSync(join(ROOT, "src/brand/kleit-mark-small.svg"), "utf8");
+const innerSmall = (colour) =>
+  MARK_SMALL.replace(/^[\s\S]*?<g /, "<g ")
+    .replace(/<\/svg>\s*$/, "")
+    .replaceAll("currentColor", colour);
+const WEB_ONLY = process.argv.includes("--web");
 
 const ACCENT = "#C0442B";
 const PAPER = "#FAF9F7";
@@ -61,15 +72,39 @@ const PAPER_DARK = "#151412";
 const INK_DARK = "#F2F0EB";
 
 /** A square picture: the mark, `markHeight` tall, centred on a flat colour (or on nothing). */
-function picture(size, markHeight, colour, background) {
+function picture(size, markHeight, colour, background, small = false) {
   const k = markHeight / MARK_H;
   const w = MARK_W * k;
   const x = (size - w) / 2;
   const y = (size - markHeight) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
 ${background ? `<rect width="${size}" height="${size}" fill="${background}"/>` : ""}
-<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${k.toFixed(5)})">${inner(colour)}</g>
+<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${k.toFixed(5)})">${small ? innerSmall(colour) : inner(colour)}</g>
 </svg>`;
+}
+
+/** An .ico holding PNG frames (every current browser reads PNG inside ICO): 6-byte header, one 16-byte entry per frame, then the frames. */
+function ico(frames) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(frames.length, 4);
+  const entries = [];
+  let offset = 6 + 16 * frames.length;
+  for (const { size, data } of frames) {
+    const e = Buffer.alloc(16);
+    e.writeUInt8(size === 256 ? 0 : size, 0);
+    e.writeUInt8(size === 256 ? 0 : size, 1);
+    e.writeUInt8(0, 2); // colours in palette: none
+    e.writeUInt8(0, 3);
+    e.writeUInt16LE(1, 4); // colour planes
+    e.writeUInt16LE(32, 6); // bits per pixel
+    e.writeUInt32LE(data.length, 8);
+    e.writeUInt32LE(offset, 12);
+    entries.push(e);
+    offset += data.length;
+  }
+  return Buffer.concat([header, ...entries, ...frames.map((f) => f.data)]);
 }
 
 async function png(svg, path) {
@@ -78,10 +113,64 @@ async function png(svg, path) {
   console.log("wrote", path.replace(ROOT, ""));
 }
 
-// The web: the home-screen icon phones use when the site is added to a home screen, and the
-// one the browser tab's favicon.ico already carries at small sizes.
+// The web (spec 19 #11): the tab's favicon - the small mark on the accent, as an .ico of three
+// PNG frames for every browser and as an SVG that follows light and dark for the ones that read
+// it - the home-screen icon phones use when the site is added to a home screen, the manifest
+// icons (one maskable, the mark inside the safe circle like Android's adaptive layer), and the
+// manifest itself. Until 2026-10-19 favicon.ico was still the generator's gradient heart.
+{
+  const frames = [];
+  for (const size of [16, 32, 48]) {
+    const data = await sharp(
+      Buffer.from(picture(size, Math.round(size * 0.68), "#FFFFFF", ACCENT, true)),
+    )
+      .png()
+      .toBuffer();
+    frames.push({ size, data });
+  }
+  writeFileSync(join(ROOT, "public/favicon.ico"), ico(frames));
+  console.log("wrote public/favicon.ico");
+  // The SVG favicon: the mark in ink on nothing, light and dark by the browser's setting.
+  const k = 18 / MARK_H;
+  const x = (24 - MARK_W * k) / 2;
+  writeFileSync(
+    join(ROOT, "public/favicon.svg"),
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<style>:root{color:${INK}}@media (prefers-color-scheme:dark){:root{color:${INK_DARK}}}</style>
+<g transform="translate(${x.toFixed(2)} 3) scale(${k.toFixed(5)})">${innerSmall("currentColor")}</g>
+</svg>
+`,
+  );
+  console.log("wrote public/favicon.svg");
+}
 await png(picture(180, 106, "#FFFFFF", ACCENT), join(ROOT, "public/apple-touch-icon.png"));
+await png(picture(192, 112, "#FFFFFF", ACCENT), join(ROOT, "public/icon-192.png"));
 await png(picture(512, 300, "#FFFFFF", ACCENT), join(ROOT, "public/icon-512.png"));
+await png(picture(512, 246, "#FFFFFF", ACCENT), join(ROOT, "public/icon-512-maskable.png"));
+writeFileSync(
+  join(ROOT, "public/manifest.webmanifest"),
+  JSON.stringify(
+    {
+      name: "Kleit",
+      short_name: "Kleit",
+      description: "Put an outfit together and send it to friends to vote on.",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      background_color: PAPER,
+      theme_color: PAPER,
+      icons: [
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: "/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+    },
+    null,
+    2,
+  ) + "\n",
+);
+console.log("wrote public/manifest.webmanifest");
+if (WEB_ONLY) process.exit(0);
 
 // The browser extension's icons (M9.1): the same icon at the four sizes Chrome asks for.
 for (const size of [16, 32, 48, 128]) {

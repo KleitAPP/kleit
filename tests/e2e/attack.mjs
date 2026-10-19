@@ -743,6 +743,31 @@ try {
     "stranger: every form page is the Worker's own, not the app shell",
     formTitles.join(" | ").slice(0, 160),
   );
+  // The six legal pages (spec 19 #4) are the Worker's own too - the stores need a public privacy
+  // policy, and until 2026-10-19 every footer sent a visitor to a screen inside the app that
+  // bounced them to /welcome - and they carry no script at all.
+  const legalPaths = [
+    "/terms",
+    "/privacy",
+    "/guidelines",
+    "/copyright-policy",
+    "/cookies",
+    "/accessibility",
+  ];
+  const legalPages = await Promise.all(legalPaths.map((path) => fetch(`${SITE}${path}`)));
+  const legalTitles = await Promise.all(
+    legalPages.map(async (r) => (await r.text()).match(/<title>([^<]*)/)?.[1] ?? ""),
+  );
+  check(
+    legalTitles.every((title) =>
+      /^Kleit (Terms|Privacy|Community|Copyright|Cookie|Accessibility)/.test(title),
+    ) &&
+      legalPages.every((r) =>
+        /script-src 'none'/.test(r.headers.get("content-security-policy") ?? ""),
+      ),
+    "stranger: the six legal pages are the Worker's own and run no script",
+    legalTitles.join(" | ").slice(0, 200),
+  );
   // A layout is JSON the owner writes; a quote inside a "number" closed the style attribute it
   // was written into (the server-code review, 2026-10-12). The victim's own Creative set
   // carries the payload; the page must draw it as a number or not at all.

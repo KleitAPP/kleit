@@ -22,6 +22,7 @@
 
 // The library index: catalogue id → [file, title], written by scripts/build-library.mjs.
 import LIBRARY from "../src/library/files.json";
+import { LEGAL_FOOTER, LEGAL_PAGES, LEGAL_STYLE, legalBody } from "./legal";
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -226,6 +227,7 @@ export default {
     if (url.pathname === "/sitemap.xml") return sitemap(request, env);
     if (url.pathname === "/contact") return contactPage(request, env);
     if (url.pathname === "/delete-account") return deleteAccountPage(env);
+    if (url.pathname in LEGAL_PAGES) return legalPage(url.pathname, env);
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
 
     const code = url.pathname.slice(3).replace(/\/+$/, "");
@@ -395,7 +397,7 @@ ${STYLE}${POLL_STYLE}</head>
   <p class="by">${esc(who)} is asking${poll.closed ? " · closed" : ` · until ${esc(closesText)}`}</p>
   <p class="notice" id="notice" role="status" hidden></p>
   <ul class="options" id="options">${cards}</ul>
-  <p class="quiet" id="before">Tap Vote under the one you'd pick. One vote per device. <a href="/settings/legal">How we handle votes</a>.</p>
+  <p class="quiet" id="before">Tap Vote under the one you'd pick. One vote per device. <a href="/privacy#visitors-without-an-account">How we handle votes</a>.</p>
   <p class="quiet" id="after" hidden>One vote per device · <span id="change">You can change your vote until ${esc(closesText)}</span></p>
   <div id="turnstile" class="turnstile"></div>
   <section class="card" id="signup" hidden>
@@ -405,7 +407,7 @@ ${STYLE}${POLL_STYLE}</head>
   </section>
 </main>
 <footer class="wrap foot">
-  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
+  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/privacy#your-choices-and-rights">Your Privacy Choices</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 <script nonce="${nonce}">window.KLEIT_POLL=${config.replace(/</g, "\\u003c")};</script>
 <script nonce="${nonce}">${POLL_SCRIPT}</script>
@@ -629,7 +631,7 @@ ${extraFields}
 <p id="msg" class="note" role="status" aria-live="polite"></p>
 </form>
 <section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note" id="hours"></p><p class="note">Keep it. You can check on it any time at <a href="/takedown/status">kleit's takedown status page</a>.</p></section>
-<footer class="wrap foot"><a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+<footer class="wrap foot"><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></footer>
 </main>
 <script nonce="${nonce}">window.KLEIT_TD=${config.replace(/</g, "\\u003c")};</script>
 <script nonce="${nonce}">${TAKEDOWN_SCRIPT}</script>
@@ -752,10 +754,11 @@ function contactPage(request: Request, env: Env): Response {
 input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid #d9d2c6;border-radius:8px;background:#fff;color:#1f1d1a}textarea{min-height:120px}
 .note{font-size:14px;color:#5f5a52}.ok{border:1px solid #d9d2c6;border-radius:12px;padding:14px;margin-top:12px}.ref{font-size:22px;font-weight:700}</style></head>
 <body><main class="wrap"><a class="mark" href="/welcome">Kleit</a>
-<h1>Contact us</h1><p>A question, a bug, something about your account - write it here. No account needed. A person reads every message and answers by email, usually within two days.</p>
+<h1>Contact us</h1><p>A question, a bug, an idea, something about your account - write it here. No account needed. A person reads every message and answers by email within two business days; anything about safety or the law, the same day.</p>
 <p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, your work used without permission, an account pretending to be you, or your mark misused: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a> · <a href="/impersonation">impersonation</a> · <a href="/trademark">trademark</a>.</p>
 <form id="f" novalidate>
-<label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("recovery", "I can't sign in")}${option("safety", "Safety")}${option("other", "Something else")}</select></label>
+<label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("recovery", "I can't sign in")}${option("safety", "Safety")}${option("idea", "An idea for Kleit")}${option("brand", "I'm a brand")}${option("legal", "A legal request")}${option("other", "Something else")}</select></label>
+${topic === "legal" ? `<p class="note">For law enforcement and courts: write from an official address and attach the paperwork - a subpoena, warrant or court order as the law requires. We answer within the time the paperwork sets, and we tell the person concerned unless the law forbids it. An emergency involving a risk to someone's life: say so in the first line.</p>` : ""}
 ${topic === "recovery" ? `<p class="note">Write from the email address on the account, and say your username. We check it's yours through that address or a linked Google sign-in before we change anything - never by a username alone. If you still have your email or a linked Google account, <a href="/recover">you can get back in yourself</a>.</p>` : ""}
 <label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>
 <label>Your email (where the answer goes)<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
@@ -765,7 +768,7 @@ ${topic === "recovery" ? `<p class="note">Write from the email address on the ac
 <p id="msg" class="note" role="status" aria-live="polite"></p>
 </form>
 <section id="done" class="ok" hidden><p>Sent. Your reference:</p><p class="ref" id="ref"></p><p class="note">Keep it in case you write again about the same thing. The answer comes to the email you gave.</p></section>
-<footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+<footer class="wrap foot"><a href="/help">Help</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></footer>
 </main>
 <script nonce="${nonce}">window.KLEIT_CT=${config.replace(/</g, "\\u003c")};</script>
 <script nonce="${nonce}">${CONTACT_SCRIPT}</script>
@@ -794,6 +797,24 @@ const CONTACT_SCRIPT = `(function(){
   });
 })();`;
 
+// The public legal pages (spec 19 #4): the drafts in docs/legal/, drawn by worker/legal.ts. No
+// script, nothing personal, so the page may be cached for an hour; `noindex` like every page on
+// the test site (the domain stage lifts that, WA15).
+function legalPage(path: string, env: Env): Response {
+  const page = legalBody(path);
+  if (!page) return notAvailable(env);
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>${esc(page.title)} · Kleit</title>${STYLE}${LEGAL_STYLE}</head>
+<body><main class="wrap legal"><a class="mark" href="/welcome">Kleit</a>
+${page.html}
+<footer class="foot" style="margin-top:28px">${LEGAL_FOOTER}</footer>
+</main></body></html>`;
+  return new Response(html, {
+    headers: pageHeaders(env, { cache: "public, max-age=3600" }),
+  });
+}
+
 // How to delete your account (M7.5; the page app stores ask for): the steps, and a way in for
 // someone who can't sign in any more.
 function deleteAccountPage(env: Env): Response {
@@ -808,7 +829,7 @@ function deleteAccountPage(env: Env): Response {
 <p>Your account closes straight away and is deleted for good after seven days. If you sign in during those seven days you can undo it with one tap. After that, your sets, closet, pictures, messages and profile are gone and cannot be brought back.</p>
 <p class="note">Can't sign in any more? <a href="/recover">See the ways back in</a>, or <a href="/contact?topic=recovery">write to us</a> from the email address on the account and we'll do it for you.</p>
 <p><a class="button" href="/settings/delete">Open Delete account</a></p>
-<footer class="wrap foot"><a href="/help">Help</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a></footer>
+<footer class="wrap foot"><a href="/help">Help</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></footer>
 </main></body></html>`;
   return new Response(html, { headers: pageHeaders(env) });
 }
@@ -1319,7 +1340,7 @@ ${STYLE}</head>
   ${sources.length ? `<section class="sources"><h2>Sources</h2><ul>${sources.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>` : ""}
 </main>
 <footer class="wrap foot">
-  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/contact">Report</a> · <a href="/settings/legal">Terms</a> · <a href="/settings/legal">Privacy</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
+  <a href="/help">Help</a> · <a href="/contact">Contact</a> · <a href="/contact">Report</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/privacy#your-choices-and-rights">Your Privacy Choices</a> · <a href="/copyright">Copyright</a> · <a href="/takedown">Remove an intimate image</a>
 </footer>
 </body></html>`;
 }

@@ -8,12 +8,15 @@ select plan(6);
 insert into auth.users (id, email) values
   ('eaeaeaea-0000-4000-8000-000000000001', 'mn-owner@test.kleit'),
   ('eaeaeaea-0000-4000-8000-000000000002', 'mn-reporter@test.kleit'),
-  ('eaeaeaea-0000-4000-8000-000000000003', 'mn-moderator@test.kleit');
+  ('eaeaeaea-0000-4000-8000-000000000003', 'mn-moderator@test.kleit'),
+  ('eaeaeaea-0000-4000-8000-000000000004', 'mn-second@test.kleit');
 insert into profiles (user_id, username, age_confirmed_at, terms_version) values
   ('eaeaeaea-0000-4000-8000-000000000001', 'mnowner', now(), 't'),
   ('eaeaeaea-0000-4000-8000-000000000002', 'mnreporter', now(), 't'),
-  ('eaeaeaea-0000-4000-8000-000000000003', 'mnmoderator', now(), 't');
-insert into user_roles (user_id, role) values ('eaeaeaea-0000-4000-8000-000000000003', 'moderator');
+  ('eaeaeaea-0000-4000-8000-000000000003', 'mnmoderator', now(), 't'),
+  ('eaeaeaea-0000-4000-8000-000000000004', 'mnsecond', now(), 't');
+-- Two moderators: an appeal is decided by a different person than the one who struck (113).
+insert into user_roles (user_id, role) values ('eaeaeaea-0000-4000-8000-000000000003', 'moderator'), ('eaeaeaea-0000-4000-8000-000000000004', 'moderator');
 insert into sets (id, owner_id, title, status, visibility, share_code, published_at) values
   ('ea000000-0000-4000-8000-000000000001', 'eaeaeaea-0000-4000-8000-000000000001', 'reported set', 'published', 'public', 'modnotify0000001', now());
 
@@ -37,7 +40,7 @@ select is(pg_temp.notes('eaeaeaea-0000-4000-8000-000000000001', 'strike'), 1, 'o
 -- An appeal, overturned: the appellant hears.
 select pg_temp.act_as('eaeaeaea-0000-4000-8000-000000000001');
 insert into appeals (strike_id, user_id, body) values ((select id from strikes where user_id = 'eaeaeaea-0000-4000-8000-000000000001'), 'eaeaeaea-0000-4000-8000-000000000001', 'please');
-select pg_temp.act_as('eaeaeaea-0000-4000-8000-000000000003');
+select pg_temp.act_as('eaeaeaea-0000-4000-8000-000000000004');
 select lives_ok($$ select decide_appeal((select id from appeals where user_id = 'eaeaeaea-0000-4000-8000-000000000001'), 'overturned', 'fair') $$, 'moderator: overturns');
 select is(pg_temp.notes('eaeaeaea-0000-4000-8000-000000000001', 'appeal_decided'), 1, 'owner: is told the appeal was decided');
 

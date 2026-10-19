@@ -1155,6 +1155,19 @@ try {
     "but it files an urgent report on the conversation, against the sender, with evidence",
     JSON.stringify(dmReport).slice(0, 120),
   );
+  // And an urgent report reaches every moderator at once (spec 13.4 #1: phone alerts) - as a
+  // notification row, which is also the push's source.
+  const { data: alerts } = await admin
+    .from("notifications")
+    .select("user_id")
+    .eq("kind", "mod_urgent")
+    .eq("ref_id", dmReport?.id ?? "")
+    .in("user_id", [moderator.id, second.id]);
+  check(
+    (alerts ?? []).length === 2,
+    "moderators: both were told of the urgent report",
+    String((alerts ?? []).length),
+  );
   const readAnon = await anon.storage.from("closet-photos").createSignedUrl(photoPath, 60);
   check(!readAnon.data?.signedUrl, "stranger: cannot read a message photo with no session");
   const stolenPhoto = await a.rpc("send_message", {
@@ -1246,18 +1259,16 @@ try {
     p_note: "attack test",
   });
   check(!overturned.error, "second moderator: overturns the appeal", overturned.error?.code);
-  // The urgent report the victim filed (an intimate image) reached both moderators at once
-  // (spec 13.4 #1: phone alerts) - as a notification row, which is also the push's source.
-  const { data: alerts } = await admin
+  // A harassment report is not urgent: no moderator was woken for it (spec 13.4 #1).
+  const { data: calmAlerts } = await admin
     .from("notifications")
     .select("user_id")
     .eq("kind", "mod_urgent")
-    .eq("ref_id", reportRow?.id ?? "")
-    .in("user_id", [moderator.id, second.id]);
+    .eq("ref_id", reportRow?.id ?? "");
   check(
-    (alerts ?? []).length === 2,
-    "moderators: both were told of the urgent report",
-    String((alerts ?? []).length),
+    (calmAlerts ?? []).length === 0,
+    "moderators: a normal report wakes nobody",
+    String((calmAlerts ?? []).length),
   );
   const strikesAfter = await a.rpc("my_strikes", {});
   const ended = (strikesAfter.data ?? []).find((x) => x.id === strike?.id);

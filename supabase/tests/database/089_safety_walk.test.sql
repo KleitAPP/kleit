@@ -75,8 +75,10 @@ select is((select count(*) from scan_review_queue() q where q.item_id = 'd100000
 select is((select q.owner_username from scan_review_queue() q where q.item_id = 'd1000000-0000-4000-8000-000000000013'), 'swowner', 'moderator one: with its owner');
 select throws_ok($$ select scan_decide('d1000000-0000-4000-8000-000000000012', 'clean', '') $$, 'P0002', null, 'moderator one: a photo not in review cannot be decided');
 select lives_ok($$ select scan_decide('d1000000-0000-4000-8000-000000000013', 'blocked', 'not clothing') $$, 'moderator one: blocks the review photo');
+select pg_temp.as_server();
 select is((select scan_state from item_flags where item_id = 'd1000000-0000-4000-8000-000000000013'), 'blocked'::scan_state, 'the flag is blocked');
 select is((select count(*) from moderation_actions m where m.target_id = 'd1000000-0000-4000-8000-000000000013' and m.action = 'scan_block' and m.moderator_id = 'd1000000-0000-4000-8000-000000000003'), 1::bigint, 'the decision is logged');
+select pg_temp.as_server();
 select is((select count(*) from notifications n where n.user_id = 'd1000000-0000-4000-8000-000000000001' and n.kind = 'photo_decided' and n.ref_id = 'd1000000-0000-4000-8000-000000000013'), 1::bigint, 'the owner is told');
 select pg_temp.act_as('d1000000-0000-4000-8000-000000000002');
 select throws_ok($$ select scan_decide('d1000000-0000-4000-8000-000000000013', 'clean', '') $$, '42501', null, 'viewer: cannot decide a scan');
@@ -93,6 +95,7 @@ select pg_temp.act_as('d1000000-0000-4000-8000-000000000003');
 select throws_ok($$ select decide_appeal((select id from appeals where item_id = 'd1000000-0000-4000-8000-000000000013'), 'overturned', '') $$, 'P0004', null, 'moderator one: the person who blocked it does not review the appeal');
 select pg_temp.act_as('d1000000-0000-4000-8000-000000000004');
 select lives_ok($$ select decide_appeal((select id from appeals where item_id = 'd1000000-0000-4000-8000-000000000013'), 'overturned', 'a hanger') $$, 'moderator two: overturns it');
+select pg_temp.as_server();
 select is((select scan_state from item_flags where item_id = 'd1000000-0000-4000-8000-000000000013'), 'clean'::scan_state, 'the photo is clean again');
 select is((select count(*) from notifications n where n.user_id = 'd1000000-0000-4000-8000-000000000001' and n.kind = 'appeal_decided' and n.ref_type = 'item' and n.ref_id = 'd1000000-0000-4000-8000-000000000013'), 1::bigint, 'the owner is told of the appeal, pointing at the photo');
 
@@ -103,8 +106,11 @@ select is((select file_report('item', 'd1000000-0000-4000-8000-000000000015', 'i
 select pg_temp.act_as('d1000000-0000-4000-8000-000000000003');
 select is((select q.picture_item_id from moderation_queue() q where q.target_id = 'd1000000-0000-4000-8000-000000000015'), 'd1000000-0000-4000-8000-000000000015'::uuid, 'moderator: the queue names the piece whose picture to show');
 select is((select q.due_at - q.created_at from moderation_queue() q where q.target_id = 'd1000000-0000-4000-8000-000000000015'), interval '24 hours', 'moderator: an urgent report is due in a day');
+select pg_temp.as_server();
 select is((select count(*) from notifications n where n.kind = 'mod_urgent' and n.user_id in ('d1000000-0000-4000-8000-000000000003', 'd1000000-0000-4000-8000-000000000004', 'd1000000-0000-4000-8000-000000000005')), 3::bigint, 'every moderator and admin was told of the urgent report');
+select pg_temp.act_as('d1000000-0000-4000-8000-000000000003');
 select lives_ok($$ select moderate((select r.id from reports r where r.target_id = 'd1000000-0000-4000-8000-000000000015' and r.state = 'open'), 'remove', 'sw test') $$, 'moderator: removes it');
+select pg_temp.as_server();
 select is((select count(*) from removed_image_fingerprints where image_hash = 'swhash-reported-0001'), 1::bigint, 'the fingerprint is listed');
 select is((select takedown_state from items where id = 'd1000000-0000-4000-8000-000000000016'), 'removed'::takedown_state, 'and the identical copy under another name went with it');
 

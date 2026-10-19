@@ -14,13 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /** What went wrong, in terms the screens can turn into the design pack's wording. */
 export type CodeProblem =
-  | "wrong-code"
-  | "expired"
-  | "too-many"
-  | "no-account"
-  | "bad-address"
-  | "offline"
-  | "unknown";
+  "wrong-code" | "expired" | "too-many" | "no-account" | "bad-address" | "offline" | "unknown";
 
 export type CodeResult = { ok: true } | { ok: false; problem: CodeProblem };
 
@@ -35,12 +29,19 @@ function readProblem(error: {
     return "too-many";
   }
   // Supabase says this when shouldCreateUser is false and the address has no account.
-  if (code === "otp_disabled" || message.includes("signups not allowed") || message.includes("not found")) {
+  if (
+    code === "otp_disabled" ||
+    message.includes("signups not allowed") ||
+    message.includes("not found")
+  ) {
     return "no-account";
   }
   // The auth server refuses some domains outright (example.com, most disposable ones). Retrying
   // can never work, so saying "try again" would be sending someone round a loop.
-  if (code === "email_address_invalid" || message.includes("email address") && message.includes("invalid")) {
+  if (
+    code === "email_address_invalid" ||
+    (message.includes("email address") && message.includes("invalid"))
+  ) {
     return "bad-address";
   }
   if (code === "otp_expired" || message.includes("expired")) return "expired";
@@ -94,9 +95,7 @@ export function looksLikeAnEmail(value: string): boolean {
   // One or more dot-separated pieces after the @, each with something in it: this is what
   // rejects a@b..com, which the looser pattern let through.
   return (
-    trimmed.length >= 6 &&
-    trimmed.length <= 320 &&
-    /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(trimmed)
+    trimmed.length >= 6 && trimmed.length <= 320 && /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(trimmed)
   );
 }
 

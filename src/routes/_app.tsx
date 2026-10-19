@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { touchDevice } from "@/auth/devices";
 import { whereDoIBelong } from "@/auth/session";
 import { Sheet, TabBar, type TabId } from "@/components/kleit";
 import { createQuickDraft } from "@/sets/sets";
@@ -96,6 +97,11 @@ function AppShell() {
   // Offline edits (M8.5): replay on start and whenever the network comes back.
   useEffect(() => {
     if (allowed === true) watchOutbox();
+  }, [allowed]);
+
+  // Where you're signed in (spec 3.6 #6): this session says hello, so the list in Settings is true.
+  useEffect(() => {
+    if (allowed === true) void touchDevice();
   }, [allowed]);
 
   // Back to the set a shared page sent the person from (spec 8.2 #2), once they are in - or on

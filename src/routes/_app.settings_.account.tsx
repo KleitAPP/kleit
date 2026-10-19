@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/i18n/en";
+import { MethodsCard } from "@/auth/MethodsCard";
 import { tidyUsername, usernameStatus } from "@/auth/profile";
 
 /**
@@ -10,10 +11,9 @@ import { tidyUsername, usernameStatus } from "@/auth/profile";
  * Your name, bio and username are editable here (the bio is screened on the server: no phone
  * numbers or addresses, migration 062; the username at most twice every 14 days, the old one
  * held 14 days for you and nobody else, no redirect - spec 3.6 #5, migration 001's rule).
- * Changing an email needs the code-to-the-new-address flow with an
- * alert to the old one (spec 3.6 #4), and the phone number needs Twilio (M1.11); neither is
- * built, so neither is offered. Showing a field you cannot change is honest; offering a button
- * that does nothing is not.
+ * Ways to sign in and Change email are the MethodsCard (spec 3.6 #1, #2, #4). The phone number
+ * needs Twilio (M1.11) and is not built, so it is not offered: showing a field you cannot change
+ * is honest; offering a button that does nothing is not.
  */
 export const Route = createFileRoute("/_app/settings_/account")({
   head: () => ({ meta: [{ title: "Account" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -173,8 +173,8 @@ function Account() {
           </span>
         </div>
       </form>
+      <MethodsCard email={email} onEmailChanged={setEmail} />
       <dl className="mt-4 overflow-hidden rounded-md border border-line bg-surface">
-        <Field label={t("account.email")} value={email ?? ""} />
         <Field
           label={t("account.username")}
           value={username ? `@${username}` : ""}

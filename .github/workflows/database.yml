@@ -344,6 +344,15 @@ jobs:
           psql "$DSN" -v ON_ERROR_STOP=1 -c "select network, set_id is null as no_set, created_at from public.clicks where item_id = '$ITEM'"
           N="$(psql "$DSN" -tA -c "select count(*) from public.clicks where item_id = '$ITEM'")"
           test "$N" = "2" || { echo "::error::expected 2 clicks recorded, found $N"; exit 1; }
+          # A network set for the store as a row (migration 116; spec 16.1 #9): the same tap now
+          # lands on the network's template with the store address inside it, and the click is
+          # recorded under the network's name. The row goes again straight after.
+          psql "$DSN" -v ON_ERROR_STOP=1 -q -c "insert into public.affiliate_networks (domain, network, link_template) values ('example.com', 'ci-net', 'https://go.ci-net.example/?id=1&url={url}') on conflict (domain) do update set network = excluded.network, link_template = excluded.link_template, enabled = true"
+          curl -sS -o /dev/null -D /tmp/buy-net-headers.txt "$FN?item=$ITEM"
+          psql "$DSN" -v ON_ERROR_STOP=1 -q -c "delete from public.affiliate_networks where domain = 'example.com'"
+          grep -qi "^location: https://go.ci-net.example/?id=1&url=https%3A%2F%2Fexample.com%2Fci-buy-check%3Fx%3D1" /tmp/buy-net-headers.txt || { cat /tmp/buy-net-headers.txt; echo "::error::Buy did not go through the store's network"; exit 1; }
+          NET="$(psql "$DSN" -tA -c "select network from public.clicks where item_id = '$ITEM' order by created_at desc limit 1")"
+          test "$NET" = "ci-net" || { echo "::error::the click was recorded as $NET, not ci-net"; exit 1; }
           psql "$DSN" -tA -c "select count(*) from information_schema.columns where table_name='clicks' and (column_name ilike '%user%' or column_name ilike '%email%')" | grep -q "^0$" || { echo "::error::clicks has a column that could name a person"; exit 1; }
           psql "$DSN" -v ON_ERROR_STOP=1 -q -c "delete from public.item_flags where item_id = '$ITEM'"
           psql "$DSN" -v ON_ERROR_STOP=1 -c "delete from public.items where id = '$ITEM'"

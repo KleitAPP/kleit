@@ -70,6 +70,17 @@ enabled = true
 client_id = "877303036038-s5io17cekpnd515omnn0va8u7b2vnrvl.apps.googleusercontent.com"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 
+# The server's own bot check on sign-up and sign-in (spec 15.3 #11). Off until the real Turnstile
+# keys exist (OW15): with Cloudflare's test secret it would accept any token and refuse only a
+# person whose widget failed to load - no security gained, robustness lost. When OW15 lands:
+# uncomment these four lines, add SUPABASE_AUTH_CAPTCHA_SECRET to the GitHub secrets and to the
+# two auth steps of database.yml, and set VITE_TURNSTILE_SITE_KEY for the app. The app already
+# sends the token on both sign-in screens and names a refusal ("The bot check didn't pass").
+# [auth.captcha]
+# enabled = true
+# provider = "turnstile"
+# secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
+
 [auth.rate_limit]
 # Wrong codes are limited per device, not per email address (owner's decision, 2026-09-25).
 # Ten tries per five minutes from one internet connection, against a code that dies after ten

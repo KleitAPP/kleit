@@ -1715,6 +1715,7 @@ export const en = {
   "recover.deleteGo": "ask us to delete the account",
   "join.failed": "That didn't go through. Try again, or use email instead",
   "join.offline": "You're offline. Sign-up needs a connection",
+  "join.botCheck": "The bot check didn't pass. Reload the page and try again",
   "join.refused": "This account can't be opened.",
   "join.testBotCheck": "Test bot check - real keys before the beta",
   "invite.title": "Your invite",

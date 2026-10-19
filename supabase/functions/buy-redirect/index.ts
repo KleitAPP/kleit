@@ -94,19 +94,41 @@ Deno.serve(async (request) => {
   if (destination.protocol !== "https:" && destination.protocol !== "http:")
     return plain(404, "Not found");
 
+  // The store's affiliate network, if the admin has set one (migration 116; spec 16.1 #9): the
+  // stored address goes into the network's template and the click is recorded under its name.
+  // No row, or a template that does not read as a web address: straight to the store, as before.
+  let location = destination.toString();
+  let recordedNetwork = network;
+  const { data: affiliate } = await server.rpc("affiliate_for", { p_domain: destination.hostname });
+  const row = (affiliate ?? [])[0] as { network: string; link_template: string } | undefined;
+  if (row) {
+    const rewritten = row.link_template
+      .replaceAll("{url}", encodeURIComponent(destination.toString()))
+      .replaceAll("{raw}", destination.toString());
+    try {
+      const parsed = new URL(rewritten);
+      if (parsed.protocol === "https:") {
+        location = parsed.toString();
+        recordedNetwork = row.network;
+      }
+    } catch {
+      /* a broken template sends the person to the store, not nowhere */
+    }
+  }
+
   // Recorded before the redirect, and if the record fails the person still gets to the store:
   // a click we could not count is our loss, not theirs.
   const { error } = await server.from("clicks").insert({
     item_id: item.id,
     set_id: onSet,
-    network,
+    network: recordedNetwork,
   });
   if (error) console.error("[buy-redirect] could not record the click:", error.message);
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: destination.toString(),
+      Location: location,
       "Cache-Control": "no-store",
     },
   });

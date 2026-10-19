@@ -24,7 +24,9 @@ export const Route = createFileRoute("/join/code")({
   validateSearch: (search: Record<string, unknown>): { email: string } => ({
     email: typeof search["email"] === "string" ? search["email"] : "",
   }),
-  head: () => ({ meta: [{ title: "Check your email" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Check your email" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: CodeEntry,
 });
 
@@ -35,6 +37,7 @@ const PROBLEM_TEXT: Record<CodeProblem, string> = {
   "no-account": t("email.noAccount"),
   "bad-address": t("email.badDomain"),
   offline: t("code.offline"),
+  "bot-check": t("join.botCheck"),
   unknown: t("code.unknown"),
 };
 
@@ -45,9 +48,10 @@ function CodeEntry() {
   // This screen is only honest if a code was actually sent from this tab. Reached by URL it used
   // to announce "We sent a 6-digit code to …" when nothing had been sent, and offered anyone an
   // unauthenticated place to guess codes at an address of their choosing.
-  const arrivedFromSend = useRouterState({
-    select: (state) => state.location.state as { codeSent?: boolean } | undefined,
-  })?.codeSent === true;
+  const arrivedFromSend =
+    useRouterState({
+      select: (state) => state.location.state as { codeSent?: boolean } | undefined,
+    })?.codeSent === true;
 
   useEffect(() => {
     if (!arrivedFromSend && !codeWasSentTo(email)) void navigate({ to: "/join", replace: true });

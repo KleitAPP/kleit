@@ -1,0 +1,34 @@
+# Kleit — the packages, checked for known holes (spec 15.5 #17: "keep packages updated").
+# Weekly, and on every change to what is installed. Fails on a high or critical advisory, which
+# is the reminder to run `bun audit fix` (within ranges) and push - the app workflow proves the
+# upgrade. One advisory is ignored on purpose, with its reason beside it; nothing else is.
+name: audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/audit.yml"
+  schedule:
+    # Mondays, 07:33 UTC - the week's packages, before the week's work.
+    - cron: "33 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      # GHSA-qx66-fv34-fjm8: an XSS in TanStack Start's server-function responses. Kleit ships as a
+      # static bundle (SPA mode) behind the Cloudflare Worker; no server function is served, so
+      # the path does not exist here. The fix needs react-start and react-router moved together,
+      # which Lovable's config pins (CL72) - until then, read and accepted, 2026-10-19.
+      - name: Known holes at high or critical
+        run: bun audit --audit-level=high --ignore=GHSA-qx66-fv34-fjm8

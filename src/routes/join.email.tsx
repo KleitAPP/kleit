@@ -15,7 +15,9 @@ import { t } from "@/i18n/en";
 export const Route = createFileRoute("/join/email")({
   validateSearch: (search: Record<string, unknown>): { mode?: "signin" } =>
     search["mode"] === "signin" ? { mode: "signin" } : {},
-  head: () => ({ meta: [{ title: "Your email" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Your email" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: EmailEntry,
 });
 
@@ -58,10 +60,15 @@ function EmailEntry() {
     }
     setNoAccount(result.problem === "no-account");
     setProblem(
-      result.problem === "offline" ? t("join.offline")
-      : result.problem === "bad-address" ? t("email.badDomain")
-      : result.problem === "no-account" ? t("email.noAccount")
-      : t("join.failed"),
+      result.problem === "offline"
+        ? t("join.offline")
+        : result.problem === "bad-address"
+          ? t("email.badDomain")
+          : result.problem === "no-account"
+            ? t("email.noAccount")
+            : result.problem === "bot-check"
+              ? t("join.botCheck")
+              : t("join.failed"),
     );
   }
 

@@ -14,7 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 /** What went wrong, in terms the screens can turn into the design pack's wording. */
 export type CodeProblem =
-  "wrong-code" | "expired" | "too-many" | "no-account" | "bad-address" | "offline" | "unknown";
+  | "wrong-code"
+  | "expired"
+  | "too-many"
+  | "no-account"
+  | "bad-address"
+  | "offline"
+  | "bot-check"
+  | "unknown";
 
 export type CodeResult = { ok: true } | { ok: false; problem: CodeProblem };
 
@@ -44,6 +51,9 @@ function readProblem(error: {
   ) {
     return "bad-address";
   }
+  // The server's own bot check (spec 15.3 #11; [auth.captcha] in config.toml once the real keys
+  // exist, OW15): the widget gave no token, or Cloudflare refused it. Reloading gets a fresh one.
+  if (code === "captcha_failed" || message.includes("captcha")) return "bot-check";
   if (code === "otp_expired" || message.includes("expired")) return "expired";
   if (message.includes("invalid") || message.includes("token")) return "wrong-code";
   if (message.includes("fetch") || message.includes("network")) return "offline";

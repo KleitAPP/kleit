@@ -42,7 +42,9 @@ export async function readLink(url: string): Promise<ReadResult> {
       return {
         ok: false,
         problem:
-          problem === "image-unreadable" || problem === "save-failed" ? "unreadable" : problem,
+          problem === "image-unreadable" || problem === "save-failed" || problem === "closet-full"
+            ? "unreadable"
+            : problem,
       };
     }
     if (!data || typeof data !== "object") return { ok: false, problem: "unreadable" };
@@ -68,7 +70,7 @@ export type SaveInput = {
   soldOut: boolean;
 };
 
-export type SaveProblem = ReadProblem | "image-unreadable" | "save-failed";
+export type SaveProblem = ReadProblem | "image-unreadable" | "save-failed" | "closet-full";
 
 export type SaveResult =
   | {
@@ -126,6 +128,8 @@ async function problemFrom(error: unknown): Promise<SaveProblem> {
         case "image-unreadable":
         case "too-big":
           return "image-unreadable";
+        case "closet-full":
+          return "closet-full";
         case "not-a-page":
         case "unreachable":
         case "read-failed":

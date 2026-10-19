@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { KleitMark } from "@/brand/KleitMark";
@@ -25,7 +25,9 @@ import { forgetAgreement, rememberAgreement } from "@/auth/agreement";
 export const Route = createFileRoute("/join/")({
   validateSearch: (search: Record<string, unknown>): { mode?: "signin" } =>
     search["mode"] === "signin" ? { mode: "signin" } : {},
-  head: () => ({ meta: [{ title: "Join Kleit" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Join Kleit" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: Join,
 });
 
@@ -71,7 +73,9 @@ function Join() {
         <div className="mt-6">
           <PrimaryButton
             disabled={!canContinue}
-            onClick={() => void navigate({ to: "/join/email", search: signingIn ? { mode: "signin" } : {} })}
+            onClick={() =>
+              void navigate({ to: "/join/email", search: signingIn ? { mode: "signin" } : {} })
+            }
           >
             {t("join.withEmail")}
           </PrimaryButton>
@@ -88,6 +92,13 @@ function Join() {
         <div className="mt-4">
           <GoogleButton disabled={!canContinue} />
         </div>
+        {signingIn ? (
+          <p className="mt-4 text-center text-sm">
+            <Link to="/recover" className="text-ink underline">
+              {t("join.cantSignIn")}
+            </Link>
+          </p>
+        ) : null}
 
         <p className="mt-4 text-sm text-ink-soft">
           {t("join.usOnly")}{" "}

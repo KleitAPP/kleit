@@ -136,7 +136,8 @@ export function dominantColour(
   const ranked = [...votes.entries()].sort((a, b) => b[1] - a[1]);
   const [first, second] = ranked;
   if (!first) return null;
-  // A pale backdrop that wins the vote is usually the backdrop: a real runner-up takes it.
+  // A pale backdrop that wins the vote is usually the backdrop: a real runner-up takes it (a
+  // white shirt on a grey card comes out white this way, and a grey one on a white card grey).
   const backdrop = first[0] === "white" || first[0] === "cream" || first[0] === "grey";
   if (backdrop && second && second[1] >= counted * 0.22) return second[0];
   return first[0];

@@ -755,7 +755,8 @@ input,textarea,select{font:inherit;font-size:16px;padding:10px;border:1px solid 
 <h1>Contact us</h1><p>A question, a bug, something about your account - write it here. No account needed. A person reads every message and answers by email, usually within two days.</p>
 <p class="note">Reporting a post or a person? That's quicker from inside the app: the Report button on the thing itself. An intimate image of you, your work used without permission, an account pretending to be you, or your mark misused: <a href="/takedown">remove an intimate image</a> · <a href="/copyright">copyright</a> · <a href="/impersonation">impersonation</a> · <a href="/trademark">trademark</a>.</p>
 <form id="f" novalidate>
-<label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("safety", "Safety")}${option("other", "Something else")}</select></label>
+<label>What is it about<select name="topic">${option("question", "A question")}${option("bug", "Something is broken")}${option("account", "My account")}${option("recovery", "I can't sign in")}${option("safety", "Safety")}${option("other", "Something else")}</select></label>
+${topic === "recovery" ? `<p class="note">Write from the email address on the account, and say your username. We check it's yours through that address or a linked Google sign-in before we change anything - never by a username alone. If you still have your email or a linked Google account, <a href="/recover">you can get back in yourself</a>.</p>` : ""}
 <label>Your name<input name="name" maxlength="120" required autocomplete="name"></label>
 <label>Your email (where the answer goes)<input name="email" type="email" maxlength="200" required autocomplete="email"></label>
 <label>Your message<textarea name="message" maxlength="4000" required></textarea></label>

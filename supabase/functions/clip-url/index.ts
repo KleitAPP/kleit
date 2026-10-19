@@ -55,6 +55,8 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/** The closet's cap (spec 4.6 #5): the same number as migration 102's trigger and the app's check. */
+const CLOSET_CAP = 3000;
 /** Design pack G10: the page read must fit inside a one-minute set. */
 const PAGE_DEADLINE_MS = 4000;
 const PAGE_MAX_BYTES = 2 * 1024 * 1024;
@@ -289,6 +291,17 @@ async function saveClip(
     return reply(422, { problem: problem instanceof SafeFetchError ? problem.problem : "bad-url" });
   }
   if (await optedOut(server, pageUrl.hostname)) return reply(422, { problem: "opted-out" });
+  // "This is mine" puts the clip in the closet, and the closet has a cap (spec 4.6 #5; migration
+  // 102's trigger, which this server-side write would step past): asked here, before a byte is
+  // fetched, the same number the app checks before a photo goes up.
+  if (own) {
+    const { count } = await server
+      .from("closet_items")
+      .select("item_id", { count: "exact", head: true })
+      .eq("user_id", me)
+      .is("deleted_at", null);
+    if (count !== null && count >= CLOSET_CAP) return reply(422, { problem: "closet-full" });
+  }
 
   // The picture, through the same door as the page. Asked for as JPEG or PNG first, because
   // those are what the scanner can read; a site that only has WebP is a fallback case.
@@ -320,7 +333,12 @@ async function saveClip(
       const scale = IMAGE_LONGEST_SIDE / longest;
       picture.resize(Math.round(picture.width * scale), Math.round(picture.height * scale));
     }
-    colour = dominantColour(picture.bitmap, picture.width, picture.height);
+    // The guess must never cost the clip: a picture it cannot read is a clip with no colour.
+    try {
+      colour = dominantColour(picture.bitmap, picture.width, picture.height);
+    } catch {
+      colour = null;
+    }
     bytes = await picture.encodeJPEG(86);
   } catch (problem) {
     if (problem instanceof SafeFetchError)

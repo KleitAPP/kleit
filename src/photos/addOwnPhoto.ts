@@ -17,10 +17,11 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { colourOfBlob, type ColourName } from "@/items/colour";
+import { CLOSET_CAP, capHit } from "@/sets/caps";
 import { preparePhoto, type Prepared, type PrepareProblem } from "@/photos/prepare";
 
 export type AddProblem =
-  PrepareProblem | "signed-out" | "upload-failed" | "save-failed" | "offline";
+  PrepareProblem | "signed-out" | "upload-failed" | "save-failed" | "closet-full" | "offline";
 
 export type AddResult =
   | { ok: true; itemId: string; state: "clean" | "review" | "blocked" | "checking" }
@@ -47,6 +48,16 @@ export async function addOwnPhoto(
   const { data: who } = await supabase.auth.getUser();
   const me = who.user?.id;
   if (!me) return { ok: false, problem: "signed-out" };
+
+  // The closet's cap (spec 4.6 #5; migration 102), asked before anything is uploaded: the
+  // database refuses the row past it either way (P0013), but a file uploaded and then refused
+  // would be a file with no row. A read that fails lets the database answer.
+  const { count: closetCount } = await supabase
+    .from("closet_items")
+    .select("item_id", { count: "exact", head: true })
+    .is("deleted_at", null);
+  if (closetCount !== null && closetCount >= CLOSET_CAP)
+    return { ok: false, problem: "closet-full" };
 
   // The first folder in the path is the account id, which is what the storage policy checks.
   // crypto.randomUUID rather than the file's own name: a name can carry its own story
@@ -85,7 +96,13 @@ export async function addOwnPhoto(
   const { error: closetError } = await supabase
     .from("closet_items")
     .insert({ user_id: me, item_id: item.id });
-  if (closetError) return { ok: false, problem: "save-failed" };
+  if (closetError) {
+    // A piece with no closet row is nobody's to see and would sit unscreened for ever: the row
+    // is marked deleted (the nightly purge takes the file) and the file goes now.
+    await supabase.from("items").update({ deleted_at: new Date().toISOString() }).eq("id", item.id);
+    await supabase.storage.from("closet-photos").remove([path]);
+    return { ok: false, problem: capHit(closetError) === "closet" ? "closet-full" : "save-failed" };
+  }
 
   // Step 4. If this does not land, the item simply stays unscanned - which is invisible - and the
   // screen says it is still being checked, which is true. Nothing is lost and nothing leaks.

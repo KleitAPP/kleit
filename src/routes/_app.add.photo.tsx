@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { colourLabel, colourOfBlob, type ColourName } from "@/items/colour";
 import { ColourChips } from "@/items/ColourChips";
+import { capWords } from "@/sets/caps";
 import { addOwnPhoto, type AddProblem } from "@/photos/addOwnPhoto";
 import { CutoutEditor } from "@/photos/CutoutEditor";
 import { finishCutout, type Cutout } from "@/photos/cutout";
@@ -57,6 +58,7 @@ type Stage =
 const PROBLEM_WORDS: Record<AddProblem, string> = {
   "too-big": t("photo.tooBig"),
   "too-small": t("photo.tooSmall"),
+  "closet-full": capWords("closet"),
   "not-an-image": t("photo.notAnImage"),
   animated: t("photo.animated"),
   unreadable: t("photo.unreadable"),
@@ -164,8 +166,11 @@ function AddPhoto() {
           setStage({ at: "chosen", file, preview, colour: null });
           // The colour it looks, suggested (spec 4.4 #4); the person can change it before Add.
           void colourOfBlob(file).then((colour) => {
+            // A chip the person tapped while the guess was on its way stays theirs.
             setStage((now) =>
-              now.at === "chosen" && now.file === file ? { ...now, colour } : now,
+              now.at === "chosen" && now.file === file && now.colour === null
+                ? { ...now, colour }
+                : now,
             );
           });
         }}

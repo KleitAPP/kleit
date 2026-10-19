@@ -219,8 +219,13 @@ export async function oneItem(id: string): Promise<ItemSummary | null> {
  * store's facts (price, source) it does not.
  */
 export async function setItemColour(itemId: string, colour: string | null): Promise<boolean> {
-  const { error } = await supabase.from("items").update({ color_name: colour }).eq("id", itemId);
-  return !error;
+  // A row that is not yours is filtered out, not refused: the count says whether anything changed.
+  const { data, error } = await supabase
+    .from("items")
+    .update({ color_name: colour })
+    .eq("id", itemId)
+    .select("id");
+  return !error && (data ?? []).length === 1;
 }
 
 /**

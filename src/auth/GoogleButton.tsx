@@ -11,14 +11,24 @@ import { t } from "@/i18n/en";
  * terms require their own four colours and no recolouring, so this is the one button in Kleit
  * whose icon deliberately ignores the theme (the same exception the sign-in email makes).
  */
-export function GoogleButton({ disabled = false }: { disabled?: boolean }) {
+export function GoogleButton({
+  disabled = false,
+  backTo,
+  label,
+}: {
+  disabled?: boolean;
+  /** Where Google sends the person back to (the front door by default). */
+  backTo?: string;
+  /** The button's words, when "Continue with Google" is not what the screen means. */
+  label?: string;
+}) {
   const [starting, setStarting] = useState(false);
   const [failed, setFailed] = useState(false);
 
   async function go() {
     setStarting(true);
     setFailed(false);
-    const result = await continueWithGoogle();
+    const result = await continueWithGoogle(backTo);
     // On success the browser is already leaving for Google, so there is nothing to undo.
     if (!result.ok) {
       setStarting(false);
@@ -35,7 +45,7 @@ export function GoogleButton({ disabled = false }: { disabled?: boolean }) {
         className="flex min-h-12 w-full items-center justify-center gap-3 rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2 disabled:opacity-50"
       >
         <GoogleMark />
-        {starting ? t("loading") : t("join.withGoogle")}
+        {starting ? t("loading") : (label ?? t("join.withGoogle"))}
       </button>
       {failed ? (
         <p role="alert" className="mt-2 text-sm text-ink-soft">

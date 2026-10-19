@@ -1196,6 +1196,36 @@ try {
     "attacker: once blocked, neither the feed nor search shows the victim's sets",
   );
 
+  // Suggested people (migration 110): the reviewer, labelled a stylist for a moment, is
+  // suggested to the attacker; not once they turned "suggest my account" off; the victim never,
+  // blocked as they are; and nobody signed out is told anything. The labels go in `finally`.
+  await admin
+    .from("profiles")
+    .update({ label: "stylist" })
+    .in("user_id", [moderator.id, victim.id]);
+  const suggested1 = await a.rpc("suggested_people", { p_limit: 30 });
+  check(
+    (suggested1.data ?? []).some((p) => p.user_id === moderator.id && p.why === "label") &&
+      !(suggested1.data ?? []).some((p) => p.user_id === victim.id),
+    "attacker: a labelled account is suggested, with its reason; the victim who blocked them never is",
+    suggested1.error?.message ?? `${(suggested1.data ?? []).length} suggested`,
+  );
+  await admin.from("profiles").update({ suggestable: false }).eq("user_id", moderator.id);
+  const suggested2 = await a.rpc("suggested_people", { p_limit: 30 });
+  check(
+    !(suggested2.data ?? []).some((p) => p.user_id === moderator.id),
+    'attacker: an account that said "don\'t suggest me" is not suggested',
+    suggested2.error?.message,
+  );
+  await admin.from("profiles").update({ suggestable: true }).eq("user_id", moderator.id);
+  const suggestedAnon = await anon.rpc("suggested_people", { p_limit: 5 });
+  check(
+    suggestedAnon.error?.code === "42501",
+    "stranger: suggestions need an account",
+    suggestedAnon.error?.code ?? `${(suggestedAnon.data ?? []).length} rows`,
+  );
+  await admin.from("profiles").update({ label: "none" }).in("user_id", [moderator.id, victim.id]);
+
   // M7.5: the contact form and its inbox (migration 053), and the hidden-account share links
   // (migration 055), attacked on the live site.
   const inbox = await a.from("contact_messages").select("id").limit(1);
@@ -1536,6 +1566,8 @@ try {
     victim.id,
     (clipPoints ?? []).reduce((n, r) => n + r.points, 0),
   );
+  // The first-set badge the kept look's publish gave the attacker (039's trigger) goes with it.
+  await admin.from("badges").delete().eq("user_id", attacker.id).eq("badge", "first_set");
   // And the attacker's publish points for that kept look (its row is gone, so the ledger's
   // reference points at nothing): the ledger row goes, and the count with it.
   const { data: attackerPublishes } = await admin
@@ -1572,6 +1604,11 @@ try {
   }
   await admin.from("sets").delete().eq("owner_id", victim.id).eq("title", "attack layout (ignore)");
   await admin.from("blocks").delete().in("blocker_id", [victim.id, attacker.id]);
+  // The labels the suggestion check lent (110) come off whatever happened above.
+  await admin
+    .from("profiles")
+    .update({ label: "none", suggestable: true })
+    .in("user_id", [moderator.id, victim.id]);
   await admin.from("mutes").delete().in("muter_id", [victim.id, attacker.id]);
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);
   await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);

@@ -128,6 +128,15 @@ check(
     100,
   ) === "red",
 );
+const GREY: [number, number, number, number] = [150, 150, 150, 255];
+check(
+  "picture: a white shirt on a grey card is white (the card wins the vote and hands over)",
+  dominantColour(
+    picture(100, 100, (x, y) => (x >= 36 && x < 63 && y >= 20 && y < 80 ? WHITE : GREY)),
+    100,
+    100,
+  ) === "white",
+);
 check(
   "picture: nothing to read is null",
   dominantColour(
@@ -155,4 +164,4 @@ if (failed) {
   console.error(`\n${failed} check(s) failed`);
   process.exit(1);
 }
-console.log(`\nColour check passed (${pixels.length + 12} checks)`);
+console.log(`\nColour check passed (${pixels.length + 13} checks)`);

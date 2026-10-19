@@ -13,6 +13,7 @@
  * Every write here goes through the row policies or a server function, so a set can only ever
  * be its owner's.
  */
+import { recordSetProblem } from "@/sets/caps";
 import { supabase } from "@/integrations/supabase/client";
 import type { Song } from "@/sets/song";
 import { normaliseCanvas, type TemplateLayoutV2 } from "@/canvas/doc";
@@ -133,7 +134,10 @@ export async function createQuickDraft(): Promise<string | null> {
     .insert({ owner_id: me, layout, status: "draft", ...(await newSetDefaults(me)) })
     .select("id")
     .single();
-  if (error || !data) return null;
+  if (error || !data) {
+    recordSetProblem(error);
+    return null;
+  }
   return data.id;
 }
 

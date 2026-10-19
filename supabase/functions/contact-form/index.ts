@@ -15,7 +15,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const TOPICS = ["question", "bug", "account", "safety", "other"];
+const TOPICS = ["question", "bug", "account", "safety", "other", "recovery"];
 
 function reply(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {

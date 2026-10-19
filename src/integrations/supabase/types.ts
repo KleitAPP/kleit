@@ -1627,6 +1627,8 @@ export type Database = {
       push_settings: {
         Row: {
           enabled: boolean
+          marketing_email: boolean
+          muted_in_app: string[]
           muted_kinds: string[]
           platform: string | null
           timezone: string
@@ -1635,6 +1637,8 @@ export type Database = {
         }
         Insert: {
           enabled?: boolean
+          marketing_email?: boolean
+          muted_in_app?: string[]
           muted_kinds?: string[]
           platform?: string | null
           timezone?: string
@@ -1643,6 +1647,8 @@ export type Database = {
         }
         Update: {
           enabled?: boolean
+          marketing_email?: boolean
+          muted_in_app?: string[]
           muted_kinds?: string[]
           platform?: string | null
           timezone?: string
@@ -3089,6 +3095,18 @@ export type Database = {
       start_contest: {
         Args: { p_days: number; p_theme: string; p_title: string }
         Returns: string
+      }
+      suggested_people: {
+        Args: { p_limit?: number }
+        Returns: {
+          user_id: string
+          username: string
+          display_name: string
+          is_private: boolean
+          label: Database["public"]["Enums"]["account_label"]
+          avatar_item_id: string | null
+          why: string
+        }[]
       }
       stores: {
         Args: { p_limit?: number }

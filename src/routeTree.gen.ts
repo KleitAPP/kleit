@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as DeletingRouteImport } from './routes/deleting'
 import { Route as DevRouteImport } from './routes/dev'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as RecoverRouteImport } from './routes/recover'
 import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as VibesRouteImport } from './routes/vibes'
 import { Route as WelcomeRouteImport } from './routes/welcome'
@@ -104,6 +105,11 @@ const DevRoute = DevRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecoverRoute = RecoverRouteImport.update({
+  id: '/recover',
+  path: '/recover',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuspendedRoute = SuspendedRouteImport.update({
@@ -480,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/deleting': typeof DeletingRoute
   '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
+  '/recover': typeof RecoverRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -557,6 +564,7 @@ export interface FileRoutesByTo {
   '/deleting': typeof DeletingRoute
   '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
+  '/recover': typeof RecoverRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -637,6 +645,7 @@ export interface FileRoutesById {
   '/deleting': typeof DeletingRoute
   '/dev': typeof DevRouteWithChildren
   '/help': typeof HelpRouteWithChildren
+  '/recover': typeof RecoverRoute
   '/suspended': typeof SuspendedRoute
   '/vibes': typeof VibesRoute
   '/welcome': typeof WelcomeRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/deleting'
     | '/dev'
     | '/help'
+    | '/recover'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -795,6 +805,7 @@ export interface FileRouteTypes {
     | '/deleting'
     | '/dev'
     | '/help'
+    | '/recover'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -874,6 +885,7 @@ export interface FileRouteTypes {
     | '/deleting'
     | '/dev'
     | '/help'
+    | '/recover'
     | '/suspended'
     | '/vibes'
     | '/welcome'
@@ -954,6 +966,7 @@ export interface RootRouteChildren {
   DeletingRoute: typeof DeletingRoute
   DevRoute: typeof DevRouteWithChildren
   HelpRoute: typeof HelpRouteWithChildren
+  RecoverRoute: typeof RecoverRoute
   SuspendedRoute: typeof SuspendedRoute
   VibesRoute: typeof VibesRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -993,6 +1006,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recover': {
+      id: '/recover'
+      path: '/recover'
+      fullPath: '/recover'
+      preLoaderRoute: typeof RecoverRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suspended': {
@@ -1666,6 +1686,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeletingRoute: DeletingRoute,
   DevRoute: DevRouteWithChildren,
   HelpRoute: HelpRouteWithChildren,
+  RecoverRoute: RecoverRoute,
   SuspendedRoute: SuspendedRoute,
   VibesRoute: VibesRoute,
   WelcomeRoute: WelcomeRoute,

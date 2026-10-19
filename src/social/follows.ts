@@ -172,6 +172,27 @@ export async function myRequests(): Promise<Person[]> {
 }
 
 /** Find friends (S78) by username: a prefix search, a handful of results. */
+/** Why somebody is suggested (spec 3.5 #10): Kleit's label, a challenge pick, or a style match. */
+export type Suggestion = Person & { why: "label" | "winner" | "match" };
+
+/**
+ * People you might like (spec 3.5 #10; migration 110): stylists, brands and staff, challenge
+ * winners, and people whose public sets carry your tags or your stores - never from contacts
+ * or location, never anyone who turned "suggest my account" off. The database decides who.
+ */
+export async function suggestedPeople(limit = 12): Promise<Suggestion[]> {
+  const { data } = await supabase.rpc("suggested_people", { p_limit: limit });
+  return (data ?? []).map((r) => ({
+    user_id: r.user_id,
+    username: r.username,
+    display_name: r.display_name,
+    is_private: r.is_private,
+    label: r.label,
+    avatar_item_id: r.avatar_item_id,
+    why: r.why === "label" || r.why === "winner" ? r.why : "match",
+  }));
+}
+
 export async function findPeople(query: string): Promise<Person[]> {
   const q = patternSafe(query.trim().toLowerCase().replace(/^@/, ""));
   if (q.length < 2) return [];

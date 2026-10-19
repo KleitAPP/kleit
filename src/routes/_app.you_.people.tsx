@@ -9,18 +9,26 @@ import {
   approve,
   decline,
   findPeople,
+  follow,
   myFollowers,
   myFollowing,
   myRequests,
   removeFollower,
+  suggestedPeople,
   unfollow,
   type Person,
+  type Suggestion,
 } from "@/social/follows";
 
 /**
  * S75 Followers · S76 Following · S77 Follow requests · S78 Find friends (M5.1), as one screen
  * with three tabs and a search box. Removing a follower and declining a request are quiet:
  * the other person is not told (spec 10.1 #4).
+ *
+ * "People you might like" (spec 3.5 #10; CL67) sits under the search box: stylists, challenge
+ * winners and style matches from the database's own function, each with its reason in words
+ * and a Follow button; the row leaves the list once followed (or asked). Nothing here comes
+ * from contacts or location, and anyone who turned "suggest my account" off is never shown.
  */
 export const Route = createFileRoute("/_app/you_/people")({
   head: () => ({ meta: [{ title: "People" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -39,6 +47,26 @@ function People() {
   const [lists, setLists] = useState<Partial<Record<Tab, Person[]>>>({});
   const [query, setQuery] = useState("");
   const [found, setFound] = useState<Person[] | null>(null);
+  const [suggested, setSuggested] = useState<Suggestion[] | null>(null);
+  const [followBusy, setFollowBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void suggestedPeople().then((p) => !cancelled && setSuggested(p));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function followSuggested(person: Suggestion) {
+    setFollowBusy(person.user_id);
+    const result = await follow(person);
+    setFollowBusy(null);
+    if (result === "failed") return;
+    setSuggested((list) => (list ?? []).filter((p) => p.user_id !== person.user_id));
+    // The Following tab reads again next time it opens: a new row belongs there now.
+    setLists(({ following: _stale, ...rest }) => rest);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +130,27 @@ function People() {
         )
       ) : null}
 
+      {suggested && suggested.length > 0 ? (
+        <section className="mt-6" aria-labelledby="suggested-people">
+          <h2 id="suggested-people" className="text-base font-medium text-ink">
+            {t("people.suggested")}
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">{t("people.suggestedWhy")}</p>
+          <ul className="mt-2 overflow-hidden rounded-md border border-line bg-surface">
+            {suggested.map((p) => (
+              <Row key={p.user_id} person={p} note={t(`people.why.${p.why}`)}>
+                <Small
+                  label={t("profile.follow")}
+                  primary
+                  disabled={followBusy !== null}
+                  onPress={() => void followSuggested(p)}
+                />
+              </Row>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <div className="mt-6">
         <Tabs items={TABS} current={tab} onChange={setTab} label={t("people.title")}>
           {!list ? (
@@ -158,7 +207,16 @@ function People() {
   );
 }
 
-function Row({ person, children }: { person: Person; children?: React.ReactNode }) {
+function Row({
+  person,
+  note,
+  children,
+}: {
+  person: Person;
+  /** One line under the name: why they are here. */
+  note?: string;
+  children?: React.ReactNode;
+}) {
   const name = person.display_name?.trim() ? person.display_name : person.username;
   return (
     <li className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0">
@@ -169,6 +227,7 @@ function Row({ person, children }: { person: Person; children?: React.ReactNode 
           @{person.username}
           <AccountLabelChip label={person.label} className="ml-1 align-middle" />
         </p>
+        {note ? <p className="truncate text-sm text-ink-soft">{note}</p> : null}
       </Link>
       <div className="flex shrink-0 gap-2">{children}</div>
     </li>
@@ -179,20 +238,23 @@ function Small({
   label,
   hint,
   primary = false,
+  disabled = false,
   onPress,
 }: {
   label: string;
   hint?: string;
   primary?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onPress}
+      disabled={disabled}
       title={hint}
       aria-label={hint ? `${label}. ${hint}` : label}
-      className={`min-h-11 rounded-pill px-4 text-sm font-medium ${primary ? "bg-brand text-brand-ink" : "border border-line bg-surface text-ink"}`}
+      className={`min-h-11 rounded-pill px-4 text-sm font-medium disabled:opacity-40 ${primary ? "bg-brand text-brand-ink" : "border border-line bg-surface text-ink"}`}
     >
       {label}
     </button>

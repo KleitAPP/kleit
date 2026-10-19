@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { capWords, takeSetProblem } from "@/sets/caps";
 import { EmptyState, PrimaryButton, Sheet, Tabs, type TabItem } from "@/components/kleit";
 import { Avatar } from "@/social/Avatar";
 import { myPhotoState } from "@/social/profilePhoto";
@@ -487,6 +488,10 @@ function YourProfile() {
                   onAction: () =>
                     void createQuickDraft().then((id) => {
                       if (id) void navigate({ to: "/set/$setId/edit", params: { setId: id } });
+                      else
+                        setNotice(
+                          takeSetProblem() === "cap" ? capWords("sets") : t("create.failed"),
+                        );
                     }),
                 }
               : {})}

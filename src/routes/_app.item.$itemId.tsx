@@ -294,7 +294,9 @@ function ItemPage() {
       ) : null}
       <p className="mt-1 text-sm text-ink-soft">
         {t("item.added", { date: dateLabel(item.created_at) })}
-        {item.kind === "product" ? (
+        {item.kind === "product" && (by || !item.owner_id) ? (
+          // No owner means the account closed (the FK sets null); an owner whose profile cannot be
+          // read (a block, a ban, a break) is simply not named.
           <>
             {" · "}
             {by ? t("item.clippedBy", { name: by }) : t("item.clippedByGone")}

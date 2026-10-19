@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { mutedInAppKinds } from "@/native/push";
 import type { Person } from "@/social/follows";
 
 /**
@@ -51,12 +52,17 @@ export type Notification = {
 };
 
 export async function myNotifications(): Promise<Notification[]> {
-  const { data } = await supabase
-    .from("notifications")
-    .select("id, kind, actor_id, ref_type, ref_id, bundled_count, updated_at, read_at")
-    .order("updated_at", { ascending: false })
-    .limit(100);
-  const rows = data ?? [];
+  // The kinds turned off "in the app" (spec 12.1 #6; migration 110) stay out of the list, as
+  // they stay out of the badge; the rows exist, because a push for them may still have gone.
+  const [{ data }, muted] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("id, kind, actor_id, ref_type, ref_id, bundled_count, updated_at, read_at")
+      .order("updated_at", { ascending: false })
+      .limit(100),
+    mutedInAppKinds(),
+  ]);
+  const rows = (data ?? []).filter((r) => !muted.has(r.kind));
   const ids = [...new Set(rows.map((r) => r.actor_id).filter((x): x is string => !!x))];
   const { data: people } = ids.length
     ? await supabase

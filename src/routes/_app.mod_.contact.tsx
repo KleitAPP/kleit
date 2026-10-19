@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_app/mod_/contact")({
 type Row = {
   id: string;
   request_ref: string;
-  topic: "question" | "bug" | "account" | "safety" | "other";
+  topic: "question" | "bug" | "account" | "safety" | "other" | "recovery";
   name: string;
   email: string;
   message: string;

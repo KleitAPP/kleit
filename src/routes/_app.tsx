@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 
 import { touchDevice } from "@/auth/devices";
 import { whereDoIBelong } from "@/auth/session";
-import { Sheet, TabBar, type TabId } from "@/components/kleit";
+import { Sheet, TabBar, Toast, type TabId } from "@/components/kleit";
 import { createQuickDraft } from "@/sets/sets";
+import { capWords, takeSetProblem } from "@/sets/caps";
 import { createCreativeDraft } from "@/canvas/persist";
 import { createTemplate } from "@/templates/templates";
 import { t } from "@/i18n/en";
@@ -44,6 +45,8 @@ function AppShell() {
   const { pathname } = useLocation();
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [creating, setCreating] = useState(false);
+  // When a draft could not be made: the cap's own words, or the plain line (migration 102).
+  const [createNote, setCreateNote] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +179,7 @@ function AppShell() {
               setCreating(false);
               void createQuickDraft().then((id) => {
                 if (id) void navigate({ to: "/set/$setId/edit", params: { setId: id } });
+                else setCreateNote(createFailedWords());
               });
             }}
           />
@@ -186,6 +190,7 @@ function AppShell() {
               setCreating(false);
               void createCreativeDraft().then((id) => {
                 if (id) void navigate({ to: "/set/$setId/canvas", params: { setId: id } });
+                else setCreateNote(createFailedWords());
               });
             }}
           />
@@ -235,8 +240,21 @@ function AppShell() {
         </ul>
         <p className="mt-4 text-sm text-ink-soft">{t("create.someNotYet")}</p>
       </Sheet>
+      {createNote ? (
+        <Toast
+          message={createNote}
+          tone="warning"
+          durationMs={6000}
+          onDismiss={() => setCreateNote(null)}
+        />
+      ) : null}
     </div>
   );
+}
+
+/** The words for a draft that could not be made: the cap's, or the plain line. */
+function createFailedWords(): string {
+  return takeSetProblem() === "cap" ? capWords("sets") : t("create.failed");
 }
 
 /**

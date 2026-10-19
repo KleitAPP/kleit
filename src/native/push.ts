@@ -153,3 +153,59 @@ export async function saveMutedKinds(off: Set<PushKindId>): Promise<boolean> {
   const { error } = await supabase.from("push_settings").update({ muted_kinds }).eq("user_id", me);
   return !error;
 }
+
+/**
+ * The grid's in-app column (spec 12.1 #6; migration 110): the same groups as the phone's, plus
+ * likes, which exist only in the app. A muted kind is still written by the server - a push for
+ * it may still go, the columns are independent - and the Inbox and its badge leave it out.
+ * Written with an upsert, because on the web the row may not exist yet (the phone makes it).
+ */
+export const IN_APP_KINDS = [...PUSH_KINDS, { id: "like", kinds: ["like"] }] as const;
+export type InAppKindId = (typeof IN_APP_KINDS)[number]["id"];
+
+export type NotificationPreferences = {
+  inAppOff: Set<InAppKindId>;
+  /** Marketing email: a remembered answer, no until the person says yes. Nothing sends any yet (CL43). */
+  marketing: boolean;
+};
+
+export async function readNotificationPreferences(): Promise<NotificationPreferences> {
+  const { data } = await supabase
+    .from("push_settings")
+    .select("muted_in_app, marketing_email")
+    .maybeSingle();
+  const muted = new Set<string>(data?.muted_in_app ?? []);
+  return {
+    inAppOff: new Set(
+      IN_APP_KINDS.filter((k) => k.kinds.some((x) => muted.has(x))).map((k) => k.id),
+    ),
+    marketing: data?.marketing_email === true,
+  };
+}
+
+export async function saveInAppMuted(off: Set<InAppKindId>): Promise<boolean> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return false;
+  const muted_in_app = IN_APP_KINDS.filter((k) => off.has(k.id)).flatMap((k) => [...k.kinds]);
+  const { error } = await supabase
+    .from("push_settings")
+    .upsert({ user_id: me, muted_in_app }, { onConflict: "user_id" });
+  return !error;
+}
+
+export async function saveMarketing(marketing_email: boolean): Promise<boolean> {
+  const { data: who } = await supabase.auth.getUser();
+  const me = who.user?.id;
+  if (!me) return false;
+  const { error } = await supabase
+    .from("push_settings")
+    .upsert({ user_id: me, marketing_email }, { onConflict: "user_id" });
+  return !error;
+}
+
+/** The kinds the person muted in the app, as the notification rows name them: for the Inbox's own filter. */
+export async function mutedInAppKinds(): Promise<Set<string>> {
+  const { data } = await supabase.from("push_settings").select("muted_in_app").maybeSingle();
+  return new Set<string>(data?.muted_in_app ?? []);
+}

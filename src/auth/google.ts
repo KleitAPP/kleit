@@ -17,12 +17,15 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export async function continueWithGoogle(): Promise<{ ok: true } | { ok: false }> {
+export async function continueWithGoogle(
+  /** Where Google sends the person back to; the front door unless a screen has its own reason. */
+  backTo: string = "/",
+): Promise<{ ok: true } | { ok: false }> {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}${backTo}`,
         // Ask for an account choice every time. Without it a shared phone signs the last person
         // back in silently, which on a phone people hand around is a privacy bug, not a feature.
         queryParams: { prompt: "select_account" },

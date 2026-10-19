@@ -1,3 +1,4 @@
+import { capWords } from "@/sets/caps";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -69,6 +70,7 @@ const SAVE_WORDS: Record<SaveProblem, string> = {
   ...READ_WORDS,
   "image-unreadable": t("clip.imageUnreadable"),
   "save-failed": t("photo.saveFailed"),
+  "closet-full": capWords("closet"),
 };
 
 function AddLink() {

@@ -264,6 +264,17 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: "cant-sign-in",
+    group: "Your account",
+    title: "If you can't sign in",
+    body: [
+      "Still have your email? Sign in with it - the code goes there every time, so there's nothing to recover.",
+      "Linked Google to your account (Settings > Account > Ways to sign in)? Sign in with that Google account at /recover. That proves it's you; then change your email under Settings > Account.",
+      "Neither? Write to us from the email address on the account (the contact form, \"I can't sign in\") and say your username. We check it's yours through that address or a linked Google sign-in before we change anything, never by a username alone. An account nobody can prove is theirs stays as it is - or can be deleted on request.",
+      "Linking a second way in now is the surest way never to need this page.",
+    ],
+  },
+  {
     slug: "contact",
     group: "Your account",
     title: "Getting in touch",

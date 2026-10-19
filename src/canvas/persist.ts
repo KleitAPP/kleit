@@ -1,3 +1,4 @@
+import { recordSetProblem } from "@/sets/caps";
 import { supabase } from "@/integrations/supabase/client";
 import { imageUrlFor, type ItemSummary } from "@/items/items";
 import { newSetDefaults, refreshPreview, lastSaveProblem } from "@/sets/sets";
@@ -121,7 +122,11 @@ export async function createCreativeDraft(): Promise<string | null> {
     })
     .select("id")
     .single();
-  return error || !data ? null : data.id;
+  if (error || !data) {
+    recordSetProblem(error);
+    return null;
+  }
+  return data.id;
 }
 
 /** Adds the piece as a new row and returns the row id, which becomes the layer id. */
@@ -135,7 +140,11 @@ export async function addRow(
     .insert({ set_id: setId, item_id: itemId, position })
     .select("id")
     .single();
-  return error || !data ? null : data.id;
+  if (error || !data) {
+    recordSetProblem(error);
+    return null;
+  }
+  return data.id;
 }
 
 /**

@@ -119,7 +119,10 @@ export function readProductPage(html: string, pageUrl: URL): ProductRead {
     ld.available ??
     stockOf(meta.get("product:availability")) ??
     stockOf(meta.get("og:availability")) ??
-    stockOf(firstMatch(head, /itemprop=["']availability["'][^>]*?(?:href|content)=["']([^"']+)["']/i)) ??
+    // Microdata, one tag per size on some themes: read them all, one in stock wins (L35 read-back).
+    combineStock(
+      [...head.matchAll(/itemprop=["']availability["'][^>]*?(?:href|content)=["']([^"']+)["']/gi)].map((m) => stockOf(m[1])),
+    ) ??
     null;
 
   return {

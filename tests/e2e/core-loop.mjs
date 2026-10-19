@@ -263,7 +263,9 @@ try {
   // orange, and the chip for it is pressed.
   await page.getByText(/^Looks orange/).waitFor({ timeout: 15_000 });
   check(
-    (await page.getByRole("button", { name: "Orange" }).getAttribute("aria-pressed")) === "true",
+    (await page
+      .getByRole("button", { name: /^Orange(, selected)?$/ })
+      .getAttribute("aria-pressed")) === "true",
     "photo: the colour it looks is named and its chip pressed",
   );
   await page.getByRole("button", { name: "Add it" }).click();
@@ -838,7 +840,9 @@ try {
     itemWords.slice(0, 160),
   );
   check(
-    (await page.getByRole("button", { name: "Navy" }).getAttribute("aria-pressed")) === "true",
+    (await page
+      .getByRole("button", { name: /^Navy(, selected)?$/ })
+      .getAttribute("aria-pressed")) === "true",
     "item page: your own piece offers the colour chips, with its word pressed",
   );
   await page.getByRole("button", { name: "Build a set with it" }).click();
@@ -864,13 +868,55 @@ try {
   await page.goto(`${SITE}/search`);
   await page.locator('input[type="search"]').fill("Core loop piece");
   await page.getByText("Core loop piece 1").first().waitFor({ timeout: 20_000 });
-  await page.getByRole("button", { name: "Navy" }).click();
+  await page.getByRole("button", { name: /^Navy(, selected)?$/ }).click();
   await page.getByText("Core loop piece 1").waitFor({ state: "detached", timeout: 20_000 });
   check(
     (await page.getByText("Core loop piece 2").count()) >= 1 &&
       (await page.getByText("Core loop piece 1").count()) === 0,
     "search: the colour chip keeps the navy piece and drops the orange one",
   );
+
+  // 16. The notification grid (migration 110; spec 12.1 #6): "Likes: In the app" off writes the
+  //     kind into the person's own row and the Inbox badge leaves it out; on again clears it.
+  //     And the recovery screen (spec 3.6 #2) stands, with its three ways back in.
+  await page.goto(`${SITE}/settings/notifications`);
+  const likesInApp = page.getByRole("switch", { name: "Likes: In the app" });
+  await likesInApp.waitFor();
+  await likesInApp.click();
+  await wait(1500);
+  const { data: mutedRow } = await admin
+    .from("push_settings")
+    .select("muted_in_app, marketing_email")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  check(
+    (mutedRow?.muted_in_app ?? []).includes("like") && mutedRow?.marketing_email === false,
+    "notifications: likes turned off in the app are written to the row; marketing stays off",
+    JSON.stringify(mutedRow),
+  );
+  await likesInApp.click();
+  await wait(1500);
+  const { data: unmutedRow } = await admin
+    .from("push_settings")
+    .select("muted_in_app")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  check(
+    (unmutedRow?.muted_in_app ?? []).length === 0,
+    "notifications: and on again clears it",
+    JSON.stringify(unmutedRow),
+  );
+  await page.goto(`${SITE}/recover`);
+  await page.getByRole("heading", { name: "Can't sign in?" }).waitFor();
+  const recoverWords = (await page.innerText("body")).replace(/\s+/g, " ");
+  check(
+    /Still have your email\?/.test(recoverWords) &&
+      /Linked Google to your account\?/.test(recoverWords) &&
+      /never by a username alone/.test(recoverWords),
+    "recover: the three ways back in, and the rule, are on the screen",
+    recoverWords.slice(0, 120),
+  );
+  await a11y(page, "Can't sign in");
 } catch (error) {
   check(false, `the loop stopped: ${error instanceof Error ? error.message : String(error)}`);
   try {

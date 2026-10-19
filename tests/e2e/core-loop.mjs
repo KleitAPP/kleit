@@ -263,9 +263,7 @@ try {
   // orange, and the chip for it is pressed.
   await page.getByText(/^Looks orange/).waitFor({ timeout: 15_000 });
   check(
-    (await page
-      .getByRole("button", { name: /^Orange(, selected)?$/ })
-      .getAttribute("aria-pressed")) === "true",
+    (await page.getByRole("button", { name: /^Orange\b/ }).getAttribute("aria-pressed")) === "true",
     "photo: the colour it looks is named and its chip pressed",
   );
   await page.getByRole("button", { name: "Add it" }).click();
@@ -840,9 +838,7 @@ try {
     itemWords.slice(0, 160),
   );
   check(
-    (await page
-      .getByRole("button", { name: /^Navy(, selected)?$/ })
-      .getAttribute("aria-pressed")) === "true",
+    (await page.getByRole("button", { name: /^Navy\b/ }).getAttribute("aria-pressed")) === "true",
     "item page: your own piece offers the colour chips, with its word pressed",
   );
   await page.getByRole("button", { name: "Build a set with it" }).click();
@@ -868,7 +864,7 @@ try {
   await page.goto(`${SITE}/search`);
   await page.locator('input[type="search"]').fill("Core loop piece");
   await page.getByText("Core loop piece 1").first().waitFor({ timeout: 20_000 });
-  await page.getByRole("button", { name: /^Navy(, selected)?$/ }).click();
+  await page.getByRole("button", { name: /^Navy\b/ }).click();
   await page.getByText("Core loop piece 1").waitFor({ state: "detached", timeout: 20_000 });
   check(
     (await page.getByText("Core loop piece 2").count()) >= 1 &&

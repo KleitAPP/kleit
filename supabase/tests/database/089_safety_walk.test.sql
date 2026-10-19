@@ -123,7 +123,8 @@ insert into conversations (id, user_a, user_b) values ('d1000000-0000-4000-8000-
 insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000001', 'hello there');
 insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'any thinspo pics?');
 insert into messages (conversation_id, sender_id, body) values ('d1000000-0000-4000-8000-000000000031', 'd1000000-0000-4000-8000-000000000002', 'more thinspo please');
-select is((select count(*) from reports r where r.target_type = 'conversation' and r.target_id = 'd1000000-0000-4000-8000-000000000031' and r.state = 'open' and r.priority = 'urgent' and r.target_owner_id = 'd1000000-0000-4000-8000-000000000002'), 1::bigint, 'one urgent report on the conversation, against the sender');
+-- Normal priority since 117: the word list's message reports do not wake a moderator (the outside check's self-harm and minors labels do).
+select is((select count(*) from reports r where r.target_type = 'conversation' and r.target_id = 'd1000000-0000-4000-8000-000000000031' and r.state = 'open' and r.priority = 'normal' and r.target_owner_id = 'd1000000-0000-4000-8000-000000000002'), 1::bigint, 'one report on the conversation, against the sender, at normal priority');
 select is((select jsonb_array_length(r.evidence) from reports r where r.target_type = 'conversation' and r.target_id = 'd1000000-0000-4000-8000-000000000031' and r.state = 'open'), 2, 'with the messages so far as evidence');
 select is((select count(*) from text_checks c join messages m on m.id = c.target_id where c.kind = 'message' and m.conversation_id = 'd1000000-0000-4000-8000-000000000031'), 3::bigint, 'and every message waits for the outside check');
 

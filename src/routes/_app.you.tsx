@@ -405,7 +405,9 @@ function YourProfile() {
                         <span className="min-w-0 flex-1 truncate">
                           {d.title || t("profile.draftUntitled")}
                         </span>
-                        <span className="ml-3 shrink-0 text-sm text-ink-soft">{who}</span>
+                        <span className="ml-3 min-w-0 shrink text-right text-sm text-ink-soft">
+                          {who}
+                        </span>
                       </button>
                     ) : (
                       <Link
@@ -413,8 +415,12 @@ function YourProfile() {
                         params={{ setId: d.id }}
                         className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
                       >
-                        <span className="truncate">{d.title || t("profile.draftUntitled")}</span>
-                        <span className="ml-3 shrink-0 text-sm text-ink-soft">{who}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {d.title || t("profile.draftUntitled")}
+                        </span>
+                        <span className="ml-3 min-w-0 shrink text-right text-sm text-ink-soft">
+                          {who}
+                        </span>
                       </Link>
                     )}
                   </li>
@@ -442,10 +448,10 @@ function YourProfile() {
                   params={{ setId: d.id }}
                   className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
                 >
-                  <span className="truncate">
+                  <span className="min-w-0 flex-1 truncate">
                     {d.title || d.layout.caption || t("profile.draftUntitled")}
                   </span>
-                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
+                  <span className="ml-3 min-w-0 shrink text-right text-sm text-ink-soft">
                     {new Date(d.updated_at).toLocaleDateString()}
                   </span>
                 </Link>
@@ -461,8 +467,10 @@ function YourProfile() {
                   params={{ pollId: p.id }}
                   className="flex min-h-12 items-center justify-between py-3 text-base text-ink"
                 >
-                  <span className="truncate">{p.question || t("pollbuilder.title")}</span>
-                  <span className="ml-3 shrink-0 text-sm text-ink-soft">
+                  <span className="min-w-0 flex-1 truncate">
+                    {p.question || t("pollbuilder.title")}
+                  </span>
+                  <span className="ml-3 min-w-0 shrink text-right text-sm text-ink-soft">
                     {isClosed(p)
                       ? t("pollpage.closed")
                       : new Date(p.closes_at).toLocaleDateString()}

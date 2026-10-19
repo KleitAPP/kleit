@@ -29,6 +29,7 @@ import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
 import { previewUrl } from "@/search/search";
 import { ReportButton } from "@/safety/ReportButton";
+import { appealPhoto, myPhotoAppeal } from "@/safety/moderation";
 import { ask, startSetWith } from "@/social/ask";
 
 /**
@@ -74,6 +75,8 @@ type Loaded =
       saved: boolean;
       /** The clipper's or uploader's username; null when that account has closed or is unreadable. */
       by: string | null;
+      /** Your appeal on a blocked photo of yours (spec 13.4 #4), if any. */
+      appeal: { state: "open" | "upheld" | "overturned"; note: string } | null;
     };
 
 function ItemPage() {
@@ -85,6 +88,8 @@ function ItemPage() {
   const [problem, setProblem] = useState<string | null>(null);
   const [inSets, setInSets] = useState<SetWithItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [appealing, setAppealing] = useState(false);
+  const [appealWords, setAppealWords] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -104,22 +109,40 @@ function ItemPage() {
         setsWithItem(item.id),
         usernameOf(item.owner_id ?? null),
       ]);
+      const state = states.get(item.id) ?? null;
+      const appeal = state === "blocked" ? await myPhotoAppeal(item.id) : null;
       if (!cancelled) setInSets(sets);
       if (!cancelled)
         setLoaded({
           at: "found",
           item,
           imageUrl,
-          state: states.get(item.id) ?? null,
+          state,
           mine,
           saved,
           by,
+          appeal,
         });
     })();
     return () => {
       cancelled = true;
     };
   }, [itemId]);
+
+  // The appeal on a blocked photo of yours (spec 13.4 #4, 4.7 #3): one sentence, once; a
+  // different person than the one who blocked it decides within seven days (migration 113).
+  async function sendAppeal() {
+    if (loaded.at !== "found" || busy || appealWords.trim().length === 0) return;
+    setBusy(true);
+    const ok = await appealPhoto(loaded.item.id, appealWords);
+    setBusy(false);
+    if (!ok) {
+      setProblem(t("item.appealFailed"));
+      return;
+    }
+    setAppealing(false);
+    setLoaded({ ...loaded, appeal: { state: "open", note: "" } });
+  }
 
   // Hearting (S39): a save is a row of yours; the policy only takes a cleared product.
   async function toggleSaved() {
@@ -329,13 +352,69 @@ function ItemPage() {
       ) : null}
 
       {note ? (
-        <p
+        <div
           role="status"
           className="mt-4 rounded-md border border-line bg-surface p-3 text-sm text-ink"
         >
-          {note}
-        </p>
+          <p>{note}</p>
+          {state === "blocked" && yours ? (
+            loaded.appeal ? (
+              <p className="mt-2 text-ink-soft">
+                {loaded.appeal.state === "open"
+                  ? t("item.appealOpen")
+                  : loaded.appeal.state === "upheld"
+                    ? t("item.appealUpheld")
+                    : t("item.appealOverturned")}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setProblem(null);
+                  setAppealing(true);
+                }}
+                className="mt-2 min-h-11 rounded-pill border border-line bg-surface px-4 text-sm font-medium text-ink"
+              >
+                {t("item.appeal")}
+              </button>
+            )
+          ) : null}
+        </div>
       ) : null}
+
+      <Sheet
+        open={appealing}
+        onOpenChange={(o) => {
+          if (!o) setAppealing(false);
+        }}
+        title={t("item.appeal")}
+        description={t("item.appealWhy")}
+        action={
+          <PrimaryButton
+            onClick={() => void sendAppeal()}
+            disabled={busy || appealWords.trim().length === 0}
+          >
+            {busy ? t("loading") : t("item.appealSend")}
+          </PrimaryButton>
+        }
+      >
+        {problem ? (
+          <p role="alert" className="mb-3 text-sm font-medium text-danger">
+            {problem}
+          </p>
+        ) : null}
+        <label className="block">
+          <span className="sr-only">{t("item.appealLabel")}</span>
+          <textarea
+            value={appealWords}
+            onChange={(e) => setAppealWords(e.target.value)}
+            maxLength={1000}
+            rows={3}
+            placeholder={t("item.appealLabel")}
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-soft"
+          />
+        </label>
+      </Sheet>
 
       {buy ? (
         <div className="mt-6">

@@ -246,6 +246,8 @@ jobs:
       # A moderator's two-minute address for one ID photo of an impersonation claim (migration 108).
       - name: Deploy id-photo
         run: supabase functions deploy id-photo --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Deploy mod-image
+        run: supabase functions deploy mod-image --project-ref "$SUPABASE_PROJECT_REF"
       # The database's half of the secret, plus the sweeper's address. Written through the
       # session-mode pooler (the direct host is IPv6-only and GitHub's runners are IPv4).
       - name: Put the sweep secret and address in the vault

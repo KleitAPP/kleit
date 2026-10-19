@@ -107,6 +107,10 @@ const attacker = await person("attack-attacker@test.kleit", "attackattacker");
 // moderator path is exercised at all while nobody human has the role (OW16).
 const moderator = await person("attack-reviewer@test.kleit", "attackreviewer");
 await admin.from("user_roles").upsert({ user_id: moderator.id, role: "moderator" });
+// A second one, because an appeal is decided by a different person than the one who struck or
+// blocked (spec 13.4 #4; migration 113).
+const second = await person("attack-reviewer2@test.kleit", "attackreviewertwo");
+await admin.from("user_roles").upsert({ user_id: second.id, role: "moderator" });
 const stamp = new Date().toISOString();
 await admin
   .from("sets")
@@ -1024,13 +1028,10 @@ try {
   await admin
     .from("item_flags")
     .upsert({ item_id: photoItem?.id, scan_state: "clean", scanned_at: new Date().toISOString() });
-  // Storage answers 429 "Too many connections" now and then (WA22): wait it out, as the core loop does.
+  // Storage answers 429 "Too many connections" now and then (WA22), and once a bare "Internal
+  // Server Error" (2026-10-19): wait any Storage error out, as the core loop does.
   let readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
-  for (
-    let n = 0;
-    readCleared.error && /too many connections/i.test(readCleared.error.message ?? "") && n < 5;
-    n++
-  ) {
+  for (let n = 0; readCleared.error && n < 5; n++) {
     await new Promise((r) => setTimeout(r, 3000));
     readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
   }
@@ -1038,6 +1039,121 @@ try {
     !!readCleared.data?.signedUrl,
     "attacker: can read it once the scan has cleared it",
     readCleared.error?.message,
+  );
+
+  // 7e. The scanner's "review" verdict (spec 13.1 #3; migration 113): the photo is listed for a
+  // moderator, nobody else; blocked by the first moderator; appealed by its owner, once; the
+  // first moderator cannot decide that appeal; the second allows it and the flag clears.
+  await admin.from("item_flags").upsert({
+    item_id: photoItem?.id,
+    scan_state: "review",
+    scanned_at: new Date().toISOString(),
+    labels: { because: ["attack test"] },
+  });
+  const scanAsAttacker = await a.rpc("scan_review_queue", {});
+  check(
+    (scanAsAttacker.data ?? []).length === 0,
+    "attacker: sees nothing in the scan review",
+    String((scanAsAttacker.data ?? []).length),
+  );
+  const scanQueue = await moderator.client.rpc("scan_review_queue", {});
+  check(
+    (scanQueue.data ?? []).some((r) => r.item_id === photoItem?.id),
+    "moderator: the review photo is in the scan review",
+    scanQueue.error?.code,
+  );
+  const scanBlocked = await moderator.client.rpc("scan_decide", {
+    p_item: photoItem?.id,
+    p_outcome: "blocked",
+    p_note: "attack test (ignore)",
+  });
+  check(!scanBlocked.error, "moderator: blocks it", scanBlocked.error?.code);
+  const strangerAppeal = await a
+    .from("appeals")
+    .insert({ item_id: photoItem?.id, user_id: attacker.id, body: "not mine" });
+  check(
+    !!strangerAppeal.error,
+    "attacker: cannot appeal somebody else's photo",
+    strangerAppeal.error?.code,
+  );
+  const photoAppeal = await victim.client
+    .from("appeals")
+    .insert({ item_id: photoItem?.id, user_id: victim.id, body: "attack test appeal (ignore)" })
+    .select("id")
+    .single();
+  check(!photoAppeal.error, "victim: appeals the blocked photo", photoAppeal.error?.code);
+  const blockerDecides = await moderator.client.rpc("decide_appeal", {
+    p_appeal: photoAppeal.data?.id,
+    p_outcome: "overturned",
+    p_note: "",
+  });
+  check(
+    blockerDecides.error?.code === "P0004",
+    "moderator: the one who blocked cannot decide the appeal",
+    blockerDecides.error?.code ?? "allowed",
+  );
+  const allowed = await second.client.rpc("decide_appeal", {
+    p_appeal: photoAppeal.data?.id,
+    p_outcome: "overturned",
+    p_note: "attack test",
+  });
+  check(!allowed.error, "second moderator: allows the photo", allowed.error?.code);
+  const { data: flagAfter } = await admin
+    .from("item_flags")
+    .select("scan_state")
+    .eq("item_id", photoItem?.id ?? "")
+    .maybeSingle();
+  check(flagAfter?.scan_state === "clean", "the photo is clean again", flagAfter?.scan_state);
+  // The moderator-only picture door logs each view (spec 13.4 #9) and refuses everyone else.
+  const peek = await a.functions.invoke(`mod-image?item=${photoItem?.id}&why=appeal`, {
+    method: "GET",
+  });
+  check(
+    !!peek.error,
+    "attacker: the moderator picture door is shut",
+    peek.error ? "refused" : "opened",
+  );
+  const look = await moderator.client.functions.invoke(
+    `mod-image?item=${photoItem?.id}&why=appeal`,
+    {
+      method: "GET",
+    },
+  );
+  check(!!look.data?.url, "moderator: opens the picture through the door", look.error?.message);
+  const { data: viewLog } = await admin
+    .from("admin_audit_log")
+    .select("id")
+    .eq("admin_id", moderator.id)
+    .eq("what", "private_view")
+    .eq("target_id", photoItem?.id ?? "");
+  check((viewLog ?? []).length === 1, "and the view is in the log", String((viewLog ?? []).length));
+  await admin
+    .from("admin_audit_log")
+    .delete()
+    .eq("admin_id", moderator.id)
+    .eq("what", "private_view");
+
+  // 7f. Messages are screened (spec 13.2 #1): a held phrase in a message is never refused, but
+  // files one urgent report on the conversation, against the sender, with the messages as evidence.
+  const heldDm = await a.rpc("send_message", { p_to: victim.id, p_body: "any thinspo tips" });
+  check(
+    !heldDm.error,
+    "attacker: a message with a held phrase still sends (never held, never refused)",
+    heldDm.error?.code,
+  );
+  const { data: dmReport } = await admin
+    .from("reports")
+    .select("id, priority, evidence, target_owner_id")
+    .eq("target_type", "conversation")
+    .eq("reporter_id", attacker.id)
+    .eq("state", "open")
+    .maybeSingle();
+  check(
+    dmReport?.priority === "urgent" &&
+      dmReport?.target_owner_id === attacker.id &&
+      Array.isArray(dmReport?.evidence),
+    "but it files an urgent report on the conversation, against the sender, with evidence",
+    JSON.stringify(dmReport).slice(0, 120),
   );
   const readAnon = await anon.storage.from("closet-photos").createSignedUrl(photoPath, 60);
   check(!readAnon.data?.signedUrl, "stranger: cannot read a message photo with no session");
@@ -1114,12 +1230,35 @@ try {
     "attacker: cannot appeal the same strike twice",
     appealTwice.error?.code,
   );
-  const overturned = await mod.rpc("decide_appeal", {
+  const samePerson = await mod.rpc("decide_appeal", {
     p_appeal: appeal.data?.id,
     p_outcome: "overturned",
     p_note: "attack test",
   });
-  check(!overturned.error, "moderator: overturns the appeal", overturned.error?.code);
+  check(
+    samePerson.error?.code === "P0004",
+    "moderator: the one who struck cannot decide the appeal (a second person does)",
+    samePerson.error?.code ?? "allowed",
+  );
+  const overturned = await second.client.rpc("decide_appeal", {
+    p_appeal: appeal.data?.id,
+    p_outcome: "overturned",
+    p_note: "attack test",
+  });
+  check(!overturned.error, "second moderator: overturns the appeal", overturned.error?.code);
+  // The urgent report the victim filed (an intimate image) reached both moderators at once
+  // (spec 13.4 #1: phone alerts) - as a notification row, which is also the push's source.
+  const { data: alerts } = await admin
+    .from("notifications")
+    .select("user_id")
+    .eq("kind", "mod_urgent")
+    .eq("ref_id", reportRow?.id ?? "")
+    .in("user_id", [moderator.id, second.id]);
+  check(
+    (alerts ?? []).length === 2,
+    "moderators: both were told of the urgent report",
+    String((alerts ?? []).length),
+  );
   const strikesAfter = await a.rpc("my_strikes", {});
   const ended = (strikesAfter.data ?? []).find((x) => x.id === strike?.id);
   check(
@@ -1652,10 +1791,26 @@ try {
   await admin.from("follows").delete().in("follower_id", [victim.id, attacker.id]);
   await admin.from("notifications").delete().in("user_id", [victim.id, attacker.id]);
   // The moderator role goes every run, with everything the walk made (strikes, appeals, reports, log rows).
-  await admin.from("user_roles").delete().eq("user_id", moderator.id);
-  await admin.from("appeals").delete().eq("user_id", attacker.id);
+  await admin.from("user_roles").delete().in("user_id", [moderator.id, second.id]);
+  await admin.from("appeals").delete().in("user_id", [attacker.id, victim.id]);
   await admin.from("strikes").delete().eq("user_id", attacker.id);
-  await admin.from("moderation_actions").delete().eq("moderator_id", moderator.id);
+  await admin.from("moderation_actions").delete().in("moderator_id", [moderator.id, second.id]);
+  // The urgent alerts the run's reports sent to every moderator - the owner's real account among
+  // them - go with the reports, whoever received them.
+  const { data: runReports } = await admin
+    .from("reports")
+    .select("id")
+    .in("reporter_id", [victim.id, attacker.id]);
+  if (runReports?.length) {
+    await admin
+      .from("notifications")
+      .delete()
+      .eq("kind", "mod_urgent")
+      .in(
+        "ref_id",
+        runReports.map((r) => r.id),
+      );
+  }
   await admin.from("reports").delete().in("reporter_id", [victim.id, attacker.id]);
   await admin.from("takedown_requests").delete().eq("name", "attack test (ignore)");
   await admin.from("contact_messages").delete().eq("name", "attack test (ignore)");

@@ -23,6 +23,21 @@ export type QueueItem = {
   body: string | null;
   preview_image_id: string | null;
   evidence: { sender: string; body: string; at: string }[] | null;
+  /** When the review is due (spec 13.4 #1): a day after an urgent report, three after the rest. */
+  due_at: string;
+  /** The piece whose picture the moderator may open (a reported piece, or a reported profile's photo). */
+  picture_item_id: string | null;
+};
+/** A photo the scanner sent to a person (spec 13.1 #3), waiting in the scan review (migration 113). */
+export type ScanReview = {
+  item_id: string;
+  owner_id: string | null;
+  owner_username: string | null;
+  title: string | null;
+  kind: "product" | "non_product" | "own";
+  because: string[] | null;
+  created_at: string;
+  scanned_at: string | null;
 };
 export type Strike = {
   id: string;
@@ -56,7 +71,43 @@ export function whyItFailed(error: { message?: string } | null): string | null {
   if (/staff are not/i.test(m)) return t("mod.err.staff");
   if (/moderators only/i.test(m)) return t("mod.err.role");
   if (/reason is required/i.test(m)) return t("mod.err.reason");
+  if (/different person/i.test(m)) return t("mod.err.second");
+  if (/kept out of featured/i.test(m)) return t("mod.err.pg13");
   return t("mod.err.other");
+}
+
+export async function scanReviewQueue(): Promise<ScanReview[]> {
+  const { data } = await supabase.rpc("scan_review_queue");
+  return (data ?? []) as ScanReview[];
+}
+
+/** Clear or block a photo the scanner sent for review. Null when it worked; otherwise the sentence to show. */
+export async function scanDecide(
+  itemId: string,
+  outcome: "clean" | "blocked",
+  note: string,
+): Promise<string | null> {
+  const { error } = await supabase.rpc("scan_decide", {
+    p_item: itemId,
+    p_outcome: outcome,
+    p_note: note,
+  });
+  return whyItFailed(error);
+}
+
+/**
+ * A signed, two-minute address for a picture the world may not see, for a moderator only; the
+ * function logs the view before it answers (spec 13.4 #9). Null when refused.
+ */
+export async function modImageUrl(
+  itemId: string,
+  why: "queue" | "scan-review" | "appeal",
+): Promise<string | null> {
+  const { data, error } = await supabase.functions.invoke<{ url?: string }>(
+    `mod-image?item=${encodeURIComponent(itemId)}&why=${why}`,
+    { method: "GET" },
+  );
+  return error || !data?.url ? null : data.url;
 }
 
 /** Null when it worked; otherwise the sentence to show. */
@@ -88,9 +139,33 @@ export async function appeal(strikeId: string, body: string): Promise<boolean> {
   return !error;
 }
 
+/** An appeal on a blocked photo of your own (spec 13.4 #4, 4.7 #3): one per photo, while it is blocked. */
+export async function appealPhoto(itemId: string, body: string): Promise<boolean> {
+  const { data } = await supabase.auth.getUser();
+  const me = data.user?.id;
+  if (!me) return false;
+  const { error } = await supabase
+    .from("appeals")
+    .insert({ item_id: itemId, user_id: me, body: body.trim() });
+  return !error;
+}
+
+/** The state of your appeal on a photo, or null when there is none. */
+export async function myPhotoAppeal(
+  itemId: string,
+): Promise<{ state: "open" | "upheld" | "overturned"; note: string } | null> {
+  const { data } = await supabase
+    .from("appeals")
+    .select("state, note")
+    .eq("item_id", itemId)
+    .maybeSingle();
+  return data ? { state: data.state as "open" | "upheld" | "overturned", note: data.note } : null;
+}
+
 export type OpenAppeal = {
   id: string;
-  strike_id: string;
+  strike_id: string | null;
+  item_id: string | null;
   user_id: string;
   body: string;
   created_at: string;
@@ -99,7 +174,7 @@ export type OpenAppeal = {
 export async function openAppeals(): Promise<OpenAppeal[]> {
   const { data } = await supabase
     .from("appeals")
-    .select("id, strike_id, user_id, body, created_at")
+    .select("id, strike_id, item_id, user_id, body, created_at")
     .eq("state", "open")
     .order("created_at");
   const rows = data ?? [];
@@ -111,15 +186,16 @@ export async function openAppeals(): Promise<OpenAppeal[]> {
   return rows.map((r) => ({ ...r, username: names.get(r.user_id) ?? null }));
 }
 
+/** Null when it worked; otherwise the sentence to show (a second person must decide, for one). */
 export async function decideAppeal(
   appealId: string,
   outcome: "upheld" | "overturned",
   note: string,
-): Promise<boolean> {
+): Promise<string | null> {
   const { error } = await supabase.rpc("decide_appeal", {
     p_appeal: appealId,
     p_outcome: outcome,
     p_note: note,
   });
-  return !error;
+  return whyItFailed(error);
 }

@@ -117,9 +117,10 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           id: string
+          item_id: string | null
           note: string
           state: string
-          strike_id: string
+          strike_id: string | null
           user_id: string
         }
         Insert: {
@@ -128,9 +129,10 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           id?: string
+          item_id?: string | null
           note?: string
           state?: string
-          strike_id: string
+          strike_id?: string | null
           user_id: string
         }
         Update: {
@@ -139,12 +141,20 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           id?: string
+          item_id?: string | null
           note?: string
           state?: string
-          strike_id?: string
+          strike_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appeals_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appeals_strike_id_fkey"
             columns: ["strike_id"]
@@ -1034,6 +1044,7 @@ export type Database = {
           attempts: number
           created_at: string
           item_id: string
+          keep_out_of_featured: boolean
           labels: Json
           scan_state: Database["public"]["Enums"]["scan_state"]
           scanned_at: string | null
@@ -2692,9 +2703,11 @@ export type Database = {
         Returns: {
           body: string
           created_at: string
+          due_at: string
           evidence: Json
           id: string
           note: string
+          picture_item_id: string
           preview_image_id: string
           priority: string
           reason: string
@@ -2838,6 +2851,23 @@ export type Database = {
       save_set_layout: {
         Args: { p_layout: Json; p_set_id: string }
         Returns: number
+      }
+      scan_decide: {
+        Args: { p_item: string; p_note?: string; p_outcome: string }
+        Returns: undefined
+      }
+      scan_review_queue: {
+        Args: never
+        Returns: {
+          because: Json
+          created_at: string
+          item_id: string
+          kind: Database["public"]["Enums"]["item_kind"]
+          owner_id: string
+          owner_username: string
+          scanned_at: string
+          title: string
+        }[]
       }
       search_items: {
         Args: {

@@ -193,6 +193,12 @@ function NoteRow({ n }: { n: Notification }) {
         {inner}
       </Link>
     );
+  else if (n.kind === "mod_urgent")
+    link = (
+      <Link to="/mod" className={cls}>
+        {inner}
+      </Link>
+    );
   else if (n.kind === "follow_request")
     link = (
       <Link to="/you/people" className={cls}>

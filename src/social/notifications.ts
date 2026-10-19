@@ -27,7 +27,9 @@ export type NotificationKind =
   | "poll_results"
   | "contest_pick"
   | "price_drop"
-  | "reply";
+  | "reply"
+  | "photo_decided"
+  | "mod_urgent";
 
 export type Notification = {
   id: string;

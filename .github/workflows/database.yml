@@ -129,7 +129,7 @@ jobs:
             # Another push may have landed while the types were generated (2026-10-19: a busy
             # evening lost one this way): rebase onto it and try again, a few times.
             for n in 1 2 3 4; do
-              git pull --rebase -q origin main && git push && break
+              git pull --rebase -q -X theirs origin main && git push && break
               echo "push $n failed; retrying"; sleep 5
             done
           fi

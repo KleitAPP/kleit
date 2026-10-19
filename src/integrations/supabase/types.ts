@@ -65,6 +65,33 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_networks: {
+        Row: {
+          domain: string
+          enabled: boolean
+          link_template: string
+          network: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          domain: string
+          enabled?: boolean
+          link_template: string
+          network: string
+          note?: string
+          updated_at?: string
+        }
+        Update: {
+          domain?: string
+          enabled?: boolean
+          link_template?: string
+          network?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       age_confirmations: {
         Row: {
           confirmed_at: string
@@ -2495,6 +2522,13 @@ export type Database = {
           username: string
         }[]
       }
+      affiliate_for: {
+        Args: { p_domain: string }
+        Returns: {
+          link_template: string
+          network: string
+        }[]
+      }
       approve_follow_request: {
         Args: { p_requester: string }
         Returns: boolean
@@ -3100,6 +3134,16 @@ export type Database = {
           p_username: string
         }
         Returns: boolean
+      }
+      set_affiliate_network: {
+        Args: {
+          p_domain: string
+          p_enabled?: boolean
+          p_link_template: string
+          p_network: string
+          p_note?: string
+        }
+        Returns: undefined
       }
       set_by_share_code: {
         Args: { p_code: string }

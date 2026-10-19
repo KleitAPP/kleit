@@ -3096,24 +3096,24 @@ export type Database = {
         Args: { p_days: number; p_theme: string; p_title: string }
         Returns: string
       }
-      suggested_people: {
-        Args: { p_limit?: number }
-        Returns: {
-          user_id: string
-          username: string
-          display_name: string
-          is_private: boolean
-          label: Database["public"]["Enums"]["account_label"]
-          avatar_item_id: string | null
-          why: string
-        }[]
-      }
       stores: {
         Args: { p_limit?: number }
         Returns: {
           domain: string
           products: number
           store_name: string
+        }[]
+      }
+      suggested_people: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_item_id: string
+          display_name: string
+          is_private: boolean
+          label: Database["public"]["Enums"]["account_label"]
+          user_id: string
+          username: string
+          why: string
         }[]
       }
       takedown_resolve: {

@@ -66,7 +66,7 @@ function Strikes() {
                     {t(`strikes.appeal.${s.appeal_state}`)}
                     {s.appeal_note ? ` — ${s.appeal_note}` : ""}
                   </p>
-                ) : over ? null : (
+                ) : over || s.kind === "copyright" ? null : (
                   <form
                     className="mt-2 flex flex-col gap-2"
                     onSubmit={(e) => {

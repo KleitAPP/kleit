@@ -228,7 +228,8 @@ export default {
     if (url.pathname === "/sitemap.xml") return sitemap(request, env);
     if (url.pathname === "/contact") return contactPage(request, env);
     if (url.pathname === "/delete-account") return deleteAccountPage(env);
-    if (url.pathname in LEGAL_PAGES) return legalPage(url.pathname, env);
+    const legalPath = url.pathname.replace(/\/+$/, "");
+    if (legalPath in LEGAL_PAGES) return legalPage(legalPath, env);
     if (!url.pathname.startsWith("/s/")) return env.ASSETS.fetch(request);
 
     const code = url.pathname.slice(3).replace(/\/+$/, "");

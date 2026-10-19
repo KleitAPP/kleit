@@ -73,6 +73,11 @@ export function whyItFailed(error: { message?: string } | null): string | null {
   if (/reason is required/i.test(m)) return t("mod.err.reason");
   if (/different person/i.test(m)) return t("mod.err.second");
   if (/kept out of featured/i.test(m)) return t("mod.err.pg13");
+  if (/removed before/i.test(m)) return t("mod.err.listed");
+  if (/not before (\d{4}-\d{2}-\d{2})/i.test(m))
+    return t("mod.err.notYet", { date: /not before (\d{4}-\d{2}-\d{2})/i.exec(m)?.[1] ?? "" });
+  if (/already purged/i.test(m)) return t("mod.err.purged");
+  if (/another ground/i.test(m)) return t("mod.err.otherGround");
   return t("mod.err.other");
 }
 
@@ -170,6 +175,9 @@ export type OpenAppeal = {
   body: string;
   created_at: string;
   username: string | null;
+  /** For a photo appeal: why the scanner (or a moderator) blocked it, for the second person to read. */
+  reason: string | null;
+  because: string[] | null;
 };
 export async function openAppeals(): Promise<OpenAppeal[]> {
   const { data } = await supabase
@@ -179,11 +187,39 @@ export async function openAppeals(): Promise<OpenAppeal[]> {
     .order("created_at");
   const rows = data ?? [];
   const ids = [...new Set(rows.map((r) => r.user_id))];
-  const { data: people } = ids.length
-    ? await supabase.from("profiles").select("user_id, username").in("user_id", ids)
-    : { data: [] };
+  const items = rows.map((r) => r.item_id).filter((x): x is string => !!x);
+  const [{ data: people }, { data: reasons }] = await Promise.all([
+    ids.length
+      ? supabase.from("profiles").select("user_id, username").in("user_id", ids)
+      : Promise.resolve({ data: [] as { user_id: string; username: string }[] }),
+    items.length
+      ? supabase.rpc("appeal_photo_reasons", { p_items: items })
+      : Promise.resolve({
+          data: [] as { item_id: string; reason: string | null; because: unknown }[],
+        }),
+  ]);
   const names = new Map((people ?? []).map((p) => [p.user_id, p.username]));
-  return rows.map((r) => ({ ...r, username: names.get(r.user_id) ?? null }));
+  const why = new Map(
+    (reasons ?? []).map((r) => [
+      r.item_id,
+      {
+        reason: r.reason ?? null,
+        because: Array.isArray(r.because) ? (r.because as string[]) : null,
+      },
+    ]),
+  );
+  return rows.map((r) => ({
+    ...r,
+    username: names.get(r.user_id) ?? null,
+    reason: r.item_id ? (why.get(r.item_id)?.reason ?? null) : null,
+    because: r.item_id ? (why.get(r.item_id)?.because ?? null) : null,
+  }));
+}
+
+/** Whether the person may appeal this blocked photo of theirs (the policy's own answer, migration 117). */
+export async function photoAppealAllowed(itemId: string): Promise<boolean> {
+  const { data } = await supabase.rpc("photo_appeal_allowed", { p_item: itemId });
+  return data === true;
 }
 
 /** Null when it worked; otherwise the sentence to show (a second person must decide, for one). */

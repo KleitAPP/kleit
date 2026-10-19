@@ -29,7 +29,7 @@ import { t } from "@/i18n/en";
 import { supabase } from "@/integrations/supabase/client";
 import { previewUrl } from "@/search/search";
 import { ReportButton } from "@/safety/ReportButton";
-import { appealPhoto, myPhotoAppeal } from "@/safety/moderation";
+import { appealPhoto, myPhotoAppeal, photoAppealAllowed } from "@/safety/moderation";
 import { ask, startSetWith } from "@/social/ask";
 
 /**
@@ -77,6 +77,8 @@ type Loaded =
       by: string | null;
       /** Your appeal on a blocked photo of yours (spec 13.4 #4), if any. */
       appeal: { state: "open" | "upheld" | "overturned"; note: string } | null;
+      /** Whether an appeal may be filed (the policy's answer: not for a too-small, moving or removed-before block). */
+      canAppeal: boolean;
     };
 
 function ItemPage() {
@@ -110,7 +112,10 @@ function ItemPage() {
         usernameOf(item.owner_id ?? null),
       ]);
       const state = states.get(item.id) ?? null;
-      const appeal = state === "blocked" ? await myPhotoAppeal(item.id) : null;
+      const [appeal, canAppeal] = await Promise.all([
+        state === "blocked" ? myPhotoAppeal(item.id) : Promise.resolve(null),
+        state === "blocked" ? photoAppealAllowed(item.id) : Promise.resolve(false),
+      ]);
       if (!cancelled) setInSets(sets);
       if (!cancelled)
         setLoaded({
@@ -122,6 +127,7 @@ function ItemPage() {
           saved,
           by,
           appeal,
+          canAppeal,
         });
     })();
     return () => {
@@ -141,7 +147,7 @@ function ItemPage() {
       return;
     }
     setAppealing(false);
-    setLoaded({ ...loaded, appeal: { state: "open", note: "" } });
+    setLoaded({ ...loaded, appeal: { state: "open", note: "" }, canAppeal: false });
   }
 
   // Hearting (S39): a save is a row of yours; the policy only takes a cleared product.
@@ -357,7 +363,7 @@ function ItemPage() {
           className="mt-4 rounded-md border border-line bg-surface p-3 text-sm text-ink"
         >
           <p>{note}</p>
-          {state === "blocked" && yours ? (
+          {state === "blocked" && yours && (loaded.appeal || loaded.canAppeal) ? (
             loaded.appeal ? (
               <p className="mt-2 text-ink-soft">
                 {loaded.appeal.state === "open"

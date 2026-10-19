@@ -221,6 +221,15 @@ function ModQueue() {
                 {t("mod.appealDue", { date: dueDate(a.created_at, 7 * 24) })}
               </p>
               <p className="mt-1 text-base text-ink">{a.body}</p>
+              {a.item_id && a.reason === "removed-before" ? (
+                <p className="mt-1 text-sm font-medium text-danger">
+                  {t("mod.appealReason.removed-before")}
+                </p>
+              ) : a.item_id && a.because?.length ? (
+                <p className="mt-1 text-sm text-ink-soft">
+                  {t("mod.appealBecause", { labels: a.because.join(", ") })}
+                </p>
+              ) : null}
               {a.item_id ? <PrivatePicture itemId={a.item_id} why="appeal" /> : null}
               {appealFailure[a.id] ? (
                 <p role="alert" className="mt-2 text-sm font-medium text-danger">

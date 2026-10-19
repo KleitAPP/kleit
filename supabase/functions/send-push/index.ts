@@ -105,6 +105,8 @@ function words(row: Due): { text: string; path: string } {
         text: "Your set was picked in a challenge - it's on Home now",
         path: row.ref_id ? `/contests/${row.ref_id}` : "/contests",
       };
+    case "mod_urgent":
+      return { text: "An urgent report is waiting in the review queue", path: "/mod" };
     default:
       return { text: "Something new on Kleit", path: "/inbox" };
   }

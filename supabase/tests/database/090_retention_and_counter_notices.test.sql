@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(26);
+select plan(27);
 
 insert into auth.users (id, email) values
   ('d2000000-0000-4000-8000-000000000001', 'rc-uploader@test.kleit'),
@@ -91,7 +91,11 @@ select pg_temp.act_as('d2000000-0000-4000-8000-000000000002');
 select is((select count(*) from counter_notice_queue()), 0::bigint, 'other: sees no counter-notices');
 select pg_temp.act_as('d2000000-0000-4000-8000-000000000003');
 select is((select q.takedown_ref from counter_notice_queue() q limit 1), 'T-RCCOPY01', 'moderator: the counter-notice is listed with its takedown');
-select is((select counter_notice_resolve((select id from counter_notices where takedown_id = 'd2000000-0000-4000-8000-000000000021'), 'restored', 'no suit filed')), 1, 'moderator: restores the picture');
+select throws_ok($$ select counter_notice_resolve((select id from counter_notices where takedown_id = 'd2000000-0000-4000-8000-000000000021'), 'restored', 'too soon') $$, 'P0006', null, 'moderator: cannot restore before the notice''s date');
+select pg_temp.as_server();
+update counter_notices set restore_after = now() - interval '1 hour' where takedown_id = 'd2000000-0000-4000-8000-000000000021';
+select pg_temp.act_as('d2000000-0000-4000-8000-000000000003');
+select is((select counter_notice_resolve((select id from counter_notices where takedown_id = 'd2000000-0000-4000-8000-000000000021'), 'restored', 'no suit filed')), 1, 'moderator: restores the picture once the date has passed');
 select pg_temp.as_server();
 select is((select takedown_state from items where id = 'd2000000-0000-4000-8000-000000000011'), 'none'::takedown_state, 'the picture is back');
 select is((select count(*) from removed_image_fingerprints where image_hash = 'rchash-coat-0001'), 0::bigint, 'its fingerprint is forgotten');

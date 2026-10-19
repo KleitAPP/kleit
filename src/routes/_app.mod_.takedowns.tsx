@@ -49,6 +49,10 @@ type Counter = {
   signature: string;
   created_at: string;
   restore_after: string;
+  claimant_name: string;
+  claimant_email: string;
+  uploader_username: string | null;
+  other_grounds: boolean;
 };
 
 function Takedowns() {
@@ -286,6 +290,19 @@ function Takedowns() {
                 <p className="mt-1 text-sm text-ink-soft">
                   {t("takedowns.signedBy", { name: c.signature })}
                 </p>
+                <p className="mt-2 text-sm text-ink">
+                  {t("takedowns.claimant", { name: c.claimant_name, email: c.claimant_email })}
+                </p>
+                {c.uploader_username ? (
+                  <p className="mt-1 text-sm text-ink-soft">
+                    {t("takedowns.uploader", { name: c.uploader_username })}
+                  </p>
+                ) : null}
+                {c.other_grounds ? (
+                  <p className="mt-1 text-sm font-medium text-danger">
+                    {t("takedowns.otherGrounds")}
+                  </p>
+                ) : null}
                 <input
                   type="text"
                   value={note[c.id] ?? ""}

@@ -967,14 +967,23 @@ try {
       const wide = root.scrollWidth > root.clientWidth + 1;
       const h1 = document.querySelector("h1");
       const size = h1 ? parseFloat(getComputedStyle(h1).fontSize) : 0;
-      // What sticks out, when something does: the first few elements past the right edge.
+      // What leaks, when something does: the elements whose content is wider than they are and
+      // whose overflow is visible (a scroll row's children are meant to stick out; it is not).
       const culprits = wide
         ? Array.from(document.querySelectorAll("body *"))
-            .filter((el) => el.getBoundingClientRect().right > root.clientWidth + 1)
-            .slice(0, 4)
+            .filter((el) => {
+              const cs = getComputedStyle(el);
+              return (
+                el.scrollWidth > el.clientWidth + 1 &&
+                cs.overflowX === "visible" &&
+                cs.position !== "fixed" &&
+                el.getBoundingClientRect().right > root.clientWidth + 1
+              );
+            })
+            .slice(0, 6)
             .map(
               (el) =>
-                `${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 3).join(".")}:${(el.textContent ?? "").trim().slice(0, 20)}`,
+                `${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 4).join(".")}:${(el.textContent ?? "").trim().slice(0, 16)}@${Math.round(el.getBoundingClientRect().right)}`,
             )
         : [];
       root.style.fontSize = before;

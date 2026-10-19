@@ -26,7 +26,7 @@ Kleit is run by [Company], [address]. Contact us about privacy at [privacy email
 | Pictures and details you clip from stores | Your sets and the shared catalogue | The catalogue item stays after you leave but is no longer linked to you; the link back to the source page stays |
 | A **clip record** (who clipped a picture, when, and from which page) | Ties every stored picture to the person who saved it | While the picture is stored |
 | Your sets, comments, likes, collections, follows | The service you asked for | While your account is open |
-| Direct messages | Chat | While your account is open. **Messages are not end-to-end encrypted.** Moderators read a conversation only if someone reports it |
+| Direct messages | Chat | While your account is open. **Messages are not end-to-end encrypted.** Messages are checked automatically for a short list of words and by an outside safety check (the same as comments); a moderator reads a conversation only if someone reports it or that check flags a message, and every such reading is logged |
 | Poll votes, with a scrambled device ID and IP address | One vote per device; stopping vote-rigging | Raw IP 30 days; scrambled device ID 90 days |
 | Buy-button taps, with a random click ID | Getting paid commission by stores | Raw 90 days, then totals only. Never your name or email |
 | Signed-in devices and approximate city | "Where you're signed in" and security alerts | While the session is active |

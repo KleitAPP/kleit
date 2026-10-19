@@ -534,8 +534,9 @@ export function autoTitle(placements: Placement[]): string {
  */
 export function autoAltText(placements: Placement[], decorations: string[] = []): string {
   const sorted = [...placements].sort((a, b) => a.slot - b.slot);
-  if (sorted.length === 0 && decorations.length === 0) return "";
-  if (sorted.length === 0) return decorationWords(decorations, "A set with ").slice(0, 300);
+  // No pieces, no alt text - decorations alone describe nothing a person would call a set, and the
+  // share page (worker/index.ts autoAlt) says the same.
+  if (sorted.length === 0) return "";
   const parts = sorted.map(({ item }) => {
     const colour = item.color_name ? `${item.color_name} ` : "";
     const name = item.title?.trim() || (item.kind === "own" ? "piece" : "piece");

@@ -2529,6 +2529,14 @@ export type Database = {
           network: string
         }[]
       }
+      appeal_photo_reasons: {
+        Args: { p_items: string[] }
+        Returns: {
+          because: Json
+          item_id: string
+          reason: string
+        }[]
+      }
       approve_follow_request: {
         Args: { p_requester: string }
         Returns: boolean
@@ -2684,18 +2692,22 @@ export type Database = {
         Args: never
         Returns: {
           address: string
+          claimant_email: string
+          claimant_name: string
           created_at: string
           details: string
           email: string
           id: string
           item_id: string
           name: string
+          other_grounds: boolean
           phone: string
           request_ref: string
           restore_after: string
           signature: string
           takedown_id: string
           takedown_ref: string
+          uploader_username: string
         }[]
       }
       counter_notice_resolve: {
@@ -2967,6 +2979,10 @@ export type Database = {
         }[]
       }
       open_contest_now: { Args: never; Returns: string }
+      photo_appeal_allowed: {
+        Args: { p_item: string }
+        Returns: boolean
+      }
       pick_contest_entry: {
         Args: { p_contest: string; p_on: boolean; p_set: string }
         Returns: boolean

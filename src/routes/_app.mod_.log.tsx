@@ -34,7 +34,7 @@ type Audit = {
   created_at: string;
 };
 type ActionKey =
-  `mod.action.${"dismiss" | "remove" | "strike" | "ban" | "unban" | "restore" | "overturn" | "uphold"}`;
+  `mod.action.${"dismiss" | "remove" | "strike" | "ban" | "unban" | "restore" | "overturn" | "uphold" | "scan_clean" | "scan_block"}`;
 type AuditKey = `mod.audit.${"dm_evidence" | "user_lookup" | "switch" | "ban" | "unban"}`;
 
 function ModLog() {

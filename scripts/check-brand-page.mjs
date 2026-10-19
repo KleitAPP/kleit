@@ -31,7 +31,8 @@ function check(ok, what, detail = "") {
   if (!ok) failed += 1;
 }
 
-// The Worker, bundled on its own (it reads the library index as JSON).
+// The Worker, bundled on its own (it reads the library index as JSON, and the legal drafts as
+// text - wrangler.jsonc's "Text" rule for *.md, said again here for esbuild).
 const out = "/tmp/kleit-worker-check.mjs";
 execFileSync(
   "npx",
@@ -42,6 +43,7 @@ execFileSync(
     "--format=esm",
     `--outfile=${out}`,
     "--platform=browser",
+    "--loader:.md=text",
     "--log-level=warning",
   ],
   { stdio: "inherit" },

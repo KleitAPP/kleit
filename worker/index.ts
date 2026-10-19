@@ -508,10 +508,24 @@ function creativeCanvas(set: SharedSet, functions: string, background: string): 
       return `<div style="${placement(pos, w, h)};overflow:hidden">${img}</div>`;
     })
     .join("");
+  // Spec 8.2 #5, the tap dots: a numbered dot on each piece, at its centre, that jumps to the
+  // piece's card below (name, price, where it is from, Buy). No script runs on this page, so the
+  // dot is a plain link and the card is the "popover". The number matches the card's.
+  const dots = set.pieces
+    .map((p, i) => {
+      const pos = p.position;
+      if (!p.row || !pos || typeof pos !== "object" || pos.hidden) return "";
+      const cx = ((num(pos.x, 0) + num(pos.w, 0, 0) / 2) / w) * 100;
+      const cy = ((num(pos.y, 0) + num(pos.h, 0, 0) / 2) / h) * 100;
+      const name = p.title?.trim() || (p.kind === "own" ? "their own piece" : "a piece");
+      const tag = p.kind === "own" ? "their own piece" : price(p) || "";
+      return `<a class="dot" href="#piece-${i + 1}" style="left:${cx.toFixed(2)}%;top:${cy.toFixed(2)}%" aria-label="Piece ${i + 1}: ${esc(name)}${tag ? `, ${esc(tag)}` : ""} - details below" title="${esc(name)}${tag ? ` · ${esc(tag)}` : ""}">${i + 1}</a>`;
+    })
+    .join("");
   const faces = [...fontsUsed]
     .map((f) => `@font-face{font-family:kleit-${f};src:url(/fonts/${f}.ttf);font-display:swap}`)
     .join("");
-  return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${bgPicture}${layers}</section>`;
+  return `${faces ? `<style>${faces}</style>` : ""}<section class="creative" style="background:${background};aspect-ratio:${w} / ${h};container-type:inline-size" aria-label="The set">${bgPicture}${layers}${dots}</section>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -838,7 +852,8 @@ function renderEmbed(set: SharedSet, code: string, base: string, env: Env): stri
       const buy = p.buyable
         ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a><p class="from">We earn a commission from purchases.</p>`
         : "";
-      return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
+      const n = set.pieces.indexOf(p) + 1;
+      return `<li class="piece" id="piece-${n}">${img}<div class="meta"><h2 class="piece-name"><span class="n">${n}</span> ${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${buy}</div></li>`;
     })
     .join("");
   const hasBuy = set.pieces.some((p) => p.buyable);
@@ -1185,7 +1200,8 @@ function render(set: SharedSet, code: string, base: string, env: Env): string {
       const buy = p.buyable
         ? `<a class="buy" rel="noopener noreferrer" target="_blank" href="${functions}/buy-redirect?item=${p.id}&set=${set.id}&network=direct" aria-label="Buy at ${esc(p.store_name ?? "the store")}: ${esc(name)} (opens the store's site)">Buy at ${esc(p.store_name ?? "the store")}</a><p class="from">We earn a commission from purchases.</p>`
         : "";
-      return `<li class="piece">${img}<div class="meta"><h2 class="piece-name">${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${p.source_domain ? `<p class="from">from ${esc(p.source_domain)}</p>` : ""}${buy}</div></li>`;
+      const n = set.pieces.indexOf(p) + 1;
+      return `<li class="piece" id="piece-${n}">${img}<div class="meta"><h2 class="piece-name"><span class="n">${n}</span> ${esc(name)}</h2>${tag ? `<p class="tag">${esc(tag)}</p>` : ""}${p.source_domain ? `<p class="from">from ${esc(p.source_domain)}</p>` : ""}${buy}</div></li>`;
     })
     .join("");
 
@@ -1377,6 +1393,10 @@ h1{font-size:26px;margin:12px 0 4px}h2{font-size:18px;margin:0 0 6px}h3{font-siz
 .piece{background:rgba(255,255,255,.7);border-radius:8px;overflow:hidden}
 .piece img,.noimg{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee7dc}
 .meta{padding:8px}.piece-name{font-size:15px;margin:0}.tag{margin:4px 0 0;font-weight:600;font-size:14px}
+.piece-name .n{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:#161513;color:#FAF9F7;font-size:12px;text-align:center;vertical-align:middle}
+.dot{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:14px;background:#161513;color:#FAF9F7;font:600 13px/28px system-ui,sans-serif;text-align:center;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.35);outline:2px solid #FAF9F7}
+.dot:focus-visible{outline:3px solid #C0442B}
+.piece:target{outline:3px solid #C0442B;outline-offset:2px}
 .buy,.button{display:inline-block;margin-top:8px;padding:10px 14px;border-radius:999px;background:#c0442b;color:#fff;text-decoration:none;font-weight:600;font-size:15px}
 .card{margin-top:20px;padding:16px;border:1px solid #e6e0d6;border-radius:12px;background:#fff}
 .sources{margin-top:20px}.sources ul{padding-left:18px}

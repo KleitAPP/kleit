@@ -392,6 +392,12 @@ function SendSet() {
         <p className="mt-1 text-sm text-ink-soft">{t("send.peopleWhy")}</p>
       </div>
 
+      {placements.length > 15 ? (
+        <p className="mt-4 text-sm text-ink-soft">
+          {t("send.manyPieces", { count: placements.length })}
+        </p>
+      ) : null}
+
       {/* G5: alt text lives under Advanced - offered, never in the way. */}
       <details className="mt-4 rounded-md border border-line bg-surface p-3">
         <summary className="cursor-pointer text-base text-ink">{t("send.advanced")}</summary>

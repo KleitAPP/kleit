@@ -1155,6 +1155,8 @@ export const en = {
   "send.sizePost": "Post (4:5)",
   "send.pinterest": "Pin it on Pinterest",
   "send.description": "Description (optional)",
+  "send.manyPieces":
+    "{count} pieces. On the shared page each one gets a tap dot; past about 15 they start to crowd. It still works - just a thought.",
   "send.descriptionHint": "A line or two about the look",
   "send.copied": "Copied",
   "send.theLink": "The link",

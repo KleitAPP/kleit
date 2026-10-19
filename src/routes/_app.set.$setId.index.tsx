@@ -595,6 +595,14 @@ function SetPage() {
             {t("setpage.useStyle")}
           </button>
           <p className="mt-2 text-sm text-ink-soft">{t("setpage.useStyleWhat")}</p>
+          {/* Spec 7.1 #1: anyone's set can go into one of YOUR folders (the owner has it in the options). */}
+          <button
+            type="button"
+            onClick={() => setSaving(true)}
+            className="mt-3 flex min-h-12 w-full items-center justify-center rounded-pill border border-line bg-surface px-5 text-base font-medium text-ink transition-colors duration-fast hover:bg-surface-2"
+          >
+            {t("collections.saveTo")}
+          </button>
         </div>
       ) : null}
 

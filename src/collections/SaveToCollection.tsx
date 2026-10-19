@@ -3,18 +3,20 @@ import { useEffect, useState } from "react";
 import { PrimaryButton, Sheet } from "@/components/kleit";
 import { t } from "@/i18n/en";
 import {
-  addSetToCollection,
-  collectionsHolding,
+  addToCollection,
+  collectionsHoldingThing,
   createCollection,
   myCollections,
-  removeSetFromCollection,
+  removeFromCollection,
   type CollectionSummary,
+  type Saveable,
 } from "@/collections/collections";
 
 /**
- * "Save to a folder" - a sheet over the set page. Each folder is a switch: on puts the set in,
- * off takes it out, at once, no Save button (the entry is the whole state). A new folder is made
- * from here too, Only me by default.
+ * "Save to a folder" - a sheet over a set page or a piece page. Each folder is a switch: on puts
+ * the thing in, off takes it out, at once, no Save button (the entry is the whole state). A new
+ * folder is made from here too, Only me by default. Anyone's set or piece can go in (spec 7.1
+ * #1): the folder holds a reference, and the person it belongs to is told nothing.
  *
  * With several sets (`setIds`, the You tab's Select mode - spec 7.1 #10) a folder is "in" only
  * when every chosen set is in it; switching it on puts them all in, off takes them all out.
@@ -22,15 +24,25 @@ import {
 export function SaveToCollection({
   setId,
   setIds,
+  itemId,
   open,
   onOpenChange,
 }: {
-  setId: string;
+  setId?: string;
   setIds?: string[];
+  /** A piece instead of a set (the item page). */
+  itemId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const ids = setIds && setIds.length > 0 ? setIds : [setId];
+  const things: Saveable[] = itemId
+    ? [{ item: itemId }]
+    : setIds && setIds.length > 0
+      ? setIds.map((set) => ({ set }))
+      : setId
+        ? [{ set: setId }]
+        : [];
+  const key = things.map((x) => ("set" in x ? `s:${x.set}` : `i:${x.item}`)).join(",");
   const [folders, setFolders] = useState<CollectionSummary[] | null>(null);
   const [holding, setHolding] = useState<Set<string>>(new Set());
   const [newName, setNewName] = useState("");
@@ -39,7 +51,7 @@ export function SaveToCollection({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    void Promise.all([myCollections(), ...ids.map((id) => collectionsHolding(id))]).then(
+    void Promise.all([myCollections(), ...things.map((x) => collectionsHoldingThing(x))]).then(
       ([list, ...held]) => {
         if (cancelled) return;
         setFolders(list);
@@ -53,15 +65,13 @@ export function SaveToCollection({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, ids.join(",")]);
+  }, [open, key]);
 
   async function toggle(folder: CollectionSummary) {
     setBusy(folder.id);
     const on = holding.has(folder.id);
     const results = await Promise.all(
-      ids.map((id) =>
-        on ? removeSetFromCollection(folder.id, id) : addSetToCollection(folder.id, id),
-      ),
+      things.map((x) => (on ? removeFromCollection(folder.id, x) : addToCollection(folder.id, x))),
     );
     const ok = results.every(Boolean);
     if (ok) {
@@ -79,7 +89,7 @@ export function SaveToCollection({
     setBusy("new");
     const id = await createCollection(name);
     if (id) {
-      await Promise.all(ids.map((setIdToAdd) => addSetToCollection(id, setIdToAdd)));
+      await Promise.all(things.map((x) => addToCollection(id, x)));
       setFolders([
         { id, name, visibility: "only_me", owner_id: "", updated_at: new Date().toISOString() },
         ...(folders ?? []),
@@ -95,7 +105,7 @@ export function SaveToCollection({
       open={open}
       onOpenChange={onOpenChange}
       title={t("collections.saveTo")}
-      description={t("collections.saveToWhat")}
+      description={itemId ? t("collections.saveToWhatPiece") : t("collections.saveToWhat")}
     >
       {folders === null ? (
         <div role="status" aria-label={t("loading")}>

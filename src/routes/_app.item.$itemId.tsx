@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { SaveToCollection } from "@/collections/SaveToCollection";
 import { EmptyState, PrimaryButton, Sheet } from "@/components/kleit";
-import { Heart } from "lucide-react";
+import { FolderPlus, Heart } from "lucide-react";
 
 import { ColourChips } from "@/items/ColourChips";
 import { colourLabel, isColourName, type ColourName } from "@/items/colour";
@@ -83,6 +84,7 @@ function ItemPage() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [inSets, setInSets] = useState<SetWithItem[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -250,6 +252,16 @@ function ItemPage() {
               {saved ? t("item.saved") : t("item.save")}
             </button>
           ) : null}
+          <button
+            type="button"
+            aria-label={t("collections.saveTo")}
+            title={t("collections.saveTo")}
+            onClick={() => setSaving(true)}
+            className="flex min-h-11 items-center gap-1 rounded-pill border border-line bg-surface px-3 text-sm text-ink"
+          >
+            <FolderPlus className="size-4" aria-hidden="true" />
+            {t("collections.folder")}
+          </button>
           <ReportButton type="item" id={itemId} />
         </div>
       </div>
@@ -457,6 +469,7 @@ function ItemPage() {
           </p>
         ) : null}
       </Sheet>
+      <SaveToCollection itemId={itemId} open={saving} onOpenChange={setSaving} />
     </div>
   );
 }

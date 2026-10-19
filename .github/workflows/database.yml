@@ -37,9 +37,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # npm, not supabase/setup-cli: the action asks GitHub's API for the latest release without a
+      # token, and the runners' shared allowance runs out (2026-10-19: "rate limit exceeded"). The
+      # npm package finds its version on the npm registry and fetches the binary as a release
+      # download, which has no such limit. (A global install is refused by the package; a local
+      # one on PATH is the same thing.)
+      - name: Supabase CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/sb" && cd "$RUNNER_TEMP/sb" && npm init -y >/dev/null && npm install supabase@latest --no-audit --no-fund
+          echo "$RUNNER_TEMP/sb/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Link kleit-test
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
       - name: Apply migrations
@@ -79,9 +85,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # npm, not supabase/setup-cli: the action asks GitHub's API for the latest release without a
+      # token, and the runners' shared allowance runs out (2026-10-19: "rate limit exceeded"). The
+      # npm package finds its version on the npm registry and fetches the binary as a release
+      # download, which has no such limit. (A global install is refused by the package; a local
+      # one on PATH is the same thing.)
+      - name: Supabase CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/sb" && cd "$RUNNER_TEMP/sb" && npm init -y >/dev/null && npm install supabase@latest --no-audit --no-fund
+          echo "$RUNNER_TEMP/sb/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Link kleit-test
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
       - name: RLS test suite
@@ -94,9 +106,15 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # npm, not supabase/setup-cli: the action asks GitHub's API for the latest release without a
+      # token, and the runners' shared allowance runs out (2026-10-19: "rate limit exceeded"). The
+      # npm package finds its version on the npm registry and fetches the binary as a release
+      # download, which has no such limit. (A global install is refused by the package; a local
+      # one on PATH is the same thing.)
+      - name: Supabase CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/sb" && cd "$RUNNER_TEMP/sb" && npm init -y >/dev/null && npm install supabase@latest --no-audit --no-fund
+          echo "$RUNNER_TEMP/sb/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Generate types
         run: supabase gen types typescript --project-id "$SUPABASE_PROJECT_REF" --schema public > src/integrations/supabase/types.ts
       - name: Commit if changed
@@ -116,9 +134,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # npm, not supabase/setup-cli: the action asks GitHub's API for the latest release without a
+      # token, and the runners' shared allowance runs out (2026-10-19: "rate limit exceeded"). The
+      # npm package finds its version on the npm registry and fetches the binary as a release
+      # download, which has no such limit. (A global install is refused by the package; a local
+      # one on PATH is the same thing.)
+      - name: Supabase CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/sb" && cd "$RUNNER_TEMP/sb" && npm init -y >/dev/null && npm install supabase@latest --no-audit --no-fund
+          echo "$RUNNER_TEMP/sb/node_modules/.bin" >> "$GITHUB_PATH"
       # The scanner's key pair lives in Supabase's own secret store, not in the function's code and
       # not in this repository. It gets there from GitHub secrets, once, on every deploy - so
       # rotating the key is a paste in one place and a push.

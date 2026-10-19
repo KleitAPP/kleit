@@ -976,7 +976,16 @@ try {
   await admin
     .from("item_flags")
     .upsert({ item_id: photoItem?.id, scan_state: "clean", scanned_at: new Date().toISOString() });
-  const readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  // Storage answers 429 "Too many connections" now and then (WA22): wait it out, as the core loop does.
+  let readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  for (
+    let n = 0;
+    readCleared.error && /too many connections/i.test(readCleared.error.message ?? "") && n < 5;
+    n++
+  ) {
+    await new Promise((r) => setTimeout(r, 3000));
+    readCleared = await a.storage.from("closet-photos").createSignedUrl(photoPath, 60);
+  }
   check(
     !!readCleared.data?.signedUrl,
     "attacker: can read it once the scan has cleared it",
